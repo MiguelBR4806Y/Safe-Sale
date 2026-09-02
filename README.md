@@ -1,32 +1,22 @@
 ## 📁 Estructura del Proyecto
 
 ```
-Save-Sale/
+Safe-Sale/
 ├── docs/                           # Diagramas E-R, prototipos de Figma y documentación
-├── scripts/                        # Scripts SQL de base de datos (schema.sql, seed.sql, SPs)
-└── src/                            # Código fuente en .NET
-    ├── SaveSale.sln                # Solución principal de .NET
-    │
-    ├── SaveSale.Shared/            # Biblioteca de Clases (Compartida)
-    │   ├── Models/                 # Entidades de base de datos (Venta.cs, Producto.cs, etc.)
-    │   └── DTOs/                   # Objetos de transferencia de datos para la API
-    │
-    ├── SaveSale.Api/               # Backend REST (Minimal API .NET)
-    │   ├── Endpoints/              # Rutas REST (VentasEndpoints.cs, ProductosEndpoints.cs)
-    │   ├── Data/                   # Configuración y conexión a MySQL
-    │   ├── Services/               # Lógica de negocio y Stored Procedures
-    │   └── Program.cs              # Punto de entrada del servidor API
-    │
-    ├── SaveSale.SharedUI/          # Vistas e Interfaz de Usuario (Avalonia UI)
-    │   ├── Views/                  # Vistas XAML (LoginView, PosView, InventarioView)
-    │   ├── ViewModels/             # Lógica de las vistas en C# (Patrón MVVM)
-    │   └── Services/               # Cliente HTTP (HttpClient) para consumir la API
-    │
-    ├── SaveSale.Desktop/           # Aplicación Ejecutable de Escritorio
-    │   └── Program.cs              # Inicializador para Windows, macOS y Linux
-    │
-    ├── SaveSale.Web/               # [Opcional] Compilación para WebAssembly (WASM)
-    └── SaveSale.Android/           # [Opcional] Compilación móvil para Android (APK)
+├── src/
+    └── SS/                         # Proyecto Avalonia UI con SQLite
+        ├── App.axaml               # Aplicación Avalonia principal
+        ├── App.axaml.cs            # Code-behind de App.axaml
+        ├── MainWindow.axaml        # Ventana principal de la UI
+        ├── MainWindow.axaml.cs     # Code-behind de MainWindow.axaml
+        ├── MainViewModel.cs        # ViewModel principal (Patrón MVVM)
+        ├── ViewModelBase.cs        # Clase base para ViewModels
+        ├── SS.csproj               # Proyecto Avalonia con SQLite
+        ├── ViewLocator.cs          # Localizador de vistas
+        ├── Assets/                 # Recursos e iconos
+        │   └── avalonia-logo.ico
+        ├── Views/                  # Vistas XAML
+        └── ViewModels/             # Lógica de vistas en C# (MVVM)
 ```
 
 ---
@@ -46,37 +36,37 @@ Save-Sale/
 ```
 
 ### **Fase 1: Planificación, Arquitectura y Prototipado (Sep 1 – Sep 13)**
-* **Integrante 1:** Levanta requerimientos técnicos. Modela y genera el diagrama Entidad-Relación (MER) formal y el esquema relacional en la carpeta docs/.
-* **Integrante 2:** Configura la estructura de la solución multi-proyecto (SaveSale.sln), definición de carpetas, dependencias entre proyectos y configuración base de MVVM.
-* **Integrante 3:** Diseña la experiencia de usuario (UX) e interfaces de pantalla en **Figma**: Login, Dashboard principal, Formulario de productos y la caja de cobro (POS).
+* **Dante (Integrante 1):** Levanta requerimientos técnicos. Modela y genera el diagrama Entidad-Relación (MER) formal y el esquema relacional en la carpeta docs/.
+* **Lucas (Integrante 2):** Configura la estructura de la solución multi-proyecto (SaveSale.sln), definición de carpetas, dependencias entre proyectos y configuración base de MVVM.
+* **Jandir (Integrante 3):** Diseña la experiencia de usuario (UX) e interfaces de pantalla en **Figma**: Login, Dashboard principal, Formulario de productos y la caja de cobro (POS).
 * **📌 Entregable de Fase:** Diagrama E-R aprobado, bocetos de Figma validados y estructura base inicializada en el repositorio de GitHub.
 
 ### **Fase 2: Base de Datos y Servicios Base (Sep 14 – Sep 20)**
-* **Integrante 1:** Ejecución y publicación del script schema.sql en MySQL. Creación de Stored Procedures iniciales (sp_Login, sp_ObtenerProductos).
-* **Integrante 2:** Configuración de la capa de conexión a base de datos y desarrollo de los primeros endpoints en la Minimal API (SaveSale.Api).
-* **Integrante 3:** Elaboración y prueba del script de carga masiva (seed.sql) con categorías, productos reales y usuarios de prueba.
-* **📌 Entregable de Fase:** Base de datos activa con datos de prueba cargados y cliente C# realizando consultas exitosas a MySQL.
+* **Dante (Integrante 1):** Ejecución y publicación del script schema.sql en SQLite. Creación de la base de datos local con las tablas necesarias.
+* **Lucas (Integrante 2):** Configuración de la capa de conexión a base de datos SQLite y desarrollo de los endpoints para acceso a datos locales.
+* **Jandir (Integrante 3):** Elaboración y prueba del script de carga masiva (seed.sql) con datos de prueba para SQLite.
+* **📌 Entregable de Fase:** Base de datos SQLite activa con datos de prueba cargados y cliente C# realizando consultas exitosas.
 
 ### **Fase 3: Módulo de Gestión de Inventario (Sep 21 – Sep 27)**
-* **Integrante 1:** Creación de Stored Procedures para Alta, Baja y Modificación de productos y categorías con reglas de validación de negocio.
-* **Integrante 2:** Desarrollo de los endpoints HTTP CRUD y creación de las pantallas XAML en Avalonia UI (DataGrid, formularios de productos).
-* **Integrante 3:** Construcción de la interfaz de gestión de categorías y primera ronda de pruebas QA para validar campos y formularios de inventario.
+* **Dante (Integrante 1):** Creación de tablas y Stored Procedures (o queries) para Alta, Baja y Modificación de productos y categorías con validación de negocio en SQLite.
+* **Lucas (Integrante 2):** Desarrollo de los endpoints HTTP CRUD y creación de las pantallas XAML en Avalonia UI (DataGrid, formularios de productos) con conexión a SQLite.
+* **Jandir (Integrante 3):** Construcción de la interfaz de gestión de categorías y primera ronda de pruebas QA para validar campos y formularios de inventario usando SQLite.
 * **📌 Entregable de Fase:** Módulo de Inventarios 100% funcional capaz de crear, listar, editar y desactivar productos desde la interfaz.
 
 ### **Fase 4: Desarrollo del Punto de Venta (POS) (Sep 28 – Oct 11)**
-* **Integrante 1:** Implementación del Stored Procedure transaccional sp_RegistrarVenta (START TRANSACTION...COMMIT) asegurando la atomicidad del cobro y el descuento automático de stock con control de concurrencia.
-* **Integrante 2:** Programación del flujo visual del POS: carrito de compras dinámico, cálculo en tiempo real de subtotales, impuestos, total y procesamiento del cobro.
-* **Integrante 3:** Diseño del modelo de recibo/ticket de venta, ventana de confirmación de transacción y ejecución de pruebas de carga registrando ventas continuas.
-* **📌 Entregable de Fase:** Flujo de venta completo funcionando desde la UI de escritorio con actualización en tiempo real del inventario en MySQL.
+* **Dante (Integrante 1):** Implementación del Stored Procedure (o transacción) sp_RegistrarVenta usando SQLite para asegurar atomicidad del cobro y descuento automático de stock.
+* **Lucas (Integrante 2):** Programación del flujo visual del POS: carrito de compras dinámico, cálculo en tiempo real de subtotales, impuestos, total y procesamiento del cobro con base de datos local SQLite.
+* **Jandir (Integrante 3):** Diseño del modelo de recibo/ticket de venta, ventana de confirmación de transacción y ejecución de pruebas de carga registrando ventas continuas con base de datos SQLite.
+* **📌 Entregable de Fase:** Flujo de venta completo funcionando desde la UI de escritorio con actualización en tiempo real del inventario en SQLite.
 
 ### **Fase 5: Control de Acceso, Roles y Reportes (Oct 12 – Oct 18)**
-* **Integrante 1:** Restricción de permisos a nivel de base de datos y endpoints según el perfil del usuario (*Administrador* y *Cajero*).
-* **Integrante 2:** Integración de la pantalla de Login, gestión de la sesión activa y ocultamiento/bloqueo de menús según el rol que inició sesión.
-* **Integrante 3:** Pantalla de reporte diario ("Ventas del Día"), compilación de la documentación técnica y redactado inicial del manual de usuario.
+* **Dante (Integrante 1):** Restricción de permisos a nivel de base de datos SQLite y endpoints según el perfil del usuario (*Administrador* y *Cajero*).
+* **Lucas (Integrante 2):** Integración de la pantalla de Login, gestión de la sesión activa y ocultamiento/bloqueo de menús según el rol que inició sesión, usando autenticación con SQLite.
+* **Jandir (Integrante 3):** Pantalla de reporte diario ("Ventas del Día"), compilación de la documentación técnica y redactado inicial del manual de usuario usando datos de SQLite.
 * **📌 Entregable de Fase:** Sistema seguro con inicio de sesión por roles y panel de métricas de ventas diarias.
 
 ### **Fase 6: Pruebas Globales, Empaquetado y Presentación (Oct 19 – Oct 30)**
 * **Equipo Completo:** Pruebas integrales de punta a punta, resolución de errores (bugs), optimización del sistema y generación del instalador ejecutable autónomo.
-* **Integrante 3:** Lidera el diseño de la diapositiva y presentación ejecutiva para la defensa.
-* **Integrantes 1 y 2:** Preparación de los argumentos técnicos de defensa (transacciones ACID, arquitectura MVVM, consumo de APIs).
+* **Jandir (Integrante 3):** Lidera el diseño de la diapositiva y presentación ejecutiva para la defensa usando datos de la base de datos local SQLite.
+* **Dante y Lucas:** Preparación de los argumentos técnicos de defensa (arquitectura MVVM, consumo de APIs locales con SQLite).
 * **📌 Entregable de Fase:** Software empaquetado para distribución y defensa exitosa del proyecto.

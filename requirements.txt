@@ -1,0 +1,20 @@
+# Save-Sale - Configuración para programación
+# Proyecto: Avalonia UI con SQLite local
+
+# Para INICIAR el proyecto (hace restore + build + run):
+dotnet run --project src\SS\SS.csproj
+
+# O pasos separados si es necesario:
+# dotnet run                                          # Compila y ejecuta (recomendado)
+# dotnet build                                        # Solo compila
+# dotnet new sln add SS\SS.csproj                     # Agregar solución (una vez)
+
+# Base de datos SQLite:
+# - Se crea automáticamente al primer ejecución
+# - Archivo .db generado en la carpeta bin/Debug/net10.0/
+# - No requiere configuración MySQL ni servidores
+
+# Integrantes del proyecto:
+# - Dante (Integrante 1)
+# - Lucas (Integrante 2) 
+# - Jandir (Integrante 3)
