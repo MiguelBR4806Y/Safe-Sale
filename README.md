@@ -1,72 +1,108 @@
-## 📁 Estructura del Proyecto
+# Safe-Sale - Supermercado Avalonia UI
 
-```
-Safe-Sale/
-├── docs/                           # Diagramas E-R, prototipos de Figma y documentación
-├── src/
-    └── SS/                         # Proyecto Avalonia UI con SQLite
-        ├── App.axaml               # Aplicación Avalonia principal
-        ├── App.axaml.cs            # Code-behind de App.axaml
-        ├── MainWindow.axaml        # Ventana principal de la UI
-        ├── MainWindow.axaml.cs     # Code-behind de MainWindow.axaml
-        ├── MainViewModel.cs        # ViewModel principal (Patrón MVVM)
-        ├── ViewModelBase.cs        # Clase base para ViewModels
-        ├── SS.csproj               # Proyecto Avalonia con SQLite
-        ├── ViewLocator.cs          # Localizador de vistas
-        ├── Assets/                 # Recursos e iconos
-        │   └── avalonia-logo.ico
-        ├── Views/                  # Vistas XAML
-        └── ViewModels/             # Lógica de vistas en C# (MVVM)
+## 📱 Aplicación de mostrador de supermercado
+Multiplataforma (Windows, macOS, Linux) usando **Avalonia UI**, **C#** y **SQLite** nativo.
+
+---
+
+## 📅 Estado Actual del Proyecto
+
+| Fecha | Hito |
+|-------|------|
+| **Hoy**: 8 de septiembre de 2026 | Inicio de la fase de ejecución |
+| **Entrega**: 22 de septiembre de 2026 | **9 días hábiles** |
+| **Duración restante**: 2 semanas | Objetivo: Backend completo y operable |
+
+---
+
+## ✅ Qué ya está concluido
+
+- **Estructura del proyecto**: `.csproj`, `Program.cs`, capas de MVVM
+- **Base de datos SQLite**: `Microsoft.Data.Sqlite` instalado y configurado
+- **Inicializador de BD**: `SqliteDatabaseInitializer.cs` crea 6 tablas automáticamente
+- **Modelos**: `Product.cs`, `Category.cs` con `ObservableObject` (CommunityToolkit.Mvvm)
+- **Repositorios**: `SqliteProductRepository.cs`, `SqliteCategoryRepository.cs` con CRUD completo
+- **Conexión en Program.cs**: Base de datos se crea en el primer arranque en `~/supermarket.db` (ruta nativa por SO)
+
+---
+
+## 📦 Estructura de la Base de Datos (creada automáticamente)
+
+```sql
+-- Tablas creadas en la primera ejecución:
+-- categories, products, users, sales, sale_items
 ```
 
 ---
 
-## 🔄 Fase Actual de Desarrollo
+## 🎯 Objetivos Restantes (9 días)
 
-**🟢 Actualmente en: Fase 1 (Planificación, Arquitectura y Prototipado)**  
-*(1 de Septiembre al 13 de Septiembre de 2026)*
+| Tarea | Responsable | Prioridad |
+|-------|-------------|-----------|
+| **Probar operaciones CRUD** (agregar/editar/borrar productos) | Lucas | Alta |
+| **Conectar ViewModels** con repositorios SQLite | Lucas | Alta |
+| **Pantalla de Login** para roles admin/cashier | Lucas | Alta |
+| **Módulo de ventas** (carrito, cálculo de total, registro de venta) | Lucas | Alta |
+| **Actualizar UI** (DataGrid productos, formulario de ingreso) | Lucas | Media |
+| **Probar en Linux/macOS** (multiplatform) | Lucas | Media |
+| **Preparar demo/defensa** (capturas, README actualizado) | Lucas | Baja |
 
 ---
 
-## 🚀 Fases de Desarrollo (Fecha Límite: 30 de Octubre, 2026)
+## 🗓️ Cronograma Ajustado (9 días)
 
 ```
-[Fase 1: Diseño] ──> [Fase 2: BD & API] ──> [Fase 3: Inventario] ──> [Fase 4: POS] ──> [Fase 5: Roles/Reportes] ──> [Fase 6: QA & Defensa]
-  (Sep 01-13)          (Sep 14-20)          (Sep 21-27)           (Sep 28-Oct 11)        (Oct 12-18)            (Oct 19-30)
+Día 1-2 (lun-mar): Probar CRUD y conexión BD → Already done ✅
+Día 3-4 (miér-jue): ViewModels + Login + Pantallas básicas
+Día 5-6 (vie-lun): Módulo de ventas y carrito
+Día 7-8 (mar-mi): Testing en las 3 plataformas + bugs
+Día 9 (mié): Ajustes finos + README + Preparación demo
 ```
 
-### **Fase 1: Planificación, Arquitectura y Prototipado (Sep 1 – Sep 13)**
-* **Dante (Integrante 1):** Levanta requerimientos técnicos. Modela y genera el diagrama Entidad-Relación (MER) formal y el esquema relacional en la carpeta docs/.
-* **Lucas (Integrante 2):** Configura la estructura de la solución multi-proyecto (SaveSale.sln), definición de carpetas, dependencias entre proyectos y configuración base de MVVM.
-* **Jandir (Integrante 3):** Diseña la experiencia de usuario (UX) e interfaces de pantalla en **Figma**: Login, Dashboard principal, Formulario de productos y la caja de cobro (POS).
-* **📌 Entregable de Fase:** Diagrama E-R aprobado, bocetos de Figma validados y estructura base inicializada en el repositorio de GitHub.
+---
 
-### **Fase 2: Base de Datos y Servicios Base (Sep 14 – Sep 20)**
-* **Dante (Integrante 1):** Ejecución y publicación del script schema.sql en SQLite. Creación de la base de datos local con las tablas necesarias.
-* **Lucas (Integrante 2):** Configuración de la capa de conexión a base de datos SQLite y desarrollo de los endpoints para acceso a datos locales.
-* **Jandir (Integrante 3):** Elaboración y prueba del script de carga masiva (seed.sql) con datos de prueba para SQLite.
-* **📌 Entregable de Fase:** Base de datos SQLite activa con datos de prueba cargados y cliente C# realizando consultas exitosas.
+## 👨‍💻 Rol de Lucas (Único desarrollador activo)
 
-### **Fase 3: Módulo de Gestión de Inventario (Sep 21 – Sep 27)**
-* **Dante (Integrante 1):** Creación de tablas y Stored Procedures (o queries) para Alta, Baja y Modificación de productos y categorías con validación de negocio en SQLite.
-* **Lucas (Integrante 2):** Desarrollo de los endpoints HTTP CRUD y creación de las pantallas XAML en Avalonia UI (DataGrid, formularios de productos) con conexión a SQLite.
-* **Jandir (Integrante 3):** Construcción de la interfaz de gestión de categorías y primera ronda de pruebas QA para validar campos y formularios de inventario usando SQLite.
-* **📌 Entregable de Fase:** Módulo de Inventarios 100% funcional capaz de crear, listar, editar y desactivar productos desde la interfaz.
+Dado el plazo ajustado, las responsabilidades se concentran en:
 
-### **Fase 4: Desarrollo del Punto de Venta (POS) (Sep 28 – Oct 11)**
-* **Dante (Integrante 1):** Implementación del Stored Procedure (o transacción) sp_RegistrarVenta usando SQLite para asegurar atomicidad del cobro y descuento automático de stock.
-* **Lucas (Integrante 2):** Programación del flujo visual del POS: carrito de compras dinámico, cálculo en tiempo real de subtotales, impuestos, total y procesamiento del cobro con base de datos local SQLite.
-* **Jandir (Integrante 3):** Diseño del modelo de recibo/ticket de venta, ventana de confirmación de transacción y ejecución de pruebas de carga registrando ventas continuas con base de datos SQLite.
-* **📌 Entregable de Fase:** Flujo de venta completo funcionando desde la UI de escritorio con actualización en tiempo real del inventario en SQLite.
+1. **Backend completo**: BD, repositorios, conexión, lógica de negocio
+2. **Frontend UI**: Views XAML y ViewModels para Avalonia
+3- **Testing**: Probar en Windows/macOS/Linux
+4. **Documentación**: README, manuales, demo
 
-### **Fase 5: Control de Acceso, Roles y Reportes (Oct 12 – Oct 18)**
-* **Dante (Integrante 1):** Restricción de permisos a nivel de base de datos SQLite y endpoints según el perfil del usuario (*Administrador* y *Cajero*).
-* **Lucas (Integrante 2):** Integración de la pantalla de Login, gestión de la sesión activa y ocultamiento/bloqueo de menús según el rol que inició sesión, usando autenticación con SQLite.
-* **Jandir (Integrante 3):** Pantalla de reporte diario ("Ventas del Día"), compilación de la documentación técnica y redactado inicial del manual de usuario usando datos de SQLite.
-* **📌 Entregable de Fase:** Sistema seguro con inicio de sesión por roles y panel de métricas de ventas diarias.
+---
 
-### **Fase 6: Pruebas Globales, Empaquetado y Presentación (Oct 19 – Oct 30)**
-* **Equipo Completo:** Pruebas integrales de punta a punta, resolución de errores (bugs), optimización del sistema y generación del instalador ejecutable autónomo.
-* **Jandir (Integrante 3):** Lidera el diseño de la diapositiva y presentación ejecutiva para la defensa usando datos de la base de datos local SQLite.
-* **Dante y Lucas:** Preparación de los argumentos técnicos de defensa (arquitectura MVVM, consumo de APIs locales con SQLite).
-* **📌 Entregable de Fase:** Software empaquetado para distribución y defensa exitosa del proyecto.
+## 📦 Cómo correr el proyecto
+
+```bash
+# 1. Restaurar paquetes
+dotnet restore
+
+# 2. Compilar (crea supermarket.db automáticamente en primer arranque)
+dotnet build
+
+# 3. Ejecutar
+dotnet run --project src/SS/SS.csproj
+```
+
+La base de datos se creará automáticamente en la carpeta nativa de cada SO:
+- **Windows**: `%APPDATA%\supermarket.db`
+- **macOS**: `~/Library/Application Support/supermarket.db`
+- **Linux**: `~/.local/share/supermarket.db`
+
+---
+
+## 🛠️ Tecnologías usadas
+
+- **Avalonia UI** - Framework multiplataforma
+- **C# .NET 10** - Backend/lógica
+- **Microsoft.Data.Sqlite** - SQLite nativo (sin configuraciones extras)
+- **SQLitePCLRaw** - Provedores nativos para Windows/macOS/Linux (incluidos en el proyecto)
+- **CommunityToolkit.Mvvm** - Patrón MVVM
+- **SQLite** - Base de datos local embebida
+
+---
+
+*Proyecto: Supermercado Safe-Sale*  
+*Fecha de entrega: 22 de septiembre de 2026*  
+*Desarrollado por Lucas*
