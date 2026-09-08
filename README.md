@@ -126,6 +126,42 @@ La base de datos se creará automáticamente en la carpeta nativa de cada SO:
 
 ---
 
+## 📱 Funcionalidad QR/Code de Barras (Planificada para después)
+
+El proyecto incluye preparación para el escaneo de códigos de barras y QR, esencial para un supermercado. Los componentes están listos para integrarse:
+
+### Paquete NuGet agregado:
+- `ZXing.Net.Mobile` - Lectura de códigos multiplataforma
+
+### Servicio creado (estructura lista):
+- **`Services/QrScannerService.cs`** - Encapsula la lógica de escaneo
+  - Método `ScanAsync()` devuelve el texto del código detectado
+  - Soporta QR_CODE, CODE_128, EAN_13, UPC_A
+  - Funciona en Windows, macOS, Linux con Avalonia
+
+### ViewModel listo para usar:
+- **`ViewModels/MainViewModel.cs`** - Tiene `ScanQrCommand` y `ScannedCode` property
+- **`Views/MainWindow.axaml`** - Tiene botón y display para el código escaneado
+
+### Integración futura (cuando ZXing versión sea compatible):
+1. El código escaneado sería el `barcode` del producto en la tabla `products`
+2. Al escanear, el sistema busca el producto en la BD
+3. Si existe: muestra precio, nombre, stock - listo para vender
+4. Si no existe: opción para registrar nuevo producto con ese código
+
+### En la UI actual (MainWindow.axaml):
+```xml
+<Button Content="Escanear Código QR/Barra"
+        Command="{Binding ScanQrCommand}"
+        HorizontalAlignment="Center" />
+<TextBlock Text="Código escaneado:"
+           FontSize="14" HorizontalAlignment="Center" />
+<TextBlock Text="{Binding ScannedCode}"
+           FontSize="24" Foreground="Green" HorizontalAlignment="Center" />
+```
+
+---
+
 ## 📁 Estructura Actual del Proyecto
 
 ```
@@ -137,12 +173,14 @@ Safe-Sale/
 │       ├── App.axaml.cs            # Code-behind de App.axaml
 │       ├── MainWindow.axaml        # Ventana principal de la UI
 │       ├── MainWindow.axaml.cs     # Code-behind de MainWindow
-│       ├── MainViewModel.cs        # ViewModel principal (Patrón MVVM)
+│       ├── MainViewModel.cs        # ViewModel principal (Patrón MVVM) - con QR command
 │       ├── ViewModelBase.cs        # Clase base para ViewModels
 │       ├── SS.csproj               # Proyecto Avalonia con SQLite
 │       ├── ViewLocator.cs          # Localizador de vistas
 │       ├── Assets/                 # Recursos e iconos
 │       │   └── avalonia-logo.ico
+│       ├── Services/               # Servicios incluyendo QR (pendiente integración)
+│       │   └── QrScannerService.cs # Servicio QR listo para cuando ZXing sea compatible
 │       ├── Views/                  # Vistas XAML (trabaja Jandir)
 │       │   └── MainWindow.axaml
 │       └── ViewModels/             # Lógica de vistas (trabaja Lucas)
