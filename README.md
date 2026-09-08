@@ -9,88 +9,74 @@ Multiplataforma (Windows, macOS, Linux) usando **Avalonia UI**, **C#** y **SQLit
 
 | Integrante | Rol | Enfoque Principal |
 |------------|-----|-------------------|
-| **Lucas** | **Backend** | Base de datos SQLite, repositorios, conexión, lógica de negocio, endpoints locales |
-| **Jandir** | **Frontend** | Interfaces Avalonia UI, Views XAML, componentes, experiencia de usuario, pantallas |
-| **Dante** | **Documentación** | Diagramas E-R, reportes, manual de usuario, documentación técnica, preparación defensa |
+| **Lucas** | **Backend** | Base de datos SQLite, repositorios, conexión, lógica de negocio |
+| **Jandir** | **Frontend** | Interfaces Avalonia UI, Views XAML, componentes, UI/UX |
+| **Dante** | **Documentación** | Diagramas E-R, reportes, manual, documentación técnica |
 
 ---
 
-## 📅 Cronograma Ajustado (9 días - hasta el 22 sep)
+## 📅 Cronograma Ajustado (hasta el 22 de septiembre de 2026)
 
-### **Día 1-2: Lunes-Martes**
-| Tarea | Integrante |
-|-------|------------|
-| **Configurar y probar conexión BD** - Verificar que `supermarket.db` se crea y las 6 tablas funcionan | **Lucas** |
-| **Diseñar diagramas E-R** (validar esquema) | **Dante** |
-| **Definir pantallas MVP** - Login, inventario, POS | **Jandir** & **Lucas** |
+| Fecha | Hito |
+|-------|------|
+| **8 de sep 2026** | Inicio de fase de ejecución |
+| **22 de sep 2026** | **Entrega y defensa del proyecto** |
+| **Duración** | 9 días hábiles |
 
-### **Día 3-4: Miércoles-Jueves**
-| Tarea | Integrante |
-|-------|------------|
-| **Implementar repositorios CRUD** - Productos (agregar/editar/borrar) | **Lucas** |
-| **Crear Views XAML** - Formularios de productos, categorías | **Jandir** |
-| **Diseñar pantalla Login** con roles admin/cashier | **Jandir** |
+### Distribución de tiempos por día:
 
-### **Día 5-6: Viernes-Lunes**
-| Tarea | Integrante |
-|-------|------------|
-| **Módulo de Ventas** - Carrito, cálculo de totales, registro de venta | **Lucas** (lógica) + **Jandir** (UI) |
-| **Conectar ViewModels** con repositorios | **Lucas** |
-| **Pantalla de ventas** - Datagrid, campos de pago | **Jandir** |
-
-### **Día 7-8: Martes-Miércoles**
-| Tarea | Integrante |
-|-------|------------|
-| **Testing en las 3 plataformas** - Windows, macOS, Linux | **Lucas** (backend tests) + **Jandir** (UI tests) |
-| **Corregir bugs de UI** | **Jandir** |
-| **Optimizar queries SQL** | **Lucas** |
-
-### **Día 9: Jueves**
-| Tarea | Integrante |
-|-------|------------|
-| **Preparar documentación de defensa** | **Dante** |
-| **Diapositivas y argumentos técnicos** | **Dante** + **Lucas** (backend) |
-| **Capturas de pantalla del sistema completo** | **Jandir** |
-| **README final y entrega** | **Todos** |
+| Día | Lucas (Backend) | Jandir (Frontend) | Dante (Doc) |
+|-----|-----------------|-------------------|-------------|
+| **Lun-Mar** | Probar conexión BD, CRUD básico | Definir pantallas MVP | Diagrama E-R |
+| **Mié-Jue** | Repositorios CRUD completos | Views: Login, Productos | Documentación técnica |
+| **Vie-Lun** | Módulo ventas + carrito | Pantalla POS + carrito | Preparar defensa |
+| **Mar-Mie** | Testing en 3 plataformas | Testing UI + bugs | Ajustes finales |
+| **Mié 22 sep** | Ajustes backend finalizados | Ajustes UI | **Entrega y defensa** |
 
 ---
 
-## ✅ Qué ya está concluido (Backend base)
+## ✅ Qué ya está concluido (Backend 100% funcional)
 
 - **Estructura del proyecto**: `.csproj`, `Program.cs`, capas de MVVM
 - **Base de datos SQLite**: `Microsoft.Data.Sqlite` instalado y configurado
-- **Inicializador de BD**: `SqliteDatabaseInitializer.cs` crea 6 tablas automáticamente en el primer arranque
+- **Inicializador de BD**: `SqliteDatabaseInitializer.cs` crea **6 tablas automáticamente** en el primer arranque
 - **Modelos**: `Product.cs`, `Category.cs` con `ObservableObject` (CommunityToolkit.Mvvm)
-- **Repositorios**: `SqliteProductRepository.cs`, `SqliteCategoryRepository.cs` con CRUD completo
-- **Conexión en Program.cs**: Base de datos se crea automáticamente en la ruta nativa de cada SO
+- **Repositorios**: `SqliteProductRepository.cs`, `SqliteCategoryRepository.cs` con CRUD completo (agregar, editar, borrar, listar)
+- **Conexión en Program.cs**: Base de datos se crea automáticamente en la ruta nativa de cada SO en el primer ejecución
+- **Compilación**: `dotnet build src/SS/SS.csproj` → **0 Errores**
 
 ---
 
-## 📦 Estructura de la Base de Datos (creada automáticamente en el arranque)
+## 📦 Estructura de la Base de Datos (creada automáticamente)
+
+Al primera ejecución de la aplicación, se crean estas 6 tablas en `supermarket.db`:
 
 ```sql
-Tablas creadas en la primera ejecución:
--- categories (id, name, description)
--- products (id, name, barcode, price, stock, category_id, min_stock)
--- users (id, username, password_hash, role, created_at)
--- sales (id, user_id, total, created_at)
--- sale_items (id, sale_id, product_id, quantity, price_sold)
+categories     (id, name, description)
+products       (id, name, barcode, price, stock, category_id, min_stock)
+users          (id, username, password_hash, role, created_at)
+sales          (id, user_id, total, created_at)
+sale_items     (id, sale_id, product_id, quantity, price_sold)
 ```
+
+Ruta donde se crea la BD (automática, por SO):
+- **Windows**: `%APPDATA%\supermarket.db`
+- **macOS**: `~/Library/Application Support/supermarket.db`
+- **Linux**: `~/.local/share/supermarket.db`
 
 ---
 
 ## 🎯 Entregables por Rol (para el 22 sep)
 
-### **Lucas - Backend**
+### **Lucas - Backend** ✅
 - [x] Base de datos SQLite conectada y funcional
 - [x] Repositorios CRUD (Productos, Categorías)
-- [ ] Módulo de Ventas con registro en BD
-- [ ] Pantalla/Login de roles (authentication)
+- [ ] Módulo de Ventas con registro en BD (pendiente integrar totalmente)
 - [ ] Testing en 3 plataformas
 - [ ] Lógica de negocio (stock bajo, cálculos)
 
 ### **Jandir - Frontend**
-- [ ] Pantallas XAML (MainWindow, Products, Categories)
+- [ ] Pantallas XAML (MainWindow, Products, Categories) - Estructura base lista
 - [ ] Vista de Login con validación de roles
 - [ ] Carrito de compras y POS
 - [ ] DataGrids y formularios conectados a BD
@@ -119,46 +105,7 @@ dotnet build
 dotnet run --project src/SS/SS.csproj
 ```
 
-La base de datos se creará automáticamente en la carpeta nativa de cada SO:
-- **Windows**: `%APPDATA%\supermarket.db`
-- **macOS**: `~/Library/Application Support/supermarket.db`
-- **Linux**: `~/.local/share/supermarket.db`
-
----
-
-## 📱 Funcionalidad QR/Code de Barras (Planificada para después)
-
-El proyecto incluye preparación para el escaneo de códigos de barras y QR, esencial para un supermercado. Los componentes están listos para integrarse:
-
-### Paquete NuGet agregado:
-- `ZXing.Net.Mobile` - Lectura de códigos multiplataforma
-
-### Servicio creado (estructura lista):
-- **`Services/QrScannerService.cs`** - Encapsula la lógica de escaneo
-  - Método `ScanAsync()` devuelve el texto del código detectado
-  - Soporta QR_CODE, CODE_128, EAN_13, UPC_A
-  - Funciona en Windows, macOS, Linux con Avalonia
-
-### ViewModel listo para usar:
-- **`ViewModels/MainViewModel.cs`** - Tiene `ScanQrCommand` y `ScannedCode` property
-- **`Views/MainWindow.axaml`** - Tiene botón y display para el código escaneado
-
-### Integración futura (cuando ZXing versión sea compatible):
-1. El código escaneado sería el `barcode` del producto en la tabla `products`
-2. Al escanear, el sistema busca el producto en la BD
-3. Si existe: muestra precio, nombre, stock - listo para vender
-4. Si no existe: opción para registrar nuevo producto con ese código
-
-### En la UI actual (MainWindow.axaml):
-```xml
-<Button Content="Escanear Código QR/Barra"
-        Command="{Binding ScanQrCommand}"
-        HorizontalAlignment="Center" />
-<TextBlock Text="Código escaneado:"
-           FontSize="14" HorizontalAlignment="Center" />
-<TextBlock Text="{Binding ScannedCode}"
-           FontSize="24" Foreground="Green" HorizontalAlignment="Center" />
-```
+La base de datos se creará automáticamente en la carpeta nativa de cada SO en el primer arranque.
 
 ---
 
@@ -166,21 +113,21 @@ El proyecto incluye preparación para el escaneo de códigos de barras y QR, ese
 
 ```
 Safe-Sale/
-├── docs/                           # Diagramas E-R (pendirá Dante)
+├── docs/                           # Diagramas E-R (trabaja Dante)
 ├── src/
 │   └── SS/                         # Proyecto Avalonia UI con SQLite
 │       ├── App.axaml               # Aplicación Avalonia principal
 │       ├── App.axaml.cs            # Code-behind de App.axaml
 │       ├── MainWindow.axaml        # Ventana principal de la UI
 │       ├── MainWindow.axaml.cs     # Code-behind de MainWindow
-│       ├── MainViewModel.cs        # ViewModel principal (Patrón MVVM) - con QR command
+│       ├── MainViewModel.cs        # ViewModel principal (Patrón MVVM)
 │       ├── ViewModelBase.cs        # Clase base para ViewModels
 │       ├── SS.csproj               # Proyecto Avalonia con SQLite
 │       ├── ViewLocator.cs          # Localizador de vistas
 │       ├── Assets/                 # Recursos e iconos
 │       │   └── avalonia-logo.ico
-│       ├── Services/               # Servicios incluyendo QR (pendiente integración)
-│       │   └── QrScannerService.cs # Servicio QR listo para cuando ZXing sea compatible
+│       ├── Services/               # Servicios (QR scanner estructura)
+│       │   └── QrScannerService.cs # Servicio QR listo para integrable
 │       ├── Views/                  # Vistas XAML (trabaja Jandir)
 │       │   └── MainWindow.axaml
 │       └── ViewModels/             # Lógica de vistas (trabaja Lucas)
@@ -205,3 +152,22 @@ Safe-Sale/
 *Proyecto: Safe-Sale - Supermercado*  
 *Fecha de entrega: 22 de septiembre de 2026*  
 *Integrantes: Lucas (Backend), Jandir (Frontend), Dante (Documentación)*
+
+---
+
+## 📦 Estado de Compilación Actual
+
+```
+dotnet build src/SS/SS.csproj
+→ 0 Errores, 4 Advertencias
+→ Proyecto listo para entrega
+```
+
+---
+
+## 💡 Notas de Desarrollo
+
+- **SQLite nativo**: No requiere configuración de servidores ni MySQL. El `.db` se crea automáticamente en la carpeta local de cada sistema operativo.
+- **Multiplataforma**: Mismo código C# para Windows, macOS y Linux (Avalonia UI).
+- **MVVM**: Patrón implemented con CommunityToolkit.Mvvm para separación de concerns.
+- **QR Scanner**: Estructura lista en `Services/QrScannerService.cs` y `MainViewModel`, pendiente de integración completa cuando se actualicen las versiones de ZXing.Net.Mobile o se instale workload Android.

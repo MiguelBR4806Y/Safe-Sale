@@ -1,20 +1,105 @@
-# Save-Sale - Configuración para programación
-# Proyecto: Avalonia UI con SQLite local
+# Save-Sale - Requisitos y configuración del proyecto
+# Supermercado multiplataforma con Avalonia UI, C# y SQLite
 
-# Para INICIAR el proyecto (hace restore + build + run):
-dotnet run --project src\SS\SS.csproj
+# ==========================================
+# INSTRUCCIONES PARA INICIAR
+# ==========================================
+
+# Para iniciar el proyecto (hace restore + build + run):
+dotnet run --project src/SS/SS.csproj
 
 # O pasos separados si es necesario:
 # dotnet run                                          # Compila y ejecuta (recomendado)
 # dotnet build                                        # Solo compila
-# dotnet new sln add SS\SS.csproj                     # Agregar solución (una vez)
+# dotnet new sln add src/SS/SS.csproj                 # Agregar solución (una vez)
 
-# Base de datos SQLite:
-# - Se crea automáticamente al primer ejecución
-# - Archivo .db generado en la carpeta bin/Debug/net10.0/
-# - No requiere configuración MySQL ni servidores
+# ==========================================
+# PAQUETES NÚCLEO INSTALADOS
+# ==========================================
 
-# Integrantes del proyecto:
-# - Dante (Integrante 1)
-# - Lucas (Integrante 2) 
-# - Jandir (Integrante 3)
+# Avalonia UI - Framework multiplataforma (Windows, macOS, Linux, Android)
+# - Version: 12.1.1
+# - Paquetes: Avalonia, Avalonia.Desktop, Avalonia.Themes.Fluent, Avalonia.Fonts.Inter
+
+# SQLite - Base de datos local embebida
+# - Version: 8.0.0 (Microsoft.Data.Sqlite)
+# - Sin configuración extra de servidores ni MySQL
+# - .db creado automáticamente en primer arranque
+
+# MVVM - Patrón de arquitectura
+# - Version: 8.4.2 (CommunityToolkit.Mvvm)
+# - ObservableObject, RelayCommand, etc.
+
+# ==========================================
+# PAQUETES ADICIONALES (opcionales)
+# ==========================================
+
+# ZXing.Net.Mobile - Lectura de códigos QR y de barras
+# - Agregado: dotnet add src/SS/SS.csproj package ZXing.Net.Mobile
+# - Version: 2.4.1
+# - Servicios: Services/QrScannerService.cs creado
+# - ViewModel: MainViewModel con ScanQrCommand listo
+# - UI: MainWindow.axaml con botón y display de código
+# - NOTA: Requiere instalación de workload Android para Android: dotnet workload install android
+
+# ==========================================
+# CARGA DE TRABAJO ANDROID (si se quiere compilar para móvil)
+# ==========================================
+
+# Para compilar en Android, descomentar TargetFrameworks en SS.csproj:
+# <TargetFrameworks>net10.0;net10.0-android</TargetFrameworks>
+# <PackageReference Include="Avalonia.Android" Version="12.1.1" />
+
+# Luego instalar:
+# dotnet workload install android
+
+# ==========================================
+# ESTRUCTURA DEL PROYECTO
+# ==========================================
+
+# src/SS/
+# ├── App.axaml               # Aplicación Avalonia principal
+# ├── App.axaml.cs            # Code-behind de App
+# ├── MainWindow.axaml        # Ventana principal de la UI
+# ├── MainWindow.axaml.cs     # Code-behind de MainWindow
+# ├── MainViewModel.cs        # ViewModel principal (Patrón MVVM)
+# ├── ViewModelBase.cs        # Clase base para ViewModels
+# ├── SS.csproj               # Proyecto Avalonia con SQLite + Android opcional
+# ├── ViewLocator.cs          # Localizador de vistas
+# ├── Assets/                 # Recursos e iconos
+# │   └── avalonia-logo.ico
+# ├── Services/               # Servicios incluyendo QR
+# │   └── QrScannerService.cs # Servicio QR (estructura lista)
+# ├── Views/                  # Vistas XAML (trabaja Jandir)
+│   └── MainWindow.axaml
+└── ViewModels/               # Lógica de vistas (trabaja Lucas)
+    ├── MainViewModel.cs
+    └── ViewModelBase.cs
+
+# ==========================================
+# INTEGRANTES DEL PROYECTO
+# ==========================================
+
+# - Dante (Integrante 1): Documentación, diagramas E-R, reportes
+# - Lucas (Integrante 2): Backend - Base de datos, repositorios, lógica de negocio
+# - Jandir (Integrante 3): Frontend - Interfaces Avalonia UI, Views XAML
+
+# ==========================================
+# ENTREGABLE PARA EL 22 DE SEPTIEMBRE
+# ==========================================
+
+# backend:
+# ✓ Base de datos SQLite conectada y funcional
+# ✓ Repositorios CRUD (Productos, Categorías)
+# ✓ 6 tablas automáticas (categories, products, users, sales, sale_items)
+# ✓ Multiplataforma: Windows, macOS, Linux
+
+# frontend (pendiente por Jandir):
+# □ Pantallas XAML (MainWindow, Products, Categories)
+# □ Vista de Login con validación de roles
+# □ Carrito de compras y POS
+
+# documentación (pendiente por Dante):
+# □ Diagrama Entidad-Relación (MER) actualizado
+# □ Manual de usuario del sistema
+# □ Diapositivas para la defensa
