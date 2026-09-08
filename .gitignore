@@ -1,30 +1,37 @@
-# Ignore binary build outputs
-bin/
+# Visual Studio
+/.vs
+/.host
+*.suo
+*.user
+*.sln
+*.lnk
+
+# Debug/Release
+/bin
 obj/
 
-# Ignore user-specific files
-*.user
-*.suo
+# Windows Store
+AppPackages/
 
-# Ignore Solution User Option files
-*.sln.xo
+# Rider
+.idea/
 
-# But keep these project-essential files
-!README.md
-!requirements.txt
-!run.ps1
+# Temp files
+*.Tmp
+*.Backup*
 
-# Ignore NuGet packages (restored on build)
-/packages/
+# Local DB
+supermarket.db
 
-# Ignore Visual Studio temporary files
-*.user
+# NuGet
+packages/
+
+# DotNet
+*.json.user
+*.dirser
 *.vspscc
-*.vssc
+_suite
 
-# Ignore OS-specific files
-.DS_Store
-Thumbs.db
-
-# Ignore runtime configs if desired
-# usersecrets.json
+# API Key Files
+*.pem
+*.key
