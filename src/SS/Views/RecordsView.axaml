@@ -1,66 +1,106 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="SS.Views.RecordsView">
+             xmlns:vm="using:SS.ViewModels"
+             x:Class="SS.Views.RecordsView"
+             x:DataType="vm:RecordsViewModel">
 
     <Border Background="#FAF3F7" CornerRadius="8">
-        <StackPanel Margin="20" Spacing="15">
+        <ScrollViewer>
+            <StackPanel Margin="20" Spacing="15">
 
-            <TextBlock Text="📋 REGISTROS"
-                FontSize="24"
-                FontWeight="Bold"
-                Foreground="#4A148C"
-                HorizontalAlignment="Center"/>
+                <TextBlock Text="REGISTROS"
+                    FontSize="24"
+                    FontWeight="Bold"
+                    Foreground="#4A148C"
+                    HorizontalAlignment="Center"/>
 
-            <!-- Filtros -->
-            <Border Background="#FFFFFF" CornerRadius="6" Margin="0,10">
-                <StackPanel Orientation="Horizontal" Margin="10">
-                    <TextBlock Text="Desde:" FontSize="12" VerticalAlignment="Center"/>
-                    <DatePicker Width="150" FontSize="12"/>
-                    <TextBlock Text="Hasta:" FontSize="12" Margin="20,0,0,0"/>
-                    <DatePicker Width="150" FontSize="12"/>
-                    <Button Content="Filtrar" Background="#BB8FCE" Foreground="White" FontSize="10" Margin="20,0,0,0"/>
-                </StackPanel>
-            </Border>
-
-            <!-- Tabla de registros -->
-            <Border Background="#FFFFFF" CornerRadius="6" Margin="0,10">
-                <ListView x:Name="RecordsListView"
-                          Height="300"
-                          Margin="10">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Spacing="10" Padding="8">
-                                <TextBlock Text="2024-01-15" FontSize="12" VerticalAlignment="Center"/>
-                                <TextBlock Text="Venta" FontSize="12" FontWeight="Medium" VerticalAlignment="Center" Width="80"/>
-                                <TextBlock Text="Compra de productos" FontSize="12" VerticalAlignment="Center" Width="200"/>
-                                <TextBlock Text="$1,247.50" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" Width="100" TextAlignment="Right"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </Border>
-
-            <!-- Resumen -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20">
-                <Border Background="#E8DAEF" CornerRadius="6" Padding="10">
-                    <TextBlock Text="Total Ventas"
-                        FontSize="12"
-                        Foreground="#4A148C"/>
-                    <TextBlock Text="$12,475.00"
-                        FontSize="18"
-                        FontWeight="Bold"
-                        Foreground="#7B1FA2"/>
+                <!-- Filtros -->
+                <Border Background="#FFFFFF" CornerRadius="6" Margin="0,10" Padding="10">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="Desde:" FontSize="12" VerticalAlignment="Center"/>
+                        <DatePicker Width="150"
+                                    FontSize="12"
+                                    SelectedDate="{Binding FilterFrom}"/>
+                        <TextBlock Text="Hasta:" FontSize="12" VerticalAlignment="Center"/>
+                        <DatePicker Width="150"
+                                    FontSize="12"
+                                    SelectedDate="{Binding FilterTo}"/>
+                        <Button Content="Filtrar"
+                                Background="#BB8FCE"
+                                Foreground="White"
+                                FontSize="12"
+                                Command="{Binding FilterCommand}"
+                                Cursor="Hand"
+                                VerticalAlignment="Center"/>
+                    </StackPanel>
                 </Border>
-                <Border Background="#E8DAEF" CornerRadius="6" Padding="10">
-                    <TextBlock Text="Total Devoluciones"
-                        FontSize="12"
-                        Foreground="#4A148C"/>
-                    <TextBlock Text="-$247.50"
-                        FontSize="18"
-                        FontWeight="Bold"
-                        Foreground="#EF5350"/>
+
+                <!-- Estadisticas -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20" Margin="0,5">
+                    <Border Background="#E8DAEF" CornerRadius="6" Padding="15">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="Total Ventas"
+                                FontSize="12"
+                                Foreground="#4A148C"
+                                HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding TotalSales, StringFormat=${0:F2}}"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Foreground="#7B1FA2"
+                                HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#E8DAEF" CornerRadius="6" Padding="15">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="Transacciones"
+                                FontSize="12"
+                                Foreground="#4A148C"
+                                HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding TotalTransactions}"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Foreground="#7B1FA2"
+                                HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Tabla de registros -->
+                <Border Background="#FFFFFF" CornerRadius="6" Margin="0,10" Padding="5">
+                    <ListBox ItemsSource="{Binding Sales}"
+                             Height="300">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,3">
+                                    <TextBlock Text="{Binding Id, StringFormat='Venta #{0}'}"
+                                               FontSize="12"
+                                               FontWeight="Medium"
+                                               Foreground="#4A148C"
+                                               VerticalAlignment="Center"
+                                               Width="80"/>
+                                    <TextBlock Text="{Binding CreatedAt}"
+                                               FontSize="12"
+                                               Foreground="#6C3483"
+                                               VerticalAlignment="Center"
+                                               Width="160"/>
+                                    <TextBlock Text="Venta"
+                                               FontSize="12"
+                                               FontWeight="Medium"
+                                               VerticalAlignment="Center"
+                                               Width="80"
+                                               Foreground="#4A148C"/>
+                                    <TextBlock Text="{Binding Total, StringFormat=${0:F2}}"
+                                               FontSize="14"
+                                               FontWeight="Bold"
+                                               Foreground="#7B1FA2"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </Border>
             </StackPanel>
-        </StackPanel>
+        </ScrollViewer>
     </Border>
 </UserControl>

@@ -1,31 +1,65 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
-using System.Threading.Tasks;
 using System.Windows.Input;
-using SS.Models;
+using SS.Data;
 
 namespace SS.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    private string? _greeting = "Welcome to Safe-Sale!";
+    private readonly DashboardViewModel _dashboardViewModel;
+    private readonly InventoryViewModel _inventoryViewModel;
+    private readonly SalesViewModel _salesViewModel;
+    private readonly RecordsViewModel _recordsViewModel;
 
     [ObservableProperty]
-    private string? _scannedCode;
+    private ViewModelBase _currentViewModel;
 
-    public ICommand ScanQrCommand { get; }
+    [ObservableProperty]
+    private string _currentViewTitle = "Dashboard";
+
+    public ICommand NavigateDashboardCommand { get; }
+    public ICommand NavigateInventoryCommand { get; }
+    public ICommand NavigateSalesCommand { get; }
+    public ICommand NavigateRecordsCommand { get; }
 
     public MainViewModel()
     {
-        ScanQrCommand = new RelayCommand(async () => await ScanQrAsync());
-    }
+        var dbPath = AppDatabase.DbPath;
 
-    private async Task ScanQrAsync()
-    {
-        // TODO: Integrar servicio QR cuando esté disponible
-        // Para ya, mostraremos un mensaje indicando la funcionalidad
-        ScannedCode = "Escaneado: (funcionalidad QR por implementar)";
+        _dashboardViewModel = new DashboardViewModel(dbPath);
+        _inventoryViewModel = new InventoryViewModel(dbPath);
+        _salesViewModel = new SalesViewModel(dbPath);
+        _recordsViewModel = new RecordsViewModel(dbPath);
+
+        NavigateDashboardCommand = new RelayCommand(() =>
+        {
+            CurrentViewModel = _dashboardViewModel;
+            _dashboardViewModel.LoadData();
+            CurrentViewTitle = "Dashboard";
+        });
+
+        NavigateInventoryCommand = new RelayCommand(() =>
+        {
+            CurrentViewModel = _inventoryViewModel;
+            _inventoryViewModel.LoadData();
+            CurrentViewTitle = "Inventario";
+        });
+
+        NavigateSalesCommand = new RelayCommand(() =>
+        {
+            CurrentViewModel = _salesViewModel;
+            CurrentViewTitle = "Ventas";
+        });
+
+        NavigateRecordsCommand = new RelayCommand(() =>
+        {
+            CurrentViewModel = _recordsViewModel;
+            _recordsViewModel.LoadData();
+            CurrentViewTitle = "Registros";
+        });
+
+        CurrentViewModel = _dashboardViewModel;
     }
 }

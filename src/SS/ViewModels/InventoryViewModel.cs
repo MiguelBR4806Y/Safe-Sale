@@ -4,73 +4,70 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
+using SS.Data;
 using SS.Models;
 
 namespace SS.ViewModels;
 
-public partial class InventoryViewModel : ObservableObject
+public partial class InventoryViewModel : ViewModelBase
 {
-    // Products
+    private readonly SqliteProductRepository _productRepo;
+    private readonly SqliteCategoryRepository _categoryRepo;
+
     [ObservableProperty]
     private ObservableCollection<Product> _products = new();
 
-    // Selected product
     [ObservableProperty]
     private Product? _selectedProduct;
 
-    // Search
     [ObservableProperty]
     private string _searchText = "";
 
-    // Commands
+    [ObservableProperty]
+    private int _totalProducts;
+
+    [ObservableProperty]
+    private int _lowStock;
+
+    [ObservableProperty]
+    private int _categoriesCount;
+
+    [ObservableProperty]
+    private decimal _valueTotal;
+
     public ICommand AddProductCommand { get; }
     public ICommand EditProductCommand { get; }
     public ICommand DeleteProductCommand { get; }
     public ICommand SearchCommand { get; }
     public ICommand LoadByBarcodeCommand { get; }
+    public ICommand RefreshCommand { get; }
 
-    // Stats
-    [ObservableProperty]
-    private int _totalProducts;
-    [ObservableProperty]
-    private int _lowStock;
-    [ObservableProperty]
-    private int _categoriesCount;
-    [ObservableProperty]
-    private decimal _valueTotal;
-
-    public InventoryViewModel()
+    public InventoryViewModel(string dbPath)
     {
-        // Comandos
+        _productRepo = new SqliteProductRepository(dbPath);
+        _categoryRepo = new SqliteCategoryRepository(dbPath);
+
         AddProductCommand = new RelayCommand(OnAddProduct);
         EditProductCommand = new RelayCommand(OnEditProduct, () => SelectedProduct != null);
         DeleteProductCommand = new RelayCommand(OnDeleteProduct, () => SelectedProduct != null);
         SearchCommand = new RelayCommand(OnSearch);
         LoadByBarcodeCommand = new RelayCommand(OnLoadByBarcode);
+        RefreshCommand = new RelayCommand(LoadData);
 
-        // Cargar productos (usando repositorio estático o en memoria)
-        LoadProducts();
-
-        // Actualizar stats
-        UpdateStats();
+        LoadData();
     }
 
-    private void LoadProducts()
+    public void LoadData()
     {
-        // Productos de ejemplo para demostración
-        Products = new ObservableCollection<Product>
-        {
-            new Product { Id = 1, Name = "Leche", Barcode = "7501234567890", Price = 15.99m, Stock = 50, MinStock = 10 },
-            new Product { Id = 2, Name="Pan", Barcode="7501234567891", Price = 25.50m, Stock = 30, MinStock = 5 },
-            new Product { Id = 3, Name="Huevos", Barcode="7501234567892", Price = 32.00m, Stock = 15, MinStock = 5 }
-        };
+        Products = _productRepo.GetAll();
+        CategoriesCount = _categoryRepo.GetAll().Count;
+        UpdateStats();
     }
 
     private void UpdateStats()
     {
         TotalProducts = Products.Count;
         LowStock = Products.Count(p => p.Stock <= p.MinStock);
-        CategoriesCount = 5; // Valor por defecto
         ValueTotal = Products.Sum(p => p.Price * p.Stock);
     }
 
@@ -78,39 +75,50 @@ public partial class InventoryViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(SearchText))
         {
-            LoadProducts();
+            LoadData();
             return;
         }
 
         var filtered = Products.Where(p =>
-            p.Name.IndexOf(SearchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
-            p.Barcode.IndexOf(SearchText, StringComparison.OrdinalIgnoreCase) >= 0
+            p.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+            p.Barcode.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
         ).ToList();
 
         Products = new ObservableCollection<Product>(filtered);
+        UpdateStats();
     }
 
     private void OnAddProduct()
     {
-        // TODO: Implementar
+        var product = new Product
+        {
+            Name = "Nuevo Producto",
+            Barcode = "",
+            Price = 0,
+            Stock = 0,
+            MinStock = 5
+        };
+        _productRepo.Add(product);
+        LoadData();
     }
 
     private void OnEditProduct()
     {
         if (SelectedProduct == null) return;
-        // TODO: Implementar
+        _productRepo.Update(SelectedProduct);
+        LoadData();
     }
 
     private void OnDeleteProduct()
     {
         if (SelectedProduct == null) return;
-        // TODO: Implementar
-        Products.Remove(SelectedProduct);
-        UpdateStats();
+        _productRepo.Delete(SelectedProduct.Id);
+        SelectedProduct = null;
+        LoadData();
     }
 
     private void OnLoadByBarcode()
     {
-        // TODO: Implementar escaneo de código de barras
+        OnSearch();
     }
 }

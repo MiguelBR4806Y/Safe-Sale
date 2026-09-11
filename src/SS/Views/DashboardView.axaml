@@ -1,89 +1,108 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="SS.Views.DashboardView">
+             xmlns:vm="using:SS.ViewModels"
+             x:Class="SS.Views.DashboardView"
+             x:DataType="vm:DashboardViewModel">
 
     <Border Background="#FAF3F7" CornerRadius="8">
-        <StackPanel Margin="20" Spacing="20">
-            
-            <TextBlock Text="DASHBOARD"
-                FontSize="28"
-                FontWeight="Bold"
-                Foreground="#4A148C"
-                HorizontalAlignment="Center"/>
-            
-            <!-- KPI Cards -->
-            <UniformGrid Columns="2" Rows="2" Margin="0,15">
-                <!-- Tarjeta Ventas Día -->
-                <Border Background="#E8DAEF" CornerRadius="6" Padding="15">
-                    <StackPanel>
-                        <TextBlock Text="Ventas Día"
-                            FontSize="12"
-                            Foreground="#6C348C"
-                            Margin="0,0,0,5"/>
-                        <TextBlock Text="$1,247.50"
-                            FontSize="22"
+        <ScrollViewer>
+            <StackPanel Margin="20" Spacing="20">
+
+                <TextBlock Text="DASHBOARD"
+                    FontSize="28"
+                    FontWeight="Bold"
+                    Foreground="#4A148C"
+                    HorizontalAlignment="Center"/>
+
+                <!-- KPI Cards -->
+                <UniformGrid Columns="2" Rows="2" Margin="0,15">
+                    <Border Background="#E8DAEF" CornerRadius="6" Padding="15" Margin="5">
+                        <StackPanel>
+                            <TextBlock Text="Ventas Dia"
+                                FontSize="12"
+                                Foreground="#6C348C"
+                                Margin="0,0,0,5"/>
+                            <TextBlock Text="{Binding TodaySales, StringFormat=${0}}"
+                                FontSize="22"
+                                FontWeight="Bold"
+                                Foreground="#7B1FA2"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#E8DAEF" CornerRadius="6" Padding="15" Margin="5">
+                        <StackPanel>
+                            <TextBlock Text="Ingresos Mes"
+                                FontSize="12"
+                                Foreground="#6C348C"
+                                Margin="0,0,0,5"/>
+                            <TextBlock Text="{Binding MonthIncome, StringFormat=${0}}"
+                                FontSize="22"
+                                FontWeight="Bold"
+                                Foreground="#7B1FA2"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#E8DAEF" CornerRadius="6" Padding="15" Margin="5">
+                        <StackPanel>
+                            <TextBlock Text="Productos Activos"
+                                FontSize="12"
+                                Foreground="#6C348C"
+                                Margin="0,0,0,5"/>
+                            <TextBlock Text="{Binding ActiveProducts}"
+                                FontSize="22"
+                                FontWeight="Bold"
+                                Foreground="#7B1FA2"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#E8DAEF" CornerRadius="6" Padding="15" Margin="5">
+                        <StackPanel>
+                            <TextBlock Text="Total Ventas"
+                                FontSize="12"
+                                Foreground="#6C348C"
+                                Margin="0,0,0,5"/>
+                            <TextBlock Text="{Binding TodayCustomers}"
+                                FontSize="22"
+                                FontWeight="Bold"
+                                Foreground="#7B1FA2"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                <!-- Ultimas ventas -->
+                <Border Background="#FFFFFF" CornerRadius="8" Padding="15">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Ultimas Ventas"
+                            FontSize="16"
                             FontWeight="Bold"
-                            Foreground="#7B1FA2"/>
+                            Foreground="#4A148C"/>
+
+                        <ListBox ItemsSource="{Binding RecentSales}"
+                                 Height="250">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="15" Margin="0,3">
+                                        <TextBlock Text="{Binding Id, StringFormat='Venta #{0}'}"
+                                                   FontSize="12"
+                                                   FontWeight="Medium"
+                                                   Foreground="#4A148C"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding CreatedAt}"
+                                                   FontSize="11"
+                                                   Foreground="#6C3483"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Total, StringFormat=${0:F2}}"
+                                                   FontSize="14"
+                                                   FontWeight="Bold"
+                                                   Foreground="#7B1FA2"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
                     </StackPanel>
                 </Border>
-
-                <!-- Tarjeta Ingresos Mes -->
-                <Border Background="#E8DAEF" CornerRadius="6" Padding="15">
-                    <StackPanel>
-                        <TextBlock Text="Ingresos Mes"
-                            FontSize="12"
-                            Foreground="#6C348C"/>
-                        <TextBlock Text="$12,475.00"
-                            FontSize="22"
-                            FontWeight="Bold"
-                            Foreground="#7B1FA2"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Tarjeta Productos -->
-                <Border Background="#E8DAEF" CornerRadius="6" Padding="15">
-                    <StackPanel>
-                        <TextBlock Text="Productos Activos"
-                            FontSize="12"
-                            Foreground="#6C348C"/>
-                        <TextBlock Text="1,247"
-                            FontSize="22"
-                            FontWeight="Bold"
-                            Foreground="#7B1FA2"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Tarjeta Clientes -->
-                <Border Background="#E8DAEF" CornerRadius="6" Padding="15">
-                    <StackPanel>
-                        <TextBlock Text="Clientes Hoy"
-                            FontSize="12"
-                            Foreground="#6C348C"/>
-                        <TextBlock Text="241"
-                            FontSize="22"
-                            FontWeight="Bold"
-                            Foreground="#7B1FA2"/>
-                    </StackPanel>
-                </Border>
-            </UniformGrid>
-
-            <!-- Gráfico de ventas por hora (placeholder) -->
-            <Border Background="#FFFFFF" CornerRadius="8" Height="200">
-                <TextBlock Text="Gráfico de Ventas\n(Por Hora)"
-                    FontSize="16"
-                    Foreground="#6C348C"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"/>
-            </Border>
-
-            <!-- Últimas ventas -->
-            <Border Background="#FFFFFF" CornerRadius="8" Height="150">
-                <TextBlock Text="Últimas Ventas"
-                    FontSize="14"
-                    Foreground="#6C348C"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"/>
-            </Border>
-        </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
     </Border>
 </UserControl>
