@@ -1,31 +1,48 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
-using System.Threading.Tasks;
 using System.Windows.Input;
-using SS.Models;
+using SS;
+using SS.Views;
 
 namespace SS.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private string? _greeting = "Welcome to Safe-Sale!";
+    private object? _currentView;
 
-    [ObservableProperty]
-    private string? _scannedCode;
-
-    public ICommand ScanQrCommand { get; }
+    public ICommand NavigateToSalesViewCommand { get; }
+    public ICommand NavigateToInventoryViewCommand { get; }
+    public ICommand NavigateToRecordsViewCommand { get; }
+    public ICommand NavigateToDashboardViewCommand { get; }
 
     public MainViewModel()
     {
-        ScanQrCommand = new RelayCommand(async () => await ScanQrAsync());
+        NavigateToSalesViewCommand = new RelayCommand(() => NavigateToView("sales"));
+        NavigateToInventoryViewCommand = new RelayCommand(() => NavigateToView("inventory"));
+        NavigateToRecordsViewCommand = new RelayCommand(() => NavigateToView("records"));
+        NavigateToDashboardViewCommand = new RelayCommand(() => NavigateToView("dashboard"));
+
+        NavigateToView("dashboard");
     }
 
-    private async Task ScanQrAsync()
+    private void NavigateToView(string viewName)
     {
-        // TODO: Integrar servicio QR cuando esté disponible
-        // Para ya, mostraremos un mensaje indicando la funcionalidad
-        ScannedCode = "Escaneado: (funcionalidad QR por implementar)";
+        switch (viewName)
+        {
+            case "sales":
+                CurrentView = new SalesView();
+                break;
+            case "inventory":
+                CurrentView = new InventoryView();
+                break;
+            case "records":
+                CurrentView = new RecordsView();
+                break;
+            case "dashboard":
+                CurrentView = new DashboardView();
+                break;
+        }
     }
 }

@@ -1,0 +1,89 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SS.ViewModels"
+             x:Class="SS.Views.SalesView">
+
+    <UserControl.DataContext>
+        <vm:SalesViewModel/>
+    </UserControl.DataContext>
+
+    <Border Background="#FAF3F7" CornerRadius="8">
+        <StackPanel Margin="20" Spacing="15">
+
+            <TextBlock Text="🛒 VENTAS"
+                FontSize="24"
+                FontWeight="Bold"
+                Foreground="#4A148C"
+                HorizontalAlignment="Center"/>
+
+            <!-- Carrito / Resumen -->
+            <Border Background="#FFFFFF" CornerRadius="6" Padding="15" Margin="0,10">
+                <StackPanel>
+                    <TextBlock Text="Resumen de Venta"
+                        FontSize="14"
+                        Foreground="#6C3483"
+                        FontWeight="Medium"/>
+                    <TextBlock Text="Total: $0.00"
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Foreground="#7B1FA2"
+                        Margin="0,5,0,0"
+                        HorizontalAlignment="Right"/>
+                    <TextBlock Text="Items: 0"
+                        FontSize="14"
+                        Foreground="#6C3483"
+                        Margin="0,5,0,0"
+                        HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Tabla de items de venta -->
+            <Border Background="#FFFFFF" CornerRadius="6" Margin="0,10">
+                <ListView x:Name="SalesListView">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="10" Padding="8">
+                                <TextBlock Text="Producto" FontSize="12" FontWeight="Medium" VerticalAlignment="Center" Width="150"/>
+                                <TextBlock Text="Cantidad" FontSize="12" VerticalAlignment="Center" Width="80"/>
+                                <TextBlock Text="Precio" FontSize="12" VerticalAlignment="Center" Width="100" TextAlignment="Right"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Border>
+
+            <!-- Formulario de venta -->
+            <StackPanel Margin="0,10">
+                <TextBlock Text="Nueva Venta"
+                    FontSize="14"
+                    Foreground="#6C348C"
+                    FontWeight="Medium"/>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="Producto:" Width="100" FontSize="12"/>
+                    <TextBox Width="200" FontSize="12" Placeholder="Seleccionar producto"/>
+                    <TextBlock Text="Cantidad:" Width="80" FontSize="12" Margin="20,0,0,0"/>
+                    <TextBox Width="100" FontSize="12" Text="1"/>
+                </StackPanel>
+                <Button Content="Agregar al Carro"
+                        Background="#BB8FCE"
+                        Foreground="White"
+                        FontSize="12"
+                        Cursor="Hand"
+                        HorizontalAlignment="Right"/>
+                <Button Content="Cobrar"
+                        Background="#4A148C"
+                        Foreground="White"
+                        FontSize="14"
+                        FontWeight="Bold"
+                        Cursor="Hand"
+                        HorizontalAlignment="Right"
+                        Margin="0,10"/>
+                <TextBlock Text="Pago recibido: $0.00"
+                    FontSize="12"
+                    Foreground="#6C348C"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Right"/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>
