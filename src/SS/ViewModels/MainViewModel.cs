@@ -1,48 +1,31 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
-using SS;
-using SS.Views;
+using SS.Models;
 
 namespace SS.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private object? _currentView;
+    private string? _greeting = "Welcome to Safe-Sale!";
 
-    public ICommand NavigateToSalesViewCommand { get; }
-    public ICommand NavigateToInventoryViewCommand { get; }
-    public ICommand NavigateToRecordsViewCommand { get; }
-    public ICommand NavigateToDashboardViewCommand { get; }
+    [ObservableProperty]
+    private string? _scannedCode;
+
+    public ICommand ScanQrCommand { get; }
 
     public MainViewModel()
     {
-        NavigateToSalesViewCommand = new RelayCommand(() => NavigateToView("sales"));
-        NavigateToInventoryViewCommand = new RelayCommand(() => NavigateToView("inventory"));
-        NavigateToRecordsViewCommand = new RelayCommand(() => NavigateToView("records"));
-        NavigateToDashboardViewCommand = new RelayCommand(() => NavigateToView("dashboard"));
-
-        NavigateToView("dashboard");
+        ScanQrCommand = new RelayCommand(async () => await ScanQrAsync());
     }
 
-    private void NavigateToView(string viewName)
+    private async Task ScanQrAsync()
     {
-        switch (viewName)
-        {
-            case "sales":
-                CurrentView = new SalesView();
-                break;
-            case "inventory":
-                CurrentView = new InventoryView();
-                break;
-            case "records":
-                CurrentView = new RecordsView();
-                break;
-            case "dashboard":
-                CurrentView = new DashboardView();
-                break;
-        }
+        // TODO: Integrar servicio QR cuando esté disponible
+        // Para ya, mostraremos un mensaje indicando la funcionalidad
+        ScannedCode = "Escaneado: (funcionalidad QR por implementar)";
     }
 }
