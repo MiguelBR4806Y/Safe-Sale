@@ -7,7 +7,7 @@
 *.lnk
 
 # Debug/Release
-/bin
+bin/
 obj/
 
 # Windows Store
