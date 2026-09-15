@@ -37,9 +37,9 @@ public partial class App : Application
             {
                 DataContext = new MainViewModel(user)
             };
+            desktop.MainWindow = mainWindow;
             mainWindow.Show();
             loginWindow.Close();
-            desktop.MainWindow = mainWindow;
         };
 
         loginWindow.Closed += (sender, args) =>
