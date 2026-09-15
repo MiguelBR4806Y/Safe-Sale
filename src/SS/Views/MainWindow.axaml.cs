@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -8,14 +9,25 @@ namespace SS.Views;
 
 public partial class MainWindow : Window
 {
+    private MainViewModel? _subscribedViewModel;
+
     public MainWindow()
     {
         InitializeComponent();
+        DataContextChanged += OnDataContextChanged;
+    }
 
-        var mainViewModel = DataContext as MainViewModel;
-        if (mainViewModel != null)
+    private void OnDataContextChanged(object? sender, EventArgs e)
+    {
+        if (_subscribedViewModel != null)
         {
-            mainViewModel.LogoutRequested += OnLogout;
+            _subscribedViewModel.LogoutRequested -= OnLogout;
+        }
+
+        if (DataContext is MainViewModel mainViewModel)
+        {
+            _subscribedViewModel = mainViewModel;
+            _subscribedViewModel.LogoutRequested += OnLogout;
         }
     }
 
