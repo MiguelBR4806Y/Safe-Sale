@@ -16,7 +16,7 @@
             Padding="32,24"
             BorderBrush="#E8DAEF"
             BorderThickness="1"
-            BoxShadow="0,4,16,0,#22000000">
+            BoxShadow="0 4 16 0 #22000000">
         <StackPanel Spacing="0" VerticalAlignment="Center">
 
             <!-- Logo -->
@@ -50,6 +50,8 @@
                      BorderBrush="#E8DAEF"
                      BorderThickness="1"
                      Background="#FDFBFE"
+                     Foreground="#2D1B4E"
+                     FontFamily="Inter"
                      Margin="0,0,0,16"/>
 
             <!-- Contraseña -->
@@ -67,6 +69,8 @@
                      BorderBrush="#E8DAEF"
                      BorderThickness="1"
                      Background="#FDFBFE"
+                     Foreground="#2D1B4E"
+                     FontFamily="Inter"
                      Margin="0,0,0,8"/>
 
             <!-- Mensaje de error -->
