@@ -99,11 +99,41 @@
                 <!-- Espacio flexible -->
                 <StackPanel Spacing="0" VerticalAlignment="Bottom" Margin="0,0,0,15">
                     <Border Height="1" Background="#5C2D91" Margin="15,0"/>
+
+                    <!-- Usuario logueado -->
+                    <Border Background="#3A0D6E" CornerRadius="8" Padding="12,10" Margin="10,12,10,0">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding CurrentUsername}"
+                                       FontSize="13"
+                                       FontWeight="SemiBold"
+                                       Foreground="#E8DAEF"/>
+                            <TextBlock Text="{Binding CurrentRole}"
+                                       FontSize="11"
+                                       Foreground="#BB8FCE"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Botón cerrar sesión -->
+                    <Button Command="{Binding LogoutCommand}"
+                            Background="Transparent"
+                            Foreground="#BB8FCE"
+                            BorderThickness="0"
+                            HorizontalContentAlignment="Center"
+                            Padding="10,10"
+                            FontSize="12"
+                            Cursor="Hand"
+                            Margin="10,6,10,0">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="🚪" FontSize="13" VerticalAlignment="Center"/>
+                            <TextBlock Text="Cerrar Sesión" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
                     <TextBlock Text="v1.0.0"
                                FontSize="10"
                                Foreground="#7B1FA2"
                                HorizontalAlignment="Center"
-                               Margin="0,15,0,0"/>
+                               Margin="0,8,0,0"/>
                 </StackPanel>
             </StackPanel>
         </Border>
