@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using SS.Services;
 
 namespace SS.Data;
 
@@ -60,5 +61,28 @@ public static class SqliteDatabaseInitializer
             )";
 
         cmd.ExecuteNonQuery();
+
+        SeedDefaultAdmin(conn);
+    }
+
+    private static void SeedDefaultAdmin(SqliteConnection conn)
+    {
+        using var checkCmd = conn.CreateCommand();
+        checkCmd.CommandText = "SELECT COUNT(*) FROM users";
+        long count = (long)checkCmd.ExecuteScalar()!;
+
+        if (count > 0) return;
+
+        string passwordHash = PasswordHasher.HashPassword("admin123");
+
+        using var insertCmd = conn.CreateCommand();
+        insertCmd.CommandText = @"
+            INSERT INTO users (username, password_hash, role)
+            VALUES (@username, @password_hash, @role)";
+        insertCmd.Parameters.AddWithValue("@username", "admin");
+        insertCmd.Parameters.AddWithValue("@password_hash", passwordHash);
+        insertCmd.Parameters.AddWithValue("@role", "admin");
+
+        insertCmd.ExecuteNonQuery();
     }
 }

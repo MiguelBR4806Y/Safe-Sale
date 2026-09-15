@@ -13,6 +13,7 @@ public partial class SalesViewModel : ViewModelBase
 {
     private readonly SqliteProductRepository _productRepo;
     private readonly SqliteSaleRepository _saleRepo;
+    private readonly User _currentUser;
 
     [ObservableProperty]
     private ObservableCollection<CartItem> _cartItems = new();
@@ -46,8 +47,9 @@ public partial class SalesViewModel : ViewModelBase
     public ICommand CheckoutCommand { get; }
     public ICommand ClearCartCommand { get; }
 
-    public SalesViewModel(string dbPath)
+    public SalesViewModel(string dbPath, User currentUser)
     {
+        _currentUser = currentUser;
         _productRepo = new SqliteProductRepository(dbPath);
         _saleRepo = new SqliteSaleRepository(dbPath);
 
@@ -133,6 +135,7 @@ public partial class SalesViewModel : ViewModelBase
 
         var sale = new Sale
         {
+            UserId = _currentUser.Id,
             Total = CartTotal,
             CreatedAt = DateTime.Now
         };

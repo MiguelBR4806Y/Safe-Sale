@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Windows.Input;
 using SS.Data;
+using SS.Models;
 
 namespace SS.ViewModels;
 
@@ -19,18 +20,29 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private string _currentViewTitle = "Dashboard";
 
+    [ObservableProperty]
+    private User _currentUser;
+
+    public string CurrentUsername => CurrentUser?.Username ?? "";
+    public string CurrentRole => CurrentUser?.Role == "admin" ? "Administrador" : "Cajero";
+
     public ICommand NavigateDashboardCommand { get; }
     public ICommand NavigateInventoryCommand { get; }
     public ICommand NavigateSalesCommand { get; }
     public ICommand NavigateRecordsCommand { get; }
+    public ICommand LogoutCommand { get; }
 
-    public MainViewModel()
+    public event Action? LogoutRequested;
+
+    public MainViewModel(User user)
     {
+        CurrentUser = user;
+
         var dbPath = AppDatabase.DbPath;
 
         _dashboardViewModel = new DashboardViewModel(dbPath);
         _inventoryViewModel = new InventoryViewModel(dbPath);
-        _salesViewModel = new SalesViewModel(dbPath);
+        _salesViewModel = new SalesViewModel(dbPath, user);
         _recordsViewModel = new RecordsViewModel(dbPath);
 
         NavigateDashboardCommand = new RelayCommand(() =>
@@ -58,6 +70,11 @@ public partial class MainViewModel : ViewModelBase
             CurrentViewModel = _recordsViewModel;
             _recordsViewModel.LoadData();
             CurrentViewTitle = "Registros";
+        });
+
+        LogoutCommand = new RelayCommand(() =>
+        {
+            LogoutRequested?.Invoke();
         });
 
         CurrentViewModel = _dashboardViewModel;

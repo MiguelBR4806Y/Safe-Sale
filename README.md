@@ -15,13 +15,13 @@ Sistema punto de venta y gestión de supermercado desarrollado con **Avalonia UI
 
 ---
 
-## 📊 Estado del Progreso — 11 de Septiembre 2026
+## 📊 Estado del Progreso — 14 de Septiembre 2026
 
-### Progreso General: **~80%** Completado
+### Progreso General: **~90%** Completado
 
 ```
 Backend:       ████████████████████ 100%
-Frontend:      ████████████████░░░░  80%
+Frontend:      ████████████████████ 100%
 Integración:   ████████████████████ 100%
 Documentación: ████░░░░░░░░░░░░░░░░  20%
 ```
@@ -31,12 +31,13 @@ Documentación: ████░░░░░░░░░░░░░░░░  20
 #### Backend (100%)
 - [x] **Base de datos SQLite**: `Microsoft.Data.Sqlite` configurado
 - [x] **Inicializador de BD**: `SqliteDatabaseInitializer.cs` crea 5 tablas automáticamente
-- [x] **Modelos**: `Product.cs`, `Category.cs`, `Sale.cs`, `SaleItem.cs`, `CartItem.cs`
-- [x] **Repositorios CRUD**: `SqliteProductRepository.cs`, `SqliteCategoryRepository.cs`, `SqliteSaleRepository.cs`
+- [x] **Modelos**: `Product.cs`, `Category.cs`, `Sale.cs`, `SaleItem.cs`, `CartItem.cs`, `User.cs`
+- [x] **Repositorios CRUD**: `SqliteProductRepository.cs`, `SqliteCategoryRepository.cs`, `SqliteSaleRepository.cs`, `SqliteUserRepository.cs`
 - [x] **Compilación**: `dotnet build` → 0 errores, 4 advertencias menores
 - [x] **Estructura MVVM**: Separación de concerns implementada
+- [x] **Autenticación**: Sistema de login con SHA256 + salt, usuario admin por defecto
 
-#### Frontend - Integración Completa (80%)
+#### Frontend - Integración Completa (100%)
 - [x] **Navegación**: Sidebar con 4 secciones (Dashboard, Inventario, Ventas, Registros)
 - [x] **MainWindow**: Barra lateral con navegación MVVM
 - [x] **DashboardView**: KPIs reales desde BD (ventas día, ingresos mes, productos activos, total ventas)
@@ -45,10 +46,11 @@ Documentación: ████░░░░░░░░░░░░░░░░  20
 - [x] **RecordsView**: Historial de ventas con filtros por rango de fechas
 - [x] **Integración Frontend-Backend**: Todas las vistas conectadas a repositorios SQLite
 - [x] **Estilos**: Paleta de colores lavanda/lila consistente en todas las vistas
+- [x] **Login**: Ventana de autenticación con usuario/contraseña, mensaje de error, diseño consistente
+- [x] **Logout**: Botón cerrar sesión en sidebar, vuelve a ventana de login
 
 ### ⏳ Pendiente
 
-- [ ] **Login**: Autenticación de usuarios (tabla `users` ya existe en BD)
 - [ ] **QR Scanner**: Integración del escáner de código de barras
 - [ ] **Testing**: Pruebas en Windows, macOS y Linux
 - [ ] **Documentación**: Diagrama E-R, manual de usuario (Dante)
@@ -103,7 +105,7 @@ Documentación: ████░░░░░░░░░░░░░░░░  20
 | **8 sep 2026** | Inicio de fase de ejecución | ✅ Completado |
 | **10 sep** | Backend SQLite funcional | ✅ Completado |
 | **11 sep** | Integración Frontend-Backend + Navegación + Ventas | ✅ Completado |
-| **15 sep** | Login de usuarios | ⏳ Pendiente |
+| **15 sep** | Login de usuarios | ✅ Completado (14 sep) |
 | **18 sep** | Testing en 3 plataformas | ⏳ Pendiente |
 | **20 sep** | Ajustes y bugs | ⏳ Pendiente |
 | **22 sep** | **Entrega y defensa** | ⏳ Pendiente |
@@ -177,17 +179,21 @@ Safe-Sale/
 │       │   ├── Category.cs              # Modelo de categoría
 │       │   ├── Sale.cs                  # Modelo de venta
 │       │   ├── SaleItem.cs              # Modelo de ítem de venta
-│       │   └── CartItem.cs              # Modelo de ítem del carrito
+│       │   ├── CartItem.cs              # Modelo de ítem del carrito
+│       │   └── User.cs                  # Modelo de usuario
 │       ├── ViewModels/
 │       │   ├── ViewModelBase.cs         # Clase base MVVM
 │       │   ├── MainViewModel.cs         # Navegación principal
 │       │   ├── DashboardViewModel.cs    # Panel de control
 │       │   ├── InventoryViewModel.cs    # Gestión de inventario
 │       │   ├── SalesViewModel.cs        # Punto de venta
-│       │   └── RecordsViewModel.cs      # Historial
+│       │   ├── RecordsViewModel.cs      # Historial
+│       │   └── LoginViewModel.cs        # Lógica de login
 │       ├── Views/
 │       │   ├── MainWindow.axaml         # Ventana principal (sidebar)
 │       │   ├── MainWindow.axaml.cs
+│       │   ├── LoginWindow.axaml        # Ventana de login
+│       │   ├── LoginWindow.axaml.cs
 │       │   ├── DashboardView.axaml      # Panel de control
 │       │   ├── DashboardView.axaml.cs
 │       │   ├── InventoryView.axaml      # Gestión de inventario
@@ -198,12 +204,14 @@ Safe-Sale/
 │       │   └── RecordsView.axaml.cs
 │       ├── Data/
 │       │   ├── AppDatabase.cs           # Ruta compartida de la BD
-│       │   ├── SqliteDatabaseInitializer.cs  # Crea tablas
+│       │   ├── SqliteDatabaseInitializer.cs  # Crea tablas + admin default
 │       │   ├── SqliteProductRepository.cs    # CRUD productos
 │       │   ├── SqliteCategoryRepository.cs   # CRUD categorías
-│       │   └── SqliteSaleRepository.cs       # CRUD ventas
+│       │   ├── SqliteSaleRepository.cs       # CRUD ventas
+│       │   └── SqliteUserRepository.cs       # CRUD usuarios
 │       ├── Services/
-│       │   └── QrScannerService.cs      # Escáner QR
+│       │   ├── QrScannerService.cs      # Escáner QR
+│       │   └── PasswordHasher.cs        # Hash SHA256 + salt
 │       └── Assets/
 │           └── avalonia-logo.ico
 ├── docs/                                # Documentación (Dante)
@@ -237,4 +245,4 @@ Safe-Sale/
 *Proyecto: Safe-Sale - Sistema de Gestión de Supermercado*  
 *Fecha de entrega: 22 de septiembre de 2026*  
 *Integrantes: Lucas (Backend), Jandir (Frontend), Dante (Documentación)*  
-*Última actualización: 11 de septiembre de 2026*
+*Última actualización: 14 de septiembre de 2026*
