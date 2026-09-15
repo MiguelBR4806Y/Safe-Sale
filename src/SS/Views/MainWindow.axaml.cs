@@ -31,6 +31,10 @@ public partial class MainWindow : Window
             {
                 DataContext = new MainViewModel(user)
             };
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.MainWindow = newMainWindow;
+            }
             newMainWindow.Show();
             this.Close();
         };
