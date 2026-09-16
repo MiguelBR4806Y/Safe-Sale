@@ -1,4 +1,6 @@
+using System;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using SS.Data;
@@ -10,6 +12,9 @@ namespace SS;
 
 public partial class App : Application
 {
+    private IClassicDesktopStyleApplicationLifetime? _desktop;
+    private LoginWindow? _currentLoginWindow;
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -19,17 +24,21 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            ShowLoginWindow(desktop);
+            _desktop = desktop;
+            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            ShowLoginWindow();
         }
 
         base.OnFrameworkInitializationCompleted();
     }
 
-    private void ShowLoginWindow(IClassicDesktopStyleApplicationLifetime desktop)
+    private void ShowLoginWindow()
     {
-        var loginWindow = new LoginWindow();
+        if (_desktop == null) return;
+
+        _currentLoginWindow = new LoginWindow();
         var loginViewModel = new LoginViewModel(AppDatabase.DbPath);
-        loginWindow.DataContext = loginViewModel;
+        _currentLoginWindow.DataContext = loginViewModel;
 
         loginViewModel.LoginSuccess += (user) =>
         {
@@ -37,19 +46,23 @@ public partial class App : Application
             {
                 DataContext = new MainViewModel(user)
             };
-            desktop.MainWindow = mainWindow;
+
+            mainWindow.Closed += MainWindow_Closed;
+
+            _desktop.MainWindow = mainWindow;
             mainWindow.Show();
-            loginWindow.Close();
+            _currentLoginWindow?.Close();
+            _currentLoginWindow = null;
         };
 
-        loginWindow.Closed += (sender, args) =>
-        {
-            if (desktop.MainWindow == null)
-            {
-                desktop.Shutdown();
-            }
-        };
+        _currentLoginWindow.Show();
+    }
 
-        loginWindow.Show();
+    private void MainWindow_Closed(object? sender, EventArgs e)
+    {
+        if (_desktop == null) return;
+
+        _desktop.MainWindow = null;
+        ShowLoginWindow();
     }
 }
