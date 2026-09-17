@@ -30,16 +30,23 @@ public partial class SalesView : UserControl
 
     private async void OnQuickAddRequested(string barcode)
     {
-        var topLevel = TopLevel.GetTopLevel(this);
-        if (topLevel == null) return;
-
-        var dialog = new QuickAddProductDialog(barcode, SS.Data.AppDatabase.DbPath);
-
-        var result = await dialog.ShowDialog<bool?>(topLevel as Window);
-
-        if (result == true && _viewModel != null)
+        try
         {
-            _viewModel.HandleQuickAddResult(true);
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel == null) return;
+
+            var dialog = new QuickAddProductDialog(barcode, SS.Data.AppDatabase.DbPath);
+
+            var result = await dialog.ShowDialog<bool?>(topLevel as Window);
+
+            if (result == true && _viewModel != null)
+            {
+                _viewModel.HandleQuickAddResult(true);
+            }
+        }
+        catch
+        {
+            // Silently handle dialog errors
         }
     }
 }

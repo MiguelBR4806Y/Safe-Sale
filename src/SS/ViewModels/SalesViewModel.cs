@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia.Threading;
 using SS.Data;
 using SS.Models;
 using SS.Services;
@@ -112,21 +113,25 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
             {
                 _lastScannedCode = code;
                 _lastScanTime = DateTime.Now;
-                BarcodeInput = code;
 
-                var product = AvailableProducts.FirstOrDefault(p => p.Barcode == code);
-                if (product != null)
+                Dispatcher.UIThread.Post(() =>
                 {
-                    AddProductToCart(product);
-                    ScanFeedback = $"\u2713 {product.Name} agregado";
-                    ScanFeedbackColor = "#4CAF50";
-                }
-                else
-                {
-                    ScanFeedback = $"C\u00f3digo no encontrado: {code}";
-                    ScanFeedbackColor = "#EF5350";
-                    QuickAddRequested?.Invoke(code);
-                }
+                    BarcodeInput = code;
+
+                    var product = AvailableProducts.FirstOrDefault(p => p.Barcode == code);
+                    if (product != null)
+                    {
+                        AddProductToCart(product);
+                        ScanFeedback = $"\u2713 {product.Name} agregado";
+                        ScanFeedbackColor = "#4CAF50";
+                    }
+                    else
+                    {
+                        ScanFeedback = $"C\u00f3digo no encontrado: {code}";
+                        ScanFeedbackColor = "#EF5350";
+                        QuickAddRequested?.Invoke(code);
+                    }
+                });
             }
             else if (!string.IsNullOrEmpty(code) && code == _lastScannedCode)
             {
@@ -150,9 +155,13 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         {
             using var stream = new MemoryStream(jpegBytes);
             var bitmap = new Avalonia.Media.Imaging.Bitmap(stream);
-            var old = CameraPreview;
-            CameraPreview = bitmap;
-            old?.Dispose();
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                var old = CameraPreview;
+                CameraPreview = bitmap;
+                old?.Dispose();
+            });
         }
         catch
         {
@@ -175,13 +184,18 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
             Task.Run(async () =>
             {
                 await _cameraService.StartCaptureAsync();
-                IsCameraActive = _cameraService.IsCapturing;
+                var isCapturing = _cameraService.IsCapturing;
 
-                if (!IsCameraActive)
+                Dispatcher.UIThread.Post(() =>
                 {
-                    ScanFeedback = "No se pudo acceder a la c\u00e1mara";
-                    ScanFeedbackColor = "#EF5350";
-                }
+                    IsCameraActive = isCapturing;
+
+                    if (!IsCameraActive)
+                    {
+                        ScanFeedback = "No se pudo acceder a la c\u00e1mara";
+                        ScanFeedbackColor = "#EF5350";
+                    }
+                });
             });
         }
     }
@@ -211,14 +225,14 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     {
         if (string.IsNullOrWhiteSpace(BarcodeInput))
         {
-            ScanFeedback = "Ingrese un código de barras";
+            ScanFeedback = "Ingrese un c\u00f3digo de barras";
             ScanFeedbackColor = "#FF9800";
             return;
         }
 
         if (!IsValidBarcode(BarcodeInput))
         {
-            ScanFeedback = "Código inválido. Use EAN-13 (13 dígitos) o UPC-A (12 dígitos)";
+            ScanFeedback = "C\u00f3digo inv\u00e1lido. Use EAN-13 (13 d\u00edgitos) o UPC-A (12 d\u00edgitos)";
             ScanFeedbackColor = "#EF5350";
             return;
         }
@@ -287,34 +301,43 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     {
         if (CartItems.Count == 0) return;
 
-        var sale = new Sale
+        try
         {
-            UserId = _currentUser.Id,
-            Total = CartTotal,
-            CreatedAt = DateTime.Now
-        };
-
-        int saleId = _saleRepo.Add(sale);
-
-        foreach (var ci in CartItems)
-        {
-            _saleRepo.AddItem(new SaleItem
+            var sale = new Sale
             {
-                SaleId = saleId,
-                ProductId = ci.Product.Id,
-                Quantity = ci.Quantity,
-                PriceSold = ci.Price
-            });
+                UserId = _currentUser.Id,
+                Total = CartTotal,
+                CreatedAt = DateTime.Now
+            };
 
-            ci.Product.Stock -= ci.Quantity;
-            _productRepo.Update(ci.Product);
+            int saleId = _saleRepo.Add(sale);
+
+            foreach (var ci in CartItems)
+            {
+                _saleRepo.AddItem(new SaleItem
+                {
+                    SaleId = saleId,
+                    ProductId = ci.Product.Id,
+                    Quantity = ci.Quantity,
+                    PriceSold = ci.Price
+                });
+
+                ci.Product.Stock -= ci.Quantity;
+                _productRepo.Update(ci.Product);
+            }
+
+            StatusMessage = $"Venta #{saleId} completada - Total: ${CartTotal:F2}";
+            ScanFeedback = $"\u2713 Venta #{saleId} completada";
+            ScanFeedbackColor = "#4CAF50";
+            OnClearCart();
+            LoadProducts();
         }
-
-        StatusMessage = $"Venta #{saleId} completada - Total: ${CartTotal:F2}";
-        ScanFeedback = $"\u2713 Venta #{saleId} completada";
-        ScanFeedbackColor = "#4CAF50";
-        OnClearCart();
-        LoadProducts();
+        catch (Exception)
+        {
+            StatusMessage = "Error al procesar la venta";
+            ScanFeedback = "Error al procesar la venta";
+            ScanFeedbackColor = "#EF5350";
+        }
     }
 
     private bool IsValidEAN13(string barcode)

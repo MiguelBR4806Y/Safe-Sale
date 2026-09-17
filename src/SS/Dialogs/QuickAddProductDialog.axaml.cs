@@ -1,5 +1,7 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Microsoft.Data.Sqlite;
 using SS.Data;
 using SS.Models;
 
@@ -28,7 +30,11 @@ public partial class QuickAddProductDialog : Window
 
     private void OnSave(object? sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(NameBox.Text)) return;
+        if (string.IsNullOrWhiteSpace(NameBox.Text))
+        {
+            ShowError("El nombre del producto es obligatorio");
+            return;
+        }
 
         if (!decimal.TryParse(PriceBox.Text, out decimal price) || price < 0)
             price = 0;
@@ -42,9 +48,32 @@ public partial class QuickAddProductDialog : Window
             MinStock = 5
         };
 
-        _productRepo.Add(product);
-        CreatedProduct = product;
-        Close(true);
+        try
+        {
+            _productRepo.Add(product);
+            CreatedProduct = product;
+            Close(true);
+        }
+        catch (SqliteException ex) when (ex.ErrorCode == 19)
+        {
+            ShowError($"Ya existe un producto con el código {_barcode}");
+        }
+        catch (Exception)
+        {
+            ShowError("Error al guardar el producto");
+        }
+    }
+
+    private void ShowError(string message)
+    {
+        var errorBorder = this.FindControl<Border>("ErrorBorder");
+        var errorText = this.FindControl<TextBlock>("ErrorText");
+
+        if (errorBorder != null && errorText != null)
+        {
+            errorText.Text = message;
+            errorBorder.IsVisible = true;
+        }
     }
 
     private void OnCancel(object? sender, RoutedEventArgs e)

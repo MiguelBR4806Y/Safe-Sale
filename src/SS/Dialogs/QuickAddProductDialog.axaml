@@ -58,6 +58,17 @@
                        FontWeight="SemiBold"/>
             <TextBox Name="PriceBox"/>
 
+            <Border Name="ErrorBorder"
+                    IsVisible="False"
+                    Background="#22EF5350"
+                    CornerRadius="6"
+                    Padding="10,8">
+                <TextBlock Name="ErrorText"
+                           Foreground="#EF5350"
+                           FontSize="12"
+                           FontWeight="SemiBold"/>
+            </Border>
+
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"
                         Spacing="8"

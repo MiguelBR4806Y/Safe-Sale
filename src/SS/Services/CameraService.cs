@@ -19,22 +19,31 @@ public class CameraService : ICameraService
     {
         if (_isCapturing) return Task.CompletedTask;
 
-        _capture = new VideoCapture(cameraIndex);
-        if (!_capture.IsOpened())
+        try
         {
-            _capture.Dispose();
-            _capture = null;
-            return Task.CompletedTask;
+            _capture = new VideoCapture(cameraIndex);
+            if (!_capture.IsOpened())
+            {
+                _capture.Dispose();
+                _capture = null;
+                return Task.CompletedTask;
+            }
+
+            _capture.Set(VideoCaptureProperties.FrameWidth, 1280);
+            _capture.Set(VideoCaptureProperties.FrameHeight, 720);
+            _capture.Set(VideoCaptureProperties.Fps, 20);
+
+            _isCapturing = true;
+            _cts = new CancellationTokenSource();
+
+            Task.Run(() => CaptureLoop(_cts.Token));
         }
-
-        _capture.Set(VideoCaptureProperties.FrameWidth, 1280);
-        _capture.Set(VideoCaptureProperties.FrameHeight, 720);
-        _capture.Set(VideoCaptureProperties.Fps, 20);
-
-        _isCapturing = true;
-        _cts = new CancellationTokenSource();
-
-        Task.Run(() => CaptureLoop(_cts.Token));
+        catch
+        {
+            _capture?.Dispose();
+            _capture = null;
+            _isCapturing = false;
+        }
 
         return Task.CompletedTask;
     }
@@ -57,10 +66,17 @@ public class CameraService : ICameraService
 
         while (!token.IsCancellationRequested && _isCapturing && _capture != null)
         {
-            if (_capture.Read(frame) && !frame.Empty())
+            try
             {
-                var jpegBytes = frame.ImEncode(".jpg");
-                FrameAvailable?.Invoke(jpegBytes);
+                if (_capture.Read(frame) && !frame.Empty())
+                {
+                    var jpegBytes = frame.ImEncode(".jpg");
+                    FrameAvailable?.Invoke(jpegBytes);
+                }
+            }
+            catch
+            {
+                break;
             }
 
             Thread.Sleep(50);
