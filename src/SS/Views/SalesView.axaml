@@ -60,25 +60,21 @@
 
                             <!-- Marco de escaneo (overlay) -->
                             <Border BorderBrush="#4CAF50"
-                                    BorderThickness="3"
+                                    BorderThickness="2"
                                     CornerRadius="8"
-                                    Margin="40,40"
-                                    Background="#22000000"/>
+                                    Margin="30,30"
+                                    Background="#11000000"/>
 
                             <!-- Esquinas destacadas del marco -->
                             <Canvas>
-                                <!-- Esquina superior izquierda -->
-                                <Border Canvas.Left="40" Canvas.Top="40" Width="30" Height="30"
-                                        BorderBrush="#4CAF50" BorderThickness="4,0,0,4" CornerRadius="4,0,0,0"/>
-                                <!-- Esquina superior derecha -->
-                                <Border Canvas.Right="40" Canvas.Top="40" Width="30" Height="30"
-                                        BorderBrush="#4CAF50" BorderThickness="0,4,4,0" CornerRadius="0,4,0,0"/>
-                                <!-- Esquina inferior izquierda -->
-                                <Border Canvas.Left="40" Canvas.Bottom="40" Width="30" Height="30"
-                                        BorderBrush="#4CAF50" BorderThickness="4,0,0,4" CornerRadius="0,0,0,4"/>
-                                <!-- Esquina inferior derecha -->
-                                <Border Canvas.Right="40" Canvas.Bottom="40" Width="30" Height="30"
-                                        BorderBrush="#4CAF50" BorderThickness="0,4,4,0" CornerRadius="0,0,4,0"/>
+                                <Border Canvas.Left="30" Canvas.Top="30" Width="20" Height="20"
+                                        BorderBrush="#4CAF50" BorderThickness="3,0,0,3" CornerRadius="4,0,0,0"/>
+                                <Border Canvas.Right="30" Canvas.Top="30" Width="20" Height="20"
+                                        BorderBrush="#4CAF50" BorderThickness="0,3,3,0" CornerRadius="0,4,0,0"/>
+                                <Border Canvas.Left="30" Canvas.Bottom="30" Width="20" Height="20"
+                                        BorderBrush="#4CAF50" BorderThickness="3,0,0,3" CornerRadius="0,0,0,4"/>
+                                <Border Canvas.Right="30" Canvas.Bottom="30" Width="20" Height="20"
+                                        BorderBrush="#4CAF50" BorderThickness="0,3,3,0" CornerRadius="0,0,4,0"/>
                             </Canvas>
 
                             <!-- Texto indicativo -->
@@ -89,7 +85,7 @@
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Bottom"
                                        Margin="0,0,0,10"
-                                       Padding="10,5"/>
+                                       Padding="8,4"/>
                         </Grid>
                     </StackPanel>
                 </Border>
