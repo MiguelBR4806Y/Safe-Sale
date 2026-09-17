@@ -1,8 +1,8 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="SS.Dialogs.QuickAddProductDialog"
-        Title="Agregar Producto Rápido"
-        Width="380" Height="340"
+        Title="Agregar Producto R\u00e1pido"
+        Width="400" Height="420"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         Background="#FAF3F7">
@@ -23,9 +23,15 @@
             <Setter Property="Foreground" Value="#212121"/>
             <Setter Property="BorderBrush" Value="#7B1FA2"/>
         </Style>
+        <Style Selector="TextBox:error">
+            <Setter Property="BorderBrush" Value="#EF5350"/>
+        </Style>
         <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
             <Setter Property="Background" Value="#FFFFFF"/>
             <Setter Property="BorderBrush" Value="#7B1FA2"/>
+        </Style>
+        <Style Selector="TextBox:error /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#EF5350"/>
         </Style>
         <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
             <Setter Property="Background" Value="#FFFFFF"/>
@@ -39,47 +45,85 @@
             Padding="24"
             BorderBrush="#E8DAEF"
             BorderThickness="1">
-        <StackPanel Spacing="12">
+        <StackPanel Spacing="10">
             <TextBlock Text="Nuevo Producto"
                        FontSize="18"
                        FontWeight="Bold"
                        Foreground="#4A148C"
                        HorizontalAlignment="Center"
-                       Margin="0,0,0,8"/>
+                       Margin="0,0,0,4"/>
 
-            <TextBlock Text="Código de barras:"
+            <!-- Barcode -->
+            <TextBlock Text="C\u00f3digo de barras:"
                        FontSize="12"
                        Foreground="#6C3483"
                        FontWeight="SemiBold"/>
-            <TextBox Name="BarcodeBox"/>
+            <TextBox Name="BarcodeBox"
+                     PlaceholderText="Ej: 1234567890123 (13 d\u00edgitos)"
+                     MaxLength="13"/>
+            <TextBlock Name="BarcodeHelp"
+                       Text="Solo n\u00fameros. EAN-13 (13) o UPC-A (12) d\u00edgitos"
+                       FontSize="10"
+                       Foreground="#6C3483"
+                       Margin="0,2,0,0"/>
+            <TextBlock Name="BarcodeError"
+                       FontSize="11"
+                       Foreground="#EF5350"
+                       FontWeight="SemiBold"
+                       IsVisible="False"
+                       Margin="0,2,0,0"/>
 
+            <!-- Name -->
             <TextBlock Text="Nombre del producto:"
                        FontSize="12"
                        Foreground="#6C3483"
                        FontWeight="SemiBold"/>
-            <TextBox Name="NameBox"/>
+            <TextBox Name="NameBox"
+                     PlaceholderText="M\u00ednimo 3 caracteres"/>
+            <TextBlock Name="NameError"
+                       FontSize="11"
+                       Foreground="#EF5350"
+                       FontWeight="SemiBold"
+                       IsVisible="False"
+                       Margin="0,2,0,0"/>
 
+            <!-- Price -->
             <TextBlock Text="Precio:"
                        FontSize="12"
                        Foreground="#6C3483"
                        FontWeight="SemiBold"/>
-            <TextBox Name="PriceBox"/>
+            <TextBox Name="PriceBox"
+                     PlaceholderText="Ej: 10.50"/>
+            <TextBlock Name="PriceError"
+                       FontSize="11"
+                       Foreground="#EF5350"
+                       FontWeight="SemiBold"
+                       IsVisible="False"
+                       Margin="0,2,0,0"/>
 
+            <!-- Error general (para errores de BD) -->
             <Border Name="ErrorBorder"
                     IsVisible="False"
                     Background="#22EF5350"
                     CornerRadius="6"
                     Padding="10,8">
-                <TextBlock Name="ErrorText"
-                           Foreground="#EF5350"
-                           FontSize="12"
-                           FontWeight="SemiBold"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Name="ErrorText"
+                               Foreground="#EF5350"
+                               FontSize="12"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Text="\u2716"
+                               Foreground="#EF5350"
+                               FontSize="12"
+                               Cursor="Hand"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
             </Border>
 
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"
                         Spacing="8"
-                        Margin="0,8,0,0">
+                        Margin="0,4,0,0">
                 <Button Name="CancelButton"
                         Content="Cancelar"
                         Background="#EF5350"
@@ -100,4 +144,3 @@
         </StackPanel>
     </Border>
 </Window>
-
