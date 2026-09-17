@@ -15,9 +15,9 @@ Sistema punto de venta y gestión de supermercado desarrollado con **Avalonia UI
 
 ---
 
-## 📊 Estado del Progreso — 14 de Septiembre 2026
+## 📊 Estado del Progreso — 16 de Septiembre 2026
 
-### Progreso General: **~90%** Completado
+### Progreso General: **~95%** Completado
 
 ```
 Backend:       ████████████████████ 100%
@@ -47,11 +47,11 @@ Documentación: ████░░░░░░░░░░░░░░░░  20
 - [x] **Integración Frontend-Backend**: Todas las vistas conectadas a repositorios SQLite
 - [x] **Estilos**: Paleta de colores lavanda/lila consistente en todas las vistas
 - [x] **Login**: Ventana de autenticación con usuario/contraseña, mensaje de error, diseño consistente
+- [x] **QR Scanner**: Escáner de código de barras con cámara (OpenCvSharp4 + ZXing.Net)
 - [x] **Logout**: Botón cerrar sesión en sidebar, vuelve a ventana de login
 
 ### ⏳ Pendiente
 
-- [ ] **QR Scanner**: Integración del escáner de código de barras
 - [ ] **Testing**: Pruebas en Windows, macOS y Linux
 - [ ] **Documentación**: Diagrama E-R, manual de usuario (Dante)
 - [ ] **Diapositivas**: Presentación para defensa
