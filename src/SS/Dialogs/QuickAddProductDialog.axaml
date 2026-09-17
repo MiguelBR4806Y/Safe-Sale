@@ -44,7 +44,7 @@
                        FontSize="12"
                        Foreground="#6C3483"
                        FontWeight="SemiBold"/>
-            <TextBox Name="BarcodeBox" IsReadOnly="True"/>
+            <TextBox Name="BarcodeBox"/>
 
             <TextBlock Text="Nombre del producto:"
                        FontSize="12"
