@@ -225,7 +225,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     {
         if (string.IsNullOrWhiteSpace(BarcodeInput))
         {
-            ScanFeedback = "Ingrese un c\u00f3digo de barras";
+            ScanFeedback = "Ingrese un código o seleccione el producto de la lista";
             ScanFeedbackColor = "#FF9800";
             return;
         }

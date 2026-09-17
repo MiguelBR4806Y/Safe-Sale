@@ -71,10 +71,11 @@ public partial class QuickAddProductDialog : Window
         }
 
         var price = decimal.Parse(PriceBox.Text!.Trim());
+        var barcode = BarcodeBox.Text?.Trim() ?? "";
         var product = new Product
         {
             Name = NameBox.Text!.Trim(),
-            Barcode = BarcodeBox.Text!.Trim(),
+            Barcode = barcode,
             Price = price,
             Stock = 0,
             MinStock = 5
@@ -88,7 +89,10 @@ public partial class QuickAddProductDialog : Window
         }
         catch (SqliteException ex) when (ex.ErrorCode == 19)
         {
-            ShowGlobalError($"Ya existe un producto con el c\u00f3digo {product.Barcode}");
+            if (!string.IsNullOrEmpty(barcode))
+                ShowGlobalError($"Ya existe un producto con el código {barcode}");
+            else
+                ShowGlobalError("Error al guardar el producto");
         }
         catch (Exception)
         {
@@ -102,26 +106,26 @@ public partial class QuickAddProductDialog : Window
         var name = NameBox.Text?.Trim() ?? "";
         var priceText = PriceBox.Text?.Trim() ?? "";
 
-        if (string.IsNullOrEmpty(barcode))
-            return (false, "El c\u00f3digo de barras es obligatorio", "Barcode");
+        if (!string.IsNullOrEmpty(barcode))
+        {
+            if (!barcode.All(char.IsDigit))
+                return (false, "El código debe contener solo números", "Barcode");
 
-        if (!barcode.All(char.IsDigit))
-            return (false, "El c\u00f3digo debe contener solo n\u00fameros", "Barcode");
-
-        if (barcode.Length != 12 && barcode.Length != 13)
-            return (false, "El c\u00f3digo debe tener 12 o 13 d\u00edgitos", "Barcode");
+            if (barcode.Length != 12 && barcode.Length != 13)
+                return (false, "El código debe tener 12 o 13 dígitos", "Barcode");
+        }
 
         if (string.IsNullOrEmpty(name))
             return (false, "El nombre del producto es obligatorio", "Name");
 
         if (name.Length < 3)
-            return (false, "El nombre debe tener m\u00ednimo 3 caracteres", "Name");
+            return (false, "El nombre debe tener mínimo 3 caracteres", "Name");
 
         if (string.IsNullOrEmpty(priceText))
             return (false, "El precio es obligatorio", "Price");
 
         if (!decimal.TryParse(priceText, out decimal price) || price < 0)
-            return (false, "El precio debe ser un n\u00famero v\u00e1lido (ej: 10.50)", "Price");
+            return (false, "El precio debe ser un número válido (ej: 10.50)", "Price");
 
         return (true, "", "");
     }

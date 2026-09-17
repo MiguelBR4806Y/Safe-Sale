@@ -73,7 +73,7 @@ public class SqliteProductRepository
             VALUES (@name, @barcode, @price, @stock, @category_id, @min_stock)";
 
         cmd.Parameters.AddWithValue("@name", product.Name);
-        cmd.Parameters.AddWithValue("@barcode", product.Barcode);
+        cmd.Parameters.AddWithValue("@barcode", string.IsNullOrEmpty(product.Barcode) ? (object)DBNull.Value : product.Barcode);
         cmd.Parameters.AddWithValue("@price", product.Price);
         cmd.Parameters.AddWithValue("@stock", product.Stock);
         cmd.Parameters.AddWithValue("@category_id", product.CategoryId == 0 ? (object)DBNull.Value : product.CategoryId);
@@ -93,7 +93,7 @@ public class SqliteProductRepository
 
         cmd.Parameters.AddWithValue("@id", product.Id);
         cmd.Parameters.AddWithValue("@name", product.Name);
-        cmd.Parameters.AddWithValue("@barcode", product.Barcode);
+        cmd.Parameters.AddWithValue("@barcode", string.IsNullOrEmpty(product.Barcode) ? (object)DBNull.Value : product.Barcode);
         cmd.Parameters.AddWithValue("@price", product.Price);
         cmd.Parameters.AddWithValue("@stock", product.Stock);
         cmd.Parameters.AddWithValue("@category_id", product.CategoryId == 0 ? (object)DBNull.Value : product.CategoryId);
