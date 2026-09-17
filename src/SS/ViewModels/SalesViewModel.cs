@@ -209,20 +209,33 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
     private void OnAddByBarcode()
     {
-        if (string.IsNullOrWhiteSpace(BarcodeInput)) return;
+        if (string.IsNullOrWhiteSpace(BarcodeInput))
+        {
+            ScanFeedback = "Ingrese un código de barras";
+            ScanFeedbackColor = "#FF9800";
+            return;
+        }
+
+        if (!IsValidBarcode(BarcodeInput))
+        {
+            ScanFeedback = "Código inválido. Use EAN-13 (13 dígitos) o UPC-A (12 dígitos)";
+            ScanFeedbackColor = "#EF5350";
+            return;
+        }
 
         var product = AvailableProducts.FirstOrDefault(p => p.Barcode == BarcodeInput);
         if (product == null)
         {
-            StatusMessage = "Producto no encontrado";
-            ScanFeedback = "Producto no encontrado";
+            ScanFeedback = $"Producto no encontrado: {BarcodeInput}";
             ScanFeedbackColor = "#EF5350";
-            BarcodeInput = "";
+            QuickAddRequested?.Invoke(BarcodeInput);
             return;
         }
 
         AddProductToCart(product);
         BarcodeInput = "";
+        ScanFeedback = $"\u2713 {product.Name} agregado";
+        ScanFeedbackColor = "#4CAF50";
     }
 
     private void OnAddToCart()
@@ -302,6 +315,49 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         ScanFeedbackColor = "#4CAF50";
         OnClearCart();
         LoadProducts();
+    }
+
+    private bool IsValidEAN13(string barcode)
+    {
+        if (string.IsNullOrWhiteSpace(barcode) || barcode.Length != 13)
+            return false;
+
+        if (!barcode.All(char.IsDigit))
+            return false;
+
+        int sum = 0;
+        for (int i = 0; i < 12; i++)
+        {
+            int digit = int.Parse(barcode[i].ToString());
+            sum += (i % 2 == 0) ? digit : digit * 3;
+        }
+
+        int checkDigit = (10 - (sum % 10)) % 10;
+        return int.Parse(barcode[12].ToString()) == checkDigit;
+    }
+
+    private bool IsValidUPCA(string barcode)
+    {
+        if (string.IsNullOrWhiteSpace(barcode) || barcode.Length != 12)
+            return false;
+
+        if (!barcode.All(char.IsDigit))
+            return false;
+
+        int sum = 0;
+        for (int i = 0; i < 11; i++)
+        {
+            int digit = int.Parse(barcode[i].ToString());
+            sum += (i % 2 == 0) ? digit * 3 : digit;
+        }
+
+        int checkDigit = (10 - (sum % 10)) % 10;
+        return int.Parse(barcode[11].ToString()) == checkDigit;
+    }
+
+    private bool IsValidBarcode(string barcode)
+    {
+        return IsValidEAN13(barcode) || IsValidUPCA(barcode);
     }
 
     private void OnClearCart()

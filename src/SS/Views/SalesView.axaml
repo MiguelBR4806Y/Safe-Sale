@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SS.ViewModels"
              xmlns:conv="using:SS.Converters"
@@ -7,8 +7,8 @@
 
     <UserControl.Resources>
         <conv:BoolToStringConverter x:Key="CameraTextConverter"
-                                     TrueValue="Cerrar C\u00e1mara"
-                                     FalseValue="Iniciar C\u00e1mara"/>
+                                     TrueValue="Cerrar Cámara"
+                                     FalseValue="Iniciar Cámara"/>
         <conv:BoolToColorConverter x:Key="CameraColorConverter"
                                     TrueColor="#EF5350"
                                     FalseColor="#4CAF50"/>
@@ -18,13 +18,13 @@
         <Grid ColumnDefinitions="*,350" Margin="15" RowDefinitions="Auto,*">
             <!-- Panel izquierdo: Carrito -->
             <StackPanel Grid.Column="0" Grid.Row="2" Spacing="10">
-                <!-- C\u00e1mara + Esc\u00e1ner -->
+                <!-- Cámara + Escáner -->
                 <Border Background="#FFFFFF"
                         CornerRadius="6"
                         Padding="10">
                     <StackPanel Spacing="8">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="Esc\u00e1ner de C\u00e1mara"
+                            <TextBlock Text="Escáner de Cámara"
                                 FontSize="13"
                                 Foreground="#4A148C"
                                 FontWeight="SemiBold"
@@ -39,7 +39,7 @@
                                     Background="{Binding IsCameraActive, Converter={StaticResource CameraColorConverter}}"/>
                         </StackPanel>
 
-                        <!-- Feedback del esc\u00e1ner -->
+                        <!-- Feedback del escáner -->
                         <Border CornerRadius="4"
                                 Padding="8,6"
                                 Background="#F5F5F5"
@@ -50,26 +50,56 @@
                                        Foreground="{Binding ScanFeedbackColor}"/>
                         </Border>
 
-                        <!-- Vista de c\u00e1mara en tiempo real -->
-                        <Border Background="#1A000000"
-                                CornerRadius="4"
-                                Height="120"
-                                IsVisible="{Binding IsCameraActive}"
-                                ClipToBounds="True">
+                        <!-- Vista previa de cámara con marco de escaneo -->
+                        <Grid Height="200" IsVisible="{Binding IsCameraActive}">
+                            <!-- Video de la cámara -->
                             <Image Source="{Binding CameraPreview}"
                                    Stretch="UniformToFill"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"/>
-                        </Border>
+
+                            <!-- Marco de escaneo (overlay) -->
+                            <Border BorderBrush="#4CAF50"
+                                    BorderThickness="3"
+                                    CornerRadius="8"
+                                    Margin="40,40"
+                                    Background="#22000000"/>
+
+                            <!-- Esquinas destacadas del marco -->
+                            <Canvas>
+                                <!-- Esquina superior izquierda -->
+                                <Border Canvas.Left="40" Canvas.Top="40" Width="30" Height="30"
+                                        BorderBrush="#4CAF50" BorderThickness="4,0,0,4" CornerRadius="4,0,0,0"/>
+                                <!-- Esquina superior derecha -->
+                                <Border Canvas.Right="40" Canvas.Top="40" Width="30" Height="30"
+                                        BorderBrush="#4CAF50" BorderThickness="0,4,4,0" CornerRadius="0,4,0,0"/>
+                                <!-- Esquina inferior izquierda -->
+                                <Border Canvas.Left="40" Canvas.Bottom="40" Width="30" Height="30"
+                                        BorderBrush="#4CAF50" BorderThickness="4,0,0,4" CornerRadius="0,0,0,4"/>
+                                <!-- Esquina inferior derecha -->
+                                <Border Canvas.Right="40" Canvas.Bottom="40" Width="30" Height="30"
+                                        BorderBrush="#4CAF50" BorderThickness="0,4,4,0" CornerRadius="0,0,4,0"/>
+                            </Canvas>
+
+                            <!-- Texto indicativo -->
+                            <TextBlock Text="Coloque el código dentro del marco"
+                                       FontSize="11"
+                                       Foreground="White"
+                                       Background="#AA000000"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Bottom"
+                                       Margin="0,0,0,10"
+                                       Padding="10,5"/>
+                        </Grid>
                     </StackPanel>
                 </Border>
 
-                <!-- Barra de b\u00fasqueda por c\u00f3digo de barras -->
+                <!-- Barra de búsqueda por código de barras -->
                 <Border Background="#FFFFFF"
                         CornerRadius="6"
                         Padding="10">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="O ingrese c\u00f3digo manualmente:"
+                        <TextBlock Text="O ingrese código manualmente:"
                             FontSize="12"
                             Foreground="#6C3483"
                             FontWeight="SemiBold"/>
@@ -79,11 +109,24 @@
                                      FontSize="12"
                                      PlaceholderText="Escribir o escanear..."
                                      Text="{Binding BarcodeInput, Mode=TwoWay}"
+                                     Background="#FFFFFF"
+                                     Foreground="#212121"
+                                     CaretBrush="#4A148C"
                                      VerticalContentAlignment="Center">
                                 <TextBox.KeyBindings>
                                     <KeyBinding Gesture="Enter"
                                                 Command="{Binding AddByBarcodeCommand}"/>
                                 </TextBox.KeyBindings>
+                                <TextBox.Styles>
+                                    <Style Selector="TextBox">
+                                        <Setter Property="Background" Value="#FFFFFF"/>
+                                        <Setter Property="Foreground" Value="#212121"/>
+                                    </Style>
+                                    <Style Selector="TextBox:focus">
+                                        <Setter Property="Background" Value="#FFFFFF"/>
+                                        <Setter Property="Foreground" Value="#212121"/>
+                                    </Style>
+                                </TextBox.Styles>
                             </TextBox>
                             <Button Content="Buscar"
                                     Background="#BB8FCE"
@@ -105,6 +148,10 @@
                         <TextBlock Text="{Binding StatusMessage}"
                                    FontSize="11"
                                    Foreground="#4A148C"/>
+                        <TextBlock Text="Formato: EAN-13 (13 dígitos) o UPC-A (12 dígitos)"
+                                   FontSize="10"
+                                   Foreground="#6C3483"
+                                   Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -145,7 +192,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Bot\u00f3n agregar seleccionado -->
+                <!-- Botón agregar seleccionado -->
                 <StackPanel HorizontalAlignment="Right">
                     <Button Content="Agregar Seleccionado"
                             Background="#BB8FCE"
@@ -297,3 +344,4 @@
         </Grid>
     </Border>
 </UserControl>
+
