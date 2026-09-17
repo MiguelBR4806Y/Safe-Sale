@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -57,6 +58,9 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
     [ObservableProperty]
     private bool _isScanning;
+
+    [ObservableProperty]
+    private Avalonia.Media.Imaging.Bitmap? _cameraPreview;
 
     public ICommand AddByBarcodeCommand { get; }
     public ICommand AddToCartCommand { get; }
@@ -114,12 +118,12 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
                 if (product != null)
                 {
                     AddProductToCart(product);
-                    ScanFeedback = $"✓ {product.Name} agregado";
+                    ScanFeedback = $"\u2713 {product.Name} agregado";
                     ScanFeedbackColor = "#4CAF50";
                 }
                 else
                 {
-                    ScanFeedback = $"Código no encontrado: {code}";
+                    ScanFeedback = $"C\u00f3digo no encontrado: {code}";
                     ScanFeedbackColor = "#EF5350";
                     QuickAddRequested?.Invoke(code);
                 }
@@ -131,10 +135,28 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
                     _lastScannedCode = "";
                 }
             }
+
+            UpdateCameraPreview(frameData);
         }
         finally
         {
             IsScanning = false;
+        }
+    }
+
+    private void UpdateCameraPreview(byte[] jpegBytes)
+    {
+        try
+        {
+            using var stream = new MemoryStream(jpegBytes);
+            var bitmap = new Avalonia.Media.Imaging.Bitmap(stream);
+            var old = CameraPreview;
+            CameraPreview = bitmap;
+            old?.Dispose();
+        }
+        catch
+        {
+            // Silently ignore frame decode errors
         }
     }
 
@@ -145,6 +167,8 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
             _cameraService.StopCapture();
             IsCameraActive = false;
             ScanFeedback = "";
+            CameraPreview?.Dispose();
+            CameraPreview = null;
         }
         else
         {
@@ -155,7 +179,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
                 if (!IsCameraActive)
                 {
-                    ScanFeedback = "No se pudo acceder a la cámara";
+                    ScanFeedback = "No se pudo acceder a la c\u00e1mara";
                     ScanFeedbackColor = "#EF5350";
                 }
             });
@@ -172,7 +196,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
             if (lastProduct != null)
             {
                 AddProductToCart(lastProduct);
-                ScanFeedback = $"✓ {lastProduct.Name} creado y agregado";
+                ScanFeedback = $"\u2713 {lastProduct.Name} creado y agregado";
                 ScanFeedbackColor = "#4CAF50";
             }
         }
@@ -193,6 +217,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
             StatusMessage = "Producto no encontrado";
             ScanFeedback = "Producto no encontrado";
             ScanFeedbackColor = "#EF5350";
+            BarcodeInput = "";
             return;
         }
 
@@ -273,7 +298,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         }
 
         StatusMessage = $"Venta #{saleId} completada - Total: ${CartTotal:F2}";
-        ScanFeedback = $"✓ Venta #{saleId} completada";
+        ScanFeedback = $"\u2713 Venta #{saleId} completada";
         ScanFeedbackColor = "#4CAF50";
         OnClearCart();
         LoadProducts();
@@ -297,5 +322,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         _cameraService.FrameAvailable -= OnFrameAvailable;
         _cameraService.StopCapture();
         _cameraService.Dispose();
+        CameraPreview?.Dispose();
+        CameraPreview = null;
     }
 }

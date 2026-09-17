@@ -1,20 +1,30 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SS.ViewModels"
+             xmlns:conv="using:SS.Converters"
              x:Class="SS.Views.SalesView"
              x:DataType="vm:SalesViewModel">
+
+    <UserControl.Resources>
+        <conv:BoolToStringConverter x:Key="CameraTextConverter"
+                                     TrueValue="Cerrar C\u00e1mara"
+                                     FalseValue="Iniciar C\u00e1mara"/>
+        <conv:BoolToColorConverter x:Key="CameraColorConverter"
+                                    TrueColor="#EF5350"
+                                    FalseColor="#4CAF50"/>
+    </UserControl.Resources>
 
     <Border Background="#FAF3F7" CornerRadius="8">
         <Grid ColumnDefinitions="*,350" Margin="15" RowDefinitions="Auto,*">
             <!-- Panel izquierdo: Carrito -->
             <StackPanel Grid.Column="0" Grid.Row="2" Spacing="10">
-                <!-- Cámara + Escáner -->
+                <!-- C\u00e1mara + Esc\u00e1ner -->
                 <Border Background="#FFFFFF"
                         CornerRadius="6"
                         Padding="10">
                     <StackPanel Spacing="8">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="📷 Escáner de Cámara"
+                            <TextBlock Text="Esc\u00e1ner de C\u00e1mara"
                                 FontSize="13"
                                 Foreground="#4A148C"
                                 FontWeight="SemiBold"
@@ -24,13 +34,12 @@
                                     Padding="12,6"
                                     CornerRadius="4"
                                     Foreground="White"
-                                    Background="#4CAF50"
-                                    Cursor="Hand">
-                                <TextBlock Text="Iniciar Cámara"/>
-                            </Button>
+                                    Cursor="Hand"
+                                    Content="{Binding IsCameraActive, Converter={StaticResource CameraTextConverter}}"
+                                    Background="{Binding IsCameraActive, Converter={StaticResource CameraColorConverter}}"/>
                         </StackPanel>
 
-                        <!-- Feedback del escáner -->
+                        <!-- Feedback del esc\u00e1ner -->
                         <Border CornerRadius="4"
                                 Padding="8,6"
                                 Background="#F5F5F5"
@@ -41,55 +50,61 @@
                                        Foreground="{Binding ScanFeedbackColor}"/>
                         </Border>
 
-                        <!-- Vista de cámara placeholder -->
+                        <!-- Vista de c\u00e1mara en tiempo real -->
                         <Border Background="#1A000000"
                                 CornerRadius="4"
                                 Height="120"
-                                IsVisible="{Binding IsCameraActive}">
-                            <TextBlock Text="Vista de cámara activa"
-                                       Foreground="#6C3483"
-                                       FontSize="11"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
+                                IsVisible="{Binding IsCameraActive}"
+                                ClipToBounds="True">
+                            <Image Source="{Binding CameraPreview}"
+                                   Stretch="UniformToFill"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
                         </Border>
                     </StackPanel>
                 </Border>
 
-                <!-- Barra de busqueda por codigo -->
+                <!-- Barra de b\u00fasqueda por c\u00f3digo de barras -->
                 <Border Background="#FFFFFF"
                         CornerRadius="6"
                         Padding="10">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="Código de barras:"
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="O ingrese c\u00f3digo manualmente:"
                             FontSize="12"
                             Foreground="#6C3483"
-                            VerticalAlignment="Center"/>
-                        <TextBox Width="200"
-                                 Height="30"
-                                 FontSize="12"
-                                 PlaceholderText="Escribir o escanear..."
-                                 Text="{Binding BarcodeInput, Mode=TwoWay}"
-                                 VerticalContentAlignment="Center"/>
-                        <Button Content="Agregar"
-                                Background="#BB8FCE"
-                                Foreground="White"
-                                FontSize="12"
-                                Command="{Binding AddByBarcodeCommand}"
-                                Cursor="Hand"
-                                VerticalContentAlignment="Center"/>
-                        <Button Content="+ Agregar Nuevo"
-                                Background="#4CAF50"
-                                Foreground="White"
-                                FontSize="11"
-                                Command="{Binding OpenQuickAddDialogCommand}"
-                                Cursor="Hand"
-                                VerticalContentAlignment="Center"
-                                Padding="10,6"/>
+                            FontWeight="SemiBold"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBox Width="200"
+                                     Height="30"
+                                     FontSize="12"
+                                     PlaceholderText="Escribir o escanear..."
+                                     Text="{Binding BarcodeInput, Mode=TwoWay}"
+                                     VerticalContentAlignment="Center">
+                                <TextBox.KeyBindings>
+                                    <KeyBinding Gesture="Enter"
+                                                Command="{Binding AddByBarcodeCommand}"/>
+                                </TextBox.KeyBindings>
+                            </TextBox>
+                            <Button Content="Buscar"
+                                    Background="#BB8FCE"
+                                    Foreground="White"
+                                    FontSize="12"
+                                    Padding="14,6"
+                                    Command="{Binding AddByBarcodeCommand}"
+                                    Cursor="Hand"
+                                    VerticalContentAlignment="Center"/>
+                            <Button Content="+ Agregar Nuevo"
+                                    Background="#4CAF50"
+                                    Foreground="White"
+                                    FontSize="11"
+                                    Command="{Binding OpenQuickAddDialogCommand}"
+                                    Cursor="Hand"
+                                    VerticalContentAlignment="Center"
+                                    Padding="10,6"/>
+                        </StackPanel>
                         <TextBlock Text="{Binding StatusMessage}"
                                    FontSize="11"
-                                   Foreground="#4A148C"
-                                   VerticalAlignment="Center"
-                                   Margin="10,0,0,0"/>
+                                   Foreground="#4A148C"/>
                     </StackPanel>
                 </Border>
 
@@ -130,7 +145,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Boton agregar seleccionado -->
+                <!-- Bot\u00f3n agregar seleccionado -->
                 <StackPanel HorizontalAlignment="Right">
                     <Button Content="Agregar Seleccionado"
                             Background="#BB8FCE"
