@@ -120,11 +120,13 @@
                             Foreground="#6C3483"
                             FontWeight="SemiBold"/>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBox Width="200"
+                            <TextBox Name="BarcodeInputBox"
+                                     Width="200"
                                      Height="30"
                                      FontSize="12"
                                      PlaceholderText="Escribir o escanear..."
                                      Text="{Binding BarcodeInput, Mode=TwoWay}"
+                                     MaxLength="13"
                                      VerticalContentAlignment="Center">
                                 <TextBox.KeyBindings>
                                     <KeyBinding Gesture="Enter"

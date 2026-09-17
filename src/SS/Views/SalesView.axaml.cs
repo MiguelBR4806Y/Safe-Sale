@@ -1,4 +1,7 @@
+using System;
+using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using SS.Dialogs;
 using SS.ViewModels;
 
@@ -12,6 +15,10 @@ public partial class SalesView : UserControl
     {
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
+
+        var barcodeBox = this.FindControl<TextBox>("BarcodeInputBox");
+        if (barcodeBox != null)
+            barcodeBox.TextChanged += OnBarcodeInputChanged;
     }
 
     private void OnDataContextChanged(object? sender, System.EventArgs e)
@@ -25,6 +32,24 @@ public partial class SalesView : UserControl
         {
             _viewModel = vm;
             _viewModel.QuickAddRequested += OnQuickAddRequested;
+        }
+    }
+
+    private void OnBarcodeInputChanged(object? sender, TextChangedEventArgs e)
+    {
+        var tb = sender as TextBox;
+        if (tb == null) return;
+
+        var digits = new string(tb.Text?.Where(char.IsDigit).ToArray() ?? Array.Empty<char>());
+
+        if (digits.Length > 13)
+            digits = digits[..13];
+
+        if (tb.Text != digits)
+        {
+            var caret = tb.CaretIndex;
+            tb.Text = digits;
+            tb.CaretIndex = Math.Min(caret, digits.Length);
         }
     }
 
