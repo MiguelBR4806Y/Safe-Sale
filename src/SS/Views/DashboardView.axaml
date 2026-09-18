@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SS.ViewModels"
              x:Class="SS.Views.DashboardView"
@@ -18,7 +18,7 @@
                 <UniformGrid Columns="2" Rows="2" Margin="0,15">
                     <Border Background="#E8DAEF" CornerRadius="6" Padding="15" Margin="5">
                         <StackPanel>
-                            <TextBlock Text="Ventas Dia"
+                            <TextBlock Text="Ventas del Día"
                                 FontSize="12"
                                 Foreground="#6C348C"
                                 Margin="0,0,0,5"/>
@@ -31,7 +31,7 @@
 
                     <Border Background="#E8DAEF" CornerRadius="6" Padding="15" Margin="5">
                         <StackPanel>
-                            <TextBlock Text="Ingresos Mes"
+                            <TextBlock Text="Ingresos del Mes"
                                 FontSize="12"
                                 Foreground="#6C348C"
                                 Margin="0,0,0,5"/>
@@ -72,7 +72,7 @@
                 <!-- Ultimas ventas -->
                 <Border Background="#FFFFFF" CornerRadius="8" Padding="15">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="Ultimas Ventas"
+                        <TextBlock Text="Últimas Ventas"
                             FontSize="16"
                             FontWeight="Bold"
                             Foreground="#4A148C"/>

@@ -63,8 +63,15 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     private Avalonia.Media.Imaging.Bitmap? _cameraPreview;
 
+    [ObservableProperty]
+    private ObservableCollection<Product> _selectedProducts = new();
+
+    public int SelectedProductsCount => SelectedProducts.Count;
+    public bool HasSelectedProducts => SelectedProducts.Count > 0;
+
     public ICommand AddByBarcodeCommand { get; }
     public ICommand AddToCartCommand { get; }
+    public ICommand AddSelectedToCartCommand { get; }
     public ICommand RemoveFromCartCommand { get; }
     public ICommand IncreaseQtyCommand { get; }
     public ICommand DecreaseQtyCommand { get; }
@@ -72,6 +79,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     public ICommand ClearCartCommand { get; }
     public ICommand ToggleCameraCommand { get; }
     public ICommand OpenQuickAddDialogCommand { get; }
+    public ICommand ToggleProductSelectionCommand { get; }
 
     public event Action<string>? QuickAddRequested;
 
@@ -88,6 +96,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
         AddByBarcodeCommand = new RelayCommand(OnAddByBarcode);
         AddToCartCommand = new RelayCommand(OnAddToCart, () => SelectedProduct != null);
+        AddSelectedToCartCommand = new RelayCommand(OnAddSelectedToCart, () => HasSelectedProducts);
         RemoveFromCartCommand = new RelayCommand<CartItem>(OnRemoveFromCart);
         IncreaseQtyCommand = new RelayCommand<CartItem>(OnIncreaseQty);
         DecreaseQtyCommand = new RelayCommand<CartItem>(OnDecreaseQty);
@@ -95,6 +104,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         ClearCartCommand = new RelayCommand(OnClearCart);
         ToggleCameraCommand = new RelayCommand(OnToggleCamera);
         OpenQuickAddDialogCommand = new RelayCommand(() => QuickAddRequested?.Invoke(_lastScannedCode));
+        ToggleProductSelectionCommand = new RelayCommand<Product>(ToggleProductSelection);
 
         LoadProducts();
     }
@@ -218,7 +228,27 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
     private void LoadProducts()
     {
+        foreach (var p in AvailableProducts)
+            p.PropertyChanged -= OnProductPropertyChanged;
+
         AvailableProducts = _productRepo.GetAll();
+
+        foreach (var p in AvailableProducts)
+            p.PropertyChanged += OnProductPropertyChanged;
+    }
+
+    private void OnProductPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(Product.IsSelected) && sender is Product product)
+        {
+            if (product.IsSelected && !SelectedProducts.Contains(product))
+                SelectedProducts.Add(product);
+            else if (!product.IsSelected && SelectedProducts.Contains(product))
+                SelectedProducts.Remove(product);
+
+            OnPropertyChanged(nameof(SelectedProductsCount));
+            OnPropertyChanged(nameof(HasSelectedProducts));
+        }
     }
 
     private void OnAddByBarcode()
@@ -256,6 +286,40 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     {
         if (SelectedProduct == null) return;
         AddProductToCart(SelectedProduct);
+    }
+
+    private void OnAddSelectedToCart()
+    {
+        if (SelectedProducts.Count == 0) return;
+
+        int count = 0;
+        foreach (var product in SelectedProducts.ToList())
+        {
+            product.IsSelected = false;
+            AddProductToCart(product);
+            count++;
+        }
+
+        SelectedProducts.Clear();
+        OnPropertyChanged(nameof(SelectedProductsCount));
+        OnPropertyChanged(nameof(HasSelectedProducts));
+
+        StatusMessage = $"{count} producto(s) agregado(s) al carrito";
+        ScanFeedback = $"\u2713 {count} producto(s) agregado(s)";
+        ScanFeedbackColor = "#4CAF50";
+    }
+
+    private void ToggleProductSelection(Product? product)
+    {
+        if (product == null) return;
+
+        if (SelectedProducts.Contains(product))
+            SelectedProducts.Remove(product);
+        else
+            SelectedProducts.Add(product);
+
+        OnPropertyChanged(nameof(SelectedProductsCount));
+        OnPropertyChanged(nameof(HasSelectedProducts));
     }
 
     private void AddProductToCart(Product product)
@@ -398,6 +462,9 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
     public void Dispose()
     {
+        foreach (var p in AvailableProducts)
+            p.PropertyChanged -= OnProductPropertyChanged;
+
         _cameraService.FrameAvailable -= OnFrameAvailable;
         _cameraService.StopCapture();
         _cameraService.Dispose();
