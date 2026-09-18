@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
+using Avalonia.Input;
 using SS.Dialogs;
 using SS.Models;
 using SS.ViewModels;
@@ -12,7 +11,6 @@ namespace SS.Views;
 public partial class SalesView : UserControl
 {
     private SalesViewModel? _viewModel;
-    private ListBox? _productsListBox;
 
     public SalesView()
     {
@@ -22,30 +20,18 @@ public partial class SalesView : UserControl
         var barcodeBox = this.FindControl<TextBox>("BarcodeInputBox");
         if (barcodeBox != null)
             barcodeBox.TextChanged += OnBarcodeInputChanged;
-
-        _productsListBox = this.FindControl<ListBox>("ProductsListBox");
     }
 
     private void OnDataContextChanged(object? sender, System.EventArgs e)
     {
         if (_viewModel != null)
-        {
             _viewModel.QuickAddRequested -= OnQuickAddRequested;
-            _viewModel.ClearSelectionRequested -= OnClearSelectionRequested;
-        }
 
         if (DataContext is SalesViewModel vm)
         {
             _viewModel = vm;
             _viewModel.QuickAddRequested += OnQuickAddRequested;
-            _viewModel.ClearSelectionRequested += OnClearSelectionRequested;
         }
-    }
-
-    private void OnClearSelectionRequested()
-    {
-        if (_productsListBox != null)
-            _productsListBox.SelectedItems?.Clear();
     }
 
     private void OnBarcodeInputChanged(object? sender, TextChangedEventArgs e)
@@ -82,16 +68,11 @@ public partial class SalesView : UserControl
         catch { }
     }
 
-    private void OnProductsSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void OnProductCheckboxPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (_viewModel == null || sender is not ListBox listBox) return;
-
-        var selected = new List<Product>();
-        foreach (var item in listBox.SelectedItems)
+        if (sender is Border border && border.Tag is Product product && _viewModel != null)
         {
-            if (item is Product product)
-                selected.Add(product);
+            _viewModel.ToggleProductSelectionCommand.Execute(product);
         }
-        _viewModel.SyncSelectedProducts(selected);
     }
 }

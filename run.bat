@@ -1,0 +1,3 @@
+@echo off
+echo Iniciando Safe-Sale...
+dotnet run --project src\SS\SS.csproj

@@ -6,10 +6,12 @@
              x:DataType="vm:SalesViewModel">
 
     <UserControl.Resources>
-        <conv:BoolToStringConverter x:Key="CameraTextConverter" TrueValue="Cerrar Cámara" FalseValue="Iniciar Cámara"/>
-        <conv:BoolToColorConverter x:Key="CameraColorConverter" TrueColor="#EF5350" FalseColor="#4CAF50"/>
-        <conv:BoolToStringConverter x:Key="MobileTextConverter" TrueValue="Cerrar Móvil" FalseValue="Escanear Móvil"/>
+        <conv:BoolToStringConverter x:Key="MobileTextConverter" TrueValue="Cerrar Movil" FalseValue="Escanear Movil"/>
         <conv:BoolToColorConverter x:Key="MobileColorConverter" TrueColor="#EF5350" FalseColor="#9C27B0"/>
+        <conv:BoolToStringConverter x:Key="CheckConverter" TrueValue="&#x2713;" FalseValue=""/>
+        <conv:BoolToColorConverter x:Key="CheckBgConverter" TrueColor="#7B1FA2" FalseColor="#FFFFFF"/>
+        <conv:BoolToColorConverter x:Key="CheckBorderConverter" TrueColor="#4A148C" FalseColor="#7B1FA2"/>
+        <conv:BoolToColorConverter x:Key="RowBgConverter" TrueColor="#F3E5F5" FalseColor="#FFFFFF"/>
     </UserControl.Resources>
 
     <UserControl.Styles>
@@ -79,21 +81,36 @@
                     <Border Background="#FFFFFF" CornerRadius="8" Padding="12" BoxShadow="0 1 4 0 #11000000">
                         <StackPanel Spacing="6">
                             <Border Background="#F3E5F5" CornerRadius="4" Padding="10,6">
-                                <Grid ColumnDefinitions="*,120,90">
-                                    <TextBlock Text="Nombre del Producto" FontSize="11" FontWeight="SemiBold" Foreground="#4A148C"/>
-                                    <TextBlock Grid.Column="1" Text="Código" FontSize="11" FontWeight="SemiBold" Foreground="#4A148C"/>
-                                    <TextBlock Grid.Column="2" Text="Precio" FontSize="11" FontWeight="SemiBold" Foreground="#4A148C" HorizontalAlignment="Right"/>
+                                <Grid ColumnDefinitions="30,*,120,90">
+                                    <TextBlock Text="" FontSize="11" FontWeight="SemiBold" Foreground="#4A148C"/>
+                                    <TextBlock Grid.Column="1" Text="Nombre del Producto" FontSize="11" FontWeight="SemiBold" Foreground="#4A148C"/>
+                                    <TextBlock Grid.Column="2" Text="Código" FontSize="11" FontWeight="SemiBold" Foreground="#4A148C"/>
+                                    <TextBlock Grid.Column="3" Text="Precio" FontSize="11" FontWeight="SemiBold" Foreground="#4A148C" HorizontalAlignment="Right"/>
                                 </Grid>
                             </Border>
                             <ScrollViewer MaxHeight="250">
-                                <ListBox Name="ProductsListBox" ItemsSource="{Binding Products}" SelectionMode="Multiple" SelectionChanged="OnProductsSelectionChanged" BorderThickness="0">
+                                <ListBox Name="ProductsListBox" ItemsSource="{Binding Products}" BorderThickness="0">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Padding="10,7" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Background="#FFFFFF">
-                                                <Grid ColumnDefinitions="*,120,90">
-                                                    <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#2D1B4E" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                                    <TextBlock Grid.Column="1" Text="{Binding BarcodeDisplay}" FontSize="11" Foreground="#757575" FontStyle="Italic" VerticalAlignment="Center"/>
-                                                    <TextBlock Grid.Column="2" Text="{Binding Price, StringFormat={}{0:F2}}" FontSize="12" FontWeight="Bold" Foreground="#7B1FA2" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <Border Padding="10,7" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1"
+                                                    Background="{Binding IsSelected, Converter={StaticResource RowBgConverter}}">
+                                                <Grid ColumnDefinitions="30,*,120,90">
+                                                    <Border Grid.Column="0" Width="24" Height="24" CornerRadius="5"
+                                                            BorderThickness="2"
+                                                            BorderBrush="{Binding IsSelected, Converter={StaticResource CheckBorderConverter}}"
+                                                            Background="{Binding IsSelected, Converter={StaticResource CheckBgConverter}}"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                            Cursor="Hand"
+                                                            Tag="{Binding}"
+                                                            PointerPressed="OnProductCheckboxPressed">
+                                                        <TextBlock Text="{Binding IsSelected, Converter={StaticResource CheckConverter}}"
+                                                                   FontSize="14" FontWeight="Bold"
+                                                                   Foreground="#4A148C"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" Foreground="#2D1B4E" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding BarcodeDisplay}" FontSize="11" Foreground="#757575" FontStyle="Italic" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="3" Text="{Binding Price, StringFormat={}{0:F2}}" FontSize="12" FontWeight="Bold" Foreground="#7B1FA2" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>

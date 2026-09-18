@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Threading;
 using SS.Data;
@@ -20,8 +18,6 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     private readonly SqliteProductRepository _productRepo;
     private readonly SqliteSaleRepository _saleRepo;
     private readonly User _currentUser;
-    private readonly ICameraService _cameraService;
-    private readonly IBarcodeScannerService _barcodeScanner;
     private readonly MobileScannerService _mobileScanner;
     private string _lastScannedCode = "";
     private DateTime _lastScanTime = DateTime.MinValue;
@@ -45,9 +41,6 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     private string _statusMessage = "";
 
     [ObservableProperty]
-    private bool _isCameraActive;
-
-    [ObservableProperty]
     private string _scanFeedback = "";
 
     [ObservableProperty]
@@ -57,12 +50,6 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     private string _selectedPaymentMethod = "Efectivo";
 
     public string[] PaymentMethods { get; } = new[] { "Efectivo", "Tarjeta", "Transferencia" };
-
-    [ObservableProperty]
-    private bool _isScanning;
-
-    [ObservableProperty]
-    private Avalonia.Media.Imaging.Bitmap? _cameraPreview;
 
     [ObservableProperty]
     private ObservableCollection<Product> _selectedProducts = new();
@@ -88,30 +75,26 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     public event Action<bool>? ScannerToggled;
 
     public ICommand AddByBarcodeCommand { get; }
-    public ICommand AddSelectedToCartCommand { get; }
+    public RelayCommand AddSelectedToCartCommand { get; }
     public ICommand RemoveFromCartCommand { get; }
     public ICommand IncreaseQtyCommand { get; }
     public ICommand DecreaseQtyCommand { get; }
-    public ICommand CheckoutCommand { get; }
-    public ICommand ClearCartCommand { get; }
-    public ICommand ToggleCameraCommand { get; }
+    public RelayCommand CheckoutCommand { get; }
+    public RelayCommand ClearCartCommand { get; }
     public ICommand OpenQuickAddDialogCommand { get; }
     public ICommand ToggleProductSelectionCommand { get; }
     public ICommand ToggleMobileScannerCommand { get; }
 
     public event Action<string>? QuickAddRequested;
-    public event Action? ClearSelectionRequested;
+    public event Action? SelectionCleared;
 
     public SalesViewModel(string dbPath, User currentUser, MobileScannerService mobileScanner)
     {
         _currentUser = currentUser;
         _productRepo = new SqliteProductRepository(dbPath);
         _saleRepo = new SqliteSaleRepository(dbPath);
-        _cameraService = new CameraService();
-        _barcodeScanner = new BarcodeScannerService();
         _mobileScanner = mobileScanner;
 
-        _cameraService.FrameAvailable += OnFrameAvailable;
         _mobileScanner.BarcodeReceived += OnMobileBarcodeReceived;
 
         AddByBarcodeCommand = new RelayCommand(OnAddByBarcode);
@@ -121,7 +104,6 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         DecreaseQtyCommand = new RelayCommand<CartItem>(OnDecreaseQty);
         CheckoutCommand = new RelayCommand(OnCheckout, () => CartItems.Count > 0);
         ClearCartCommand = new RelayCommand(OnClearCart);
-        ToggleCameraCommand = new RelayCommand(OnToggleCamera);
         OpenQuickAddDialogCommand = new RelayCommand(() => QuickAddRequested?.Invoke(_lastScannedCode));
         ToggleProductSelectionCommand = new RelayCommand<Product>(ToggleProductSelection);
         ToggleMobileScannerCommand = new RelayCommand(OnToggleMobileScanner);
@@ -172,106 +154,21 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         {
             MobileScanFeedback = $"Codigo recibido: {barcode}";
             MobileScanFeedbackColor = "#4CAF50";
+
+            var product = _productRepo.GetByBarcode(barcode);
+            if (product != null)
+            {
+                AddProductToCart(product);
+                ScanFeedback = $"\u2713 {product.Name} agregado al carrito";
+                ScanFeedbackColor = "#4CAF50";
+            }
+            else
+            {
+                _lastScannedCode = barcode;
+                ScanFeedback = $"Codigo no encontrado: {barcode}. Use QuickAdd para crear.";
+                ScanFeedbackColor = "#FF9800";
+            }
         });
-    }
-
-    private void OnFrameAvailable(byte[] frameData)
-    {
-        if (!IsCameraActive || IsScanning) return;
-
-        IsScanning = true;
-
-        try
-        {
-            var code = _barcodeScanner.ScanFrame(frameData, 1280, 720);
-
-            if (!string.IsNullOrEmpty(code) && code != _lastScannedCode)
-            {
-                _lastScannedCode = code;
-                _lastScanTime = DateTime.Now;
-
-                Dispatcher.UIThread.Post(() =>
-                {
-                    BarcodeInput = code;
-
-                    var product = _productRepo.GetByBarcode(code);
-                    if (product != null)
-                    {
-                        AddProductToCart(product);
-                        ScanFeedback = $"\u2713 {product.Name} agregado";
-                        ScanFeedbackColor = "#4CAF50";
-                    }
-                    else
-                    {
-                        ScanFeedback = $"Codigo no encontrado: {code}";
-                        ScanFeedbackColor = "#EF5350";
-                    }
-                });
-            }
-            else if (!string.IsNullOrEmpty(code) && code == _lastScannedCode)
-            {
-                if ((DateTime.Now - _lastScanTime).TotalSeconds > 3)
-                {
-                    _lastScannedCode = "";
-                }
-            }
-
-            UpdateCameraPreview(frameData);
-        }
-        finally
-        {
-            IsScanning = false;
-        }
-    }
-
-    private void UpdateCameraPreview(byte[] jpegBytes)
-    {
-        try
-        {
-            using var stream = new MemoryStream(jpegBytes);
-            var bitmap = new Avalonia.Media.Imaging.Bitmap(stream);
-
-            Dispatcher.UIThread.Post(() =>
-            {
-                var old = CameraPreview;
-                CameraPreview = bitmap;
-                old?.Dispose();
-            });
-        }
-        catch
-        {
-        }
-    }
-
-    private void OnToggleCamera()
-    {
-        if (_cameraService.IsCapturing)
-        {
-            _cameraService.StopCapture();
-            IsCameraActive = false;
-            ScanFeedback = "";
-            CameraPreview?.Dispose();
-            CameraPreview = null;
-        }
-        else
-        {
-            Task.Run(async () =>
-            {
-                await _cameraService.StartCaptureAsync();
-                var isCapturing = _cameraService.IsCapturing;
-
-                Dispatcher.UIThread.Post(() =>
-                {
-                    IsCameraActive = isCapturing;
-
-                    if (!IsCameraActive)
-                    {
-                        ScanFeedback = "No se pudo acceder a la camara";
-                        ScanFeedbackColor = "#EF5350";
-                    }
-                });
-            });
-        }
     }
 
     public void HandleQuickAddResult(bool success)
@@ -312,6 +209,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
             OnPropertyChanged(nameof(SelectedProductsCount));
             OnPropertyChanged(nameof(HasSelectedProducts));
+            AddSelectedToCartCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -353,11 +251,12 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         SelectedProducts.Clear();
         OnPropertyChanged(nameof(SelectedProductsCount));
         OnPropertyChanged(nameof(HasSelectedProducts));
+        AddSelectedToCartCommand.NotifyCanExecuteChanged();
 
         StatusMessage = $"{count} producto(s) agregado(s) al carrito";
         ScanFeedback = $"\u2713 {count} producto(s) agregado(s)";
         ScanFeedbackColor = "#4CAF50";
-        ClearSelectionRequested?.Invoke();
+        SelectionCleared?.Invoke();
     }
 
     private void ToggleProductSelection(Product? product)
@@ -371,16 +270,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
         OnPropertyChanged(nameof(SelectedProductsCount));
         OnPropertyChanged(nameof(HasSelectedProducts));
-    }
-
-    public void SyncSelectedProducts(List<Product> selected)
-    {
-        SelectedProducts.Clear();
-        foreach (var p in selected)
-            SelectedProducts.Add(p);
-
-        OnPropertyChanged(nameof(SelectedProductsCount));
-        OnPropertyChanged(nameof(HasSelectedProducts));
+        AddSelectedToCartCommand.NotifyCanExecuteChanged();
     }
 
     private void AddProductToCart(Product product)
@@ -484,6 +374,8 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     {
         CartTotal = CartItems.Sum(ci => ci.Subtotal);
         CartCount = CartItems.Sum(ci => ci.Quantity);
+        CheckoutCommand.NotifyCanExecuteChanged();
+        ClearCartCommand.NotifyCanExecuteChanged();
     }
 
     public void Dispose()
@@ -491,11 +383,6 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         foreach (var p in Products)
             p.PropertyChanged -= OnProductPropertyChanged;
 
-        _cameraService.FrameAvailable -= OnFrameAvailable;
-        _cameraService.StopCapture();
-        _cameraService.Dispose();
-        CameraPreview?.Dispose();
-        CameraPreview = null;
         _mobileScanner.BarcodeReceived -= OnMobileBarcodeReceived;
         MobileQrBitmap?.Dispose();
         MobileQrBitmap = null;
