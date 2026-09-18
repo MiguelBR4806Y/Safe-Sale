@@ -35,3 +35,7 @@ _suite
 # API Key Files
 *.pem
 *.key
+
+# Build artifacts
+Releases/
+publish/
