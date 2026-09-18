@@ -3,13 +3,25 @@
 
 $ErrorActionPreference = "Stop"
 
-$Version = "1.0.0"
 $PublishDir = ".\publish"
 $ProjectPath = ".\src\SS\SS.csproj"
 $ReleaseDir = ".\Releases"
 
+# Leer versión del .csproj
+$Version = (Select-String -Path $ProjectPath -Pattern '<Version>(.*?)</Version>' | ForEach-Object { $_.Matches.Groups[1].Value } | Select-Object -First 1).Trim()
+
+if (-not $Version) {
+    Write-Host "Error: No se pudo leer la versión del .csproj" -ForegroundColor Red
+    exit 1
+}
+
 Write-Host "=== Safe-Sale - Publicación Windows ===" -ForegroundColor Cyan
 Write-Host "Versión: $Version" -ForegroundColor Yellow
+
+# Generar tag único con timestamp
+$Timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$Tag = "v$Version-$Timestamp"
+Write-Host "Tag: $Tag" -ForegroundColor Yellow
 
 # 1. Publicar la app
 Write-Host "`n[1/4] Publicando aplicación..." -ForegroundColor Green
@@ -39,7 +51,7 @@ if ($oldName) {
 
 # 3. Crear Release en GitHub
 Write-Host "`n[3/4] Creando Release en GitHub..." -ForegroundColor Green
-gh release create "v$Version" --title "Safe-Sale v$Version" --notes "Versión $Version" --draft
+gh release create "$Tag" --title "Safe-Sale v$Version" --notes "Versión $Version" --draft
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Error al crear release. Asegúrate de tener gh CLI instalado y autenticado." -ForegroundColor Red
@@ -54,18 +66,18 @@ $setupExe = Get-ChildItem -Path $ReleaseDir -Filter "SS-Installer.exe" | Sort-Ob
 $nupkg = Get-ChildItem -Path $ReleaseDir -Filter "*.nupkg" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 
 if ($setupExe) {
-    gh release upload "v$Version" $setupExe.FullName --clobber
+    gh release upload "$Tag" $setupExe.FullName --clobber
     Write-Host "Subido: $($setupExe.Name)" -ForegroundColor Green
 }
 
 if ($nupkg) {
-    gh release upload "v$Version" $nupkg.FullName --clobber
+    gh release upload "$Tag" $nupkg.FullName --clobber
     Write-Host "Subido: $($nupkg.Name)" -ForegroundColor Green
 }
 
 # 5. Publicar el Release (quitar draft)
-gh release edit "v$Version" --draft=false
+gh release edit "$Tag" --draft=false
 
 Write-Host "`n=== ¡Publicación completada! ===" -ForegroundColor Cyan
 Write-Host "Los usuarios recibirán la actualización automáticamente." -ForegroundColor Green
-Write-Host "URL: https://github.com/MiguelBR4806Y/Safe-Sale/releases/tag/v$Version" -ForegroundColor Yellow
+Write-Host "URL: https://github.com/MiguelBR4806Y/Safe-Sale/releases/tag/$Tag" -ForegroundColor Yellow
