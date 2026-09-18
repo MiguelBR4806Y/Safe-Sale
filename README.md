@@ -220,6 +220,67 @@ La base de datos se creará automáticamente en el primer arranque.
 
 ---
 
+## 📦 Instalador y Actualizaciones
+
+### Para Usuarios - Instalar la App
+1. Ve a [Releases](https://github.com/MiguelBR4806Y/Safe-Sale/releases)
+2. Descarga el instalador para tu plataforma:
+   - **Windows**: `SafeSale-1.0.0-full.nupkg` o ejecuta el `Setup.exe`
+   - **macOS Apple Silicon** (M1/M2/M3/M4): `SafeSale-1.0.0-arm64.pkg`
+   - **macOS Intel**: `SafeSale-1.0.0-x64.pkg`
+3. Ejecuta el instalador
+4. La app se actualizará automáticamente cuando haya nuevas versiones
+
+### Para Desarrolladores - Crear Instalador
+
+#### Requisitos previos
+```bash
+# Instalar dotnet tool Velopack
+dotnet tool install --global Velopack
+
+# Para publicar en GitHub (opcional, para auto-updates)
+winget install GitHub.cli
+gh auth login
+```
+
+#### Publicar desde Windows
+```powershell
+# Ejecutar el script de publicación
+.\publish-windows.ps1
+```
+
+#### Publicar desde macOS
+```bash
+# Ejecutar el script de publicación
+chmod +x publish-macos.sh
+./publish-macos.sh
+```
+
+#### Flujo de actualización
+```
+1. Haces cambios en el código
+2. Actualizas la versión en SS.csproj (<Version>X.Y.Z</Version>)
+3. Ejecutas el script de publicación (Windows o macOS)
+4. Los usuarios reciben la actualización automáticamente al abrir la app
+```
+
+#### Comandos manuales
+```bash
+# Windows
+dotnet publish -c Release -r win-x64 --self-contained -o ./publish/win-x64
+vpk pack --packId SafeSale --packVersion 1.0.0 --packDir ./publish/win-x64 --mainExe SafeSale.exe
+vpk publish --repoUrl "https://github.com/MiguelBR4806Y/Safe-Sale" --tag "v1.0.0"
+
+# macOS (desde Mac)
+dotnet publish -c Release -r osx-arm64 --self-contained -o ./publish/osx-arm64
+dotnet publish -c Release -r osx-x64 --self-contained -o ./publish/osx-x64
+vpk pack --packId SafeSale --packVersion 1.0.0 --packDir ./publish/osx-arm64 --mainExe SafeSale
+vpk pack --packId SafeSale --packVersion 1.0.0 --packDir ./publish/osx-x64 --mainExe SafeSale
+vpk publish --repoUrl "https://github.com/MiguelBR4806Y/Safe-Sale" --tag "v1.0.0"
+```
+
+---
+
 ## 📁 Estructura del Proyecto
 
 ```
@@ -274,6 +335,7 @@ Safe-Sale/
 │       │   ├── CameraService.cs         # Captura de cámara PC
 │       │   ├── BarcodeScannerService.cs # Decodificación de código de barras
 │       │   ├── PasswordHasher.cs        # Hash SHA256 + salt
+│       │   ├── UpdateService.cs         # Auto-updates con Velopack + GitHub
 │       │   ├── ICameraService.cs        # Interfaz de cámara
 │       │   └── IBarcodeScannerService.cs # Interfaz de escáner
 │       ├── Converters/
@@ -283,6 +345,8 @@ Safe-Sale/
 │       └── Assets/
 │           └── avalonia-logo.ico
 ├── docs/                                # Documentación (Dante)
+├── publish-windows.ps1                  # Script de publicación Windows
+├── publish-macos.sh                     # Script de publicación macOS
 ├── README.md                            # Este archivo
 └── requirements.txt                     # Configuración
 ```
