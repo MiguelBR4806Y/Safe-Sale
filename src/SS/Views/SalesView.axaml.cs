@@ -54,9 +54,7 @@ public partial class SalesView : UserControl
         if (tb == null) return;
 
         var digits = new string(tb.Text?.Where(char.IsDigit).ToArray() ?? Array.Empty<char>());
-
-        if (digits.Length > 13)
-            digits = digits[..13];
+        if (digits.Length > 13) digits = digits[..13];
 
         if (tb.Text != digits)
         {
@@ -74,7 +72,6 @@ public partial class SalesView : UserControl
             if (topLevel == null) return;
 
             var dialog = new QuickAddProductDialog(barcode, SS.Data.AppDatabase.DbPath);
-
             var result = await dialog.ShowDialog<bool?>(topLevel as Window);
 
             if (result == true && _viewModel != null)
@@ -82,10 +79,7 @@ public partial class SalesView : UserControl
                 _viewModel.HandleQuickAddResult(true);
             }
         }
-        catch
-        {
-            // Silently handle dialog errors
-        }
+        catch { }
     }
 
     private void OnProductsSelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -98,7 +92,6 @@ public partial class SalesView : UserControl
             if (item is Product product)
                 selected.Add(product);
         }
-
         _viewModel.SyncSelectedProducts(selected);
     }
 }

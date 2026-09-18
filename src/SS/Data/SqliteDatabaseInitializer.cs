@@ -62,6 +62,26 @@ public static class SqliteDatabaseInitializer
 
         cmd.ExecuteNonQuery();
 
+        // Migration: add payment_method column if missing
+        using var migrateCmd = conn.CreateCommand();
+        migrateCmd.CommandText = "PRAGMA table_info(sales)";
+        using var mReader = migrateCmd.ExecuteReader();
+        bool hasPaymentMethod = false;
+        while (mReader.Read())
+        {
+            if (mReader.GetString(1) == "payment_method")
+            {
+                hasPaymentMethod = true;
+                break;
+            }
+        }
+        if (!hasPaymentMethod)
+        {
+            using var alterCmd = conn.CreateCommand();
+            alterCmd.CommandText = "ALTER TABLE sales ADD COLUMN payment_method TEXT DEFAULT ''";
+            alterCmd.ExecuteNonQuery();
+        }
+
         SeedDefaultAdmin(conn);
     }
 

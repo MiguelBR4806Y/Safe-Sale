@@ -72,13 +72,15 @@ public partial class QuickAddProductDialog : Window
 
         var price = decimal.Parse(PriceBox.Text!.Trim());
         var barcode = BarcodeBox.Text?.Trim() ?? "";
+        var stock = int.TryParse(StockBox.Text?.Trim(), out var s) ? s : 0;
+        var minStock = int.TryParse(MinStockBox.Text?.Trim(), out var ms) ? ms : 5;
         var product = new Product
         {
             Name = NameBox.Text!.Trim(),
             Barcode = barcode,
             Price = price,
-            Stock = 0,
-            MinStock = 5
+            Stock = stock,
+            MinStock = minStock
         };
 
         try
@@ -109,10 +111,10 @@ public partial class QuickAddProductDialog : Window
         if (!string.IsNullOrEmpty(barcode))
         {
             if (!barcode.All(char.IsDigit))
-                return (false, "El código debe contener solo números", "Barcode");
+                return (false, "El codigo debe contener solo numeros", "Barcode");
 
             if (barcode.Length != 12 && barcode.Length != 13)
-                return (false, "El código debe tener 12 o 13 dígitos", "Barcode");
+                return (false, "El codigo debe tener 12 o 13 digitos", "Barcode");
         }
 
         if (string.IsNullOrEmpty(name))

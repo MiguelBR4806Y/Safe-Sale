@@ -1,182 +1,173 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SS.ViewModels"
+             xmlns:conv="using:SS.Converters"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="mc"
              x:Class="SS.Views.InventoryView"
              x:DataType="vm:InventoryViewModel">
 
-    <Border Background="#FAF3F7" CornerRadius="8">
-        <ScrollViewer>
-            <StackPanel Margin="20" Spacing="15">
+    <UserControl.Resources>
+        <conv:BoolToStringConverter x:Key="MobileTextConverter"
+                                     TrueValue="Desconectar"
+                                     FalseValue="Escanear con Móvil"/>
+        <conv:BoolToColorConverter x:Key="MobileColorConverter"
+                                    TrueColor="#EF5350"
+                                    FalseColor="#7B1FA2"/>
+        <conv:BoolToStringConverter x:Key="CameraTextConverter"
+                                     TrueValue="Cerrar Cámara"
+                                     FalseValue="Iniciar Cámara"/>
+        <conv:BoolToColorConverter x:Key="CameraColorConverter"
+                                    TrueColor="#EF5350"
+                                    FalseColor="#4CAF50"/>
+    </UserControl.Resources>
 
-                <TextBlock Text="INVENTARIO"
-                    FontSize="24"
-                    FontWeight="Bold"
-                    Foreground="#4A148C"
-                    Margin="0,0,0,15"
-                    HorizontalAlignment="Center"/>
+    <Border Background="#FAF3F7" CornerRadius="8" Margin="10">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" Margin="12">
 
-                <!-- Barra de busqueda -->
-                <Border Background="#FFFFFF" CornerRadius="4" Margin="0,0,0,10" Padding="10">
+            <!-- Row 0: Título + Búsqueda -->
+            <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,6">
+                <TextBlock Text="INVENTARIO" FontSize="20" FontWeight="Bold"
+                           Foreground="#4A148C" HorizontalAlignment="Center"/>
+                <Border Background="#FFFFFF" CornerRadius="4" Padding="6">
                     <StackPanel Orientation="Horizontal" Spacing="5">
-                        <TextBlock Text="Buscar"
-                            FontSize="12"
-                            Foreground="#6C3483"
-                            VerticalAlignment="Center"
-                            Margin="5"/>
-                        <TextBox Width="300"
-                            Height="30"
-                            FontSize="12"
-                            PlaceholderText="Buscar producto por Nombre o Código..."
-                            Text="{Binding SearchText, Mode=TwoWay}"
-                            VerticalContentAlignment="Center"/>
-                        <Button Content="Buscar"
-                            Width="70"
-                            Height="30"
-                            Background="#BB8FCE"
-                            Foreground="White"
-                            FontSize="12"
-                            Command="{Binding SearchCommand}"
-                            Cursor="Hand"
-                            VerticalContentAlignment="Center"/>
-                        <Button Content="Refrescar"
-                            Width="80"
-                            Height="30"
-                            Background="#6C3483"
-                            Foreground="White"
-                            FontSize="12"
-                            Command="{Binding RefreshCommand}"
-                            Cursor="Hand"
-                            VerticalContentAlignment="Center"/>
+                        <TextBox Width="220" Height="28" FontSize="11"
+                                 PlaceholderText="Buscar..."
+                                 Text="{Binding SearchText, Mode=TwoWay}"
+                                 VerticalContentAlignment="Center"/>
+                        <Button Content="Buscar" Width="60" Height="28"
+                                Background="#BB8FCE" Foreground="White" FontSize="11"
+                                Command="{Binding SearchCommand}" Cursor="Hand"/>
+                        <Button Content="Refrescar" Width="70" Height="28"
+                                Background="#6C3483" Foreground="White" FontSize="11"
+                                Command="{Binding RefreshCommand}" Cursor="Hand"/>
                     </StackPanel>
                 </Border>
-
-                <!-- Estadisticas rapidas -->
-                <UniformGrid Columns="4" Margin="0,10,0,10">
-                    <Border Background="#E8DAEF" CornerRadius="6" Padding="10" Margin="3">
-                        <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="Total"
-                                FontSize="12"
-                                Foreground="#4A148C"
-                                HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding TotalProducts}"
-                                FontSize="20"
-                                FontWeight="Bold"
-                                Foreground="#7B1FA2"
-                                HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Background="#E8DAEF" CornerRadius="6" Padding="10" Margin="3">
-                        <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="Stock Bajo"
-                                FontSize="12"
-                                Foreground="#4A148C"
-                                HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding LowStock}"
-                                FontSize="20"
-                                FontWeight="Bold"
-                                Foreground="#EF5350"
-                                HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Background="#E8DAEF" CornerRadius="6" Padding="10" Margin="3">
-                        <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="Categorias"
-                                FontSize="12"
-                                Foreground="#4A148C"
-                                HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding CategoriesCount}"
-                                FontSize="20"
-                                FontWeight="Bold"
-                                Foreground="#7B1FA2"
-                                HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Background="#E8DAEF" CornerRadius="6" Padding="10" Margin="3">
-                        <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="Valor Total"
-                                FontSize="12"
-                                Foreground="#4A148C"
-                                HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding ValueTotal, StringFormat=${0:F2}}"
-                                FontSize="18"
-                                FontWeight="Bold"
-                                Foreground="#7B1FA2"
-                                HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-                </UniformGrid>
-
-                <!-- Tabla de Productos -->
-                <Border Background="#FFFFFF" CornerRadius="8" Margin="0,10" Padding="5">
-                    <ListBox ItemsSource="{Binding Products}"
-                             SelectedItem="{Binding SelectedProduct}"
-                             Height="300">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,3">
-                                    <TextBlock Text="{Binding Id}"
-                                               Width="40"
-                                               FontSize="12"
-                                               VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding Name}"
-                                               FontSize="14"
-                                               FontWeight="Medium"
-                                               VerticalAlignment="Center"
-                                               Width="150"/>
-                                    <TextBlock Text="{Binding Barcode}"
-                                               FontSize="12"
-                                               Foreground="#6C3483"
-                                               VerticalAlignment="Center"
-                                               Width="130"/>
-                                    <TextBlock Text="{Binding Price, StringFormat=${0:F2}}"
-                                               FontSize="14"
-                                               VerticalAlignment="Center"
-                                               Width="100"/>
-                                    <TextBlock Text="{Binding Stock}"
-                                               FontSize="14"
-                                               VerticalAlignment="Center"
-                                               Width="60"/>
-                                    <TextBlock Text="{Binding MinStock}"
-                                               FontSize="12"
-                                               Foreground="#EF5350"
-                                               VerticalAlignment="Center"
-                                               Width="60"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </Border>
-
-                <!-- Acciones -->
-                <StackPanel Orientation="Horizontal" Margin="0,10" HorizontalAlignment="Center" Spacing="10">
-                    <Button Content="Agregar"
-                            Background="#BB8FCE"
-                            Foreground="White"
-                            FontSize="12"
-                            Command="{Binding AddProductCommand}"
-                            Cursor="Hand"
-                            Padding="12,8"/>
-
-                    <Button Content="Editar"
-                            Background="#BB8FCE"
-                            Foreground="White"
-                            FontSize="12"
-                            Command="{Binding EditProductCommand}"
-                            Cursor="Hand"
-                            Padding="12,8"/>
-
-                    <Button Content="Eliminar"
-                            Background="#EF5350"
-                            Foreground="White"
-                            FontSize="12"
-                            Command="{Binding DeleteProductCommand}"
-                            Cursor="Hand"
-                            Padding="12,8"/>
-                </StackPanel>
-
             </StackPanel>
-        </ScrollViewer>
+
+            <!-- Row 1: Estadísticas + Botones escáner -->
+            <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,0,0,6">
+                <!-- Stats compactos -->
+                <Border Grid.Column="0" Background="#FFFFFF" CornerRadius="4" Padding="8" Margin="0,0,4,0">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="Total:" FontSize="11" Foreground="#6C3483" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding TotalProducts}" FontSize="14" FontWeight="Bold" Foreground="#7B1FA2" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="Stock bajo:" FontSize="11" Foreground="#6C3483" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding LowStock}" FontSize="14" FontWeight="Bold" Foreground="#EF5350" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="Categorías:" FontSize="11" Foreground="#6C3483" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding CategoriesCount}" FontSize="14" FontWeight="Bold" Foreground="#7B1FA2" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="Valor:" FontSize="11" Foreground="#6C3483" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ValueTotal, StringFormat=${0:F2}}" FontSize="14" FontWeight="Bold" Foreground="#7B1FA2" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <!-- Botones de escáner -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                    <Border Background="#FFFFFF" CornerRadius="4" Padding="4">
+                        <StackPanel Spacing="2">
+                            <Button Command="{Binding ToggleCameraCommand}"
+                                    FontSize="9" Padding="6,3" CornerRadius="3"
+                                    Foreground="White" Cursor="Hand"
+                                    Content="{Binding IsCameraActive, Converter={StaticResource CameraTextConverter}}"
+                                    Background="{Binding IsCameraActive, Converter={StaticResource CameraColorConverter}}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#FFFFFF" CornerRadius="4" Padding="4">
+                        <StackPanel Spacing="2">
+                            <Button Command="{Binding ToggleMobileScannerCommand}"
+                                    FontSize="9" Padding="6,3" CornerRadius="3"
+                                    Foreground="White" Cursor="Hand"
+                                    Content="{Binding IsMobileScannerActive, Converter={StaticResource MobileTextConverter}}"
+                                    Background="{Binding IsMobileScannerActive, Converter={StaticResource MobileColorConverter}}"/>
+                            <Border CornerRadius="3" Padding="3,1" Background="#F5F5F5"
+                                    IsVisible="{Binding MobileScanFeedback, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                <TextBlock Text="{Binding MobileScanFeedback}" FontSize="8" FontWeight="SemiBold"
+                                           Foreground="{Binding MobileScanFeedbackColor}"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <!-- Row 2: Cámara PC + QR inline -->
+            <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,0,0,6">
+                <!-- Cámara PC -->
+                <Border Grid.Column="0" Background="#FFFFFF" CornerRadius="4" Padding="6" Margin="0,0,4,0"
+                        IsVisible="{Binding IsCameraActive}">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Escáner de Cámara" FontSize="11" Foreground="#4A148C" FontWeight="SemiBold"/>
+                        <Border CornerRadius="4" Padding="4" Background="#F5F5F5"
+                                IsVisible="{Binding ScanFeedback, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Text="{Binding ScanFeedback}" FontSize="10" FontWeight="SemiBold"
+                                       Foreground="{Binding ScanFeedbackColor}"/>
+                        </Border>
+                        <Grid Height="140">
+                            <Image Source="{Binding CameraPreview}" Stretch="UniformToFill"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border BorderBrush="#4CAF50" BorderThickness="2" CornerRadius="6" Margin="20,15"
+                                    Background="#11000000"/>
+                            <TextBlock Text="Coloque el código dentro del marco"
+                                       FontSize="9" Foreground="White" Background="#AA000000"
+                                       HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                       Margin="0,0,0,6" Padding="6,2"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                <!-- QR inline -->
+                <Border Grid.Column="1" Background="#F5F0FA" CornerRadius="4" Padding="6"
+                        IsVisible="{Binding IsMobileScannerActive}">
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                        <Image Source="{Binding MobileQrBitmap}" Width="60" Height="60" Stretch="Uniform"/>
+                        <StackPanel VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="Móvil" FontSize="10" Foreground="#6C3483"/>
+                            <TextBlock Text="{Binding MobileUrl}" FontSize="7" Foreground="#BB8FCE" TextWrapping="Wrap" MaxWidth="120"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Row 3: Tabla de productos -->
+            <Border Grid.Row="3" Background="#FFFFFF" CornerRadius="6" Padding="4" Margin="0,0,0,6">
+                <ListBox ItemsSource="{Binding Products}"
+                         SelectedItem="{Binding SelectedProduct}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,2">
+                                <TextBlock Text="{Binding Id}" Width="35" FontSize="11" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="Medium"
+                                           VerticalAlignment="Center" Width="150"/>
+                                <TextBlock Text="{Binding Barcode}" FontSize="11" Foreground="#6C3483"
+                                           VerticalAlignment="Center" Width="110"/>
+                                <TextBlock Text="{Binding Price, StringFormat=${0:F2}}" FontSize="12"
+                                           VerticalAlignment="Center" Width="70"/>
+                                <TextBlock Text="{Binding Stock}" FontSize="12" VerticalAlignment="Center" Width="45"/>
+                                <TextBlock Text="{Binding MinStock}" FontSize="11" Foreground="#EF5350"
+                                           VerticalAlignment="Center" Width="45"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+
+            <!-- Row 4: Botones de acción -->
+            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+                <Button Content="Agregar" Background="#BB8FCE" Foreground="White"
+                        FontSize="11" Padding="10,6" Command="{Binding AddProductCommand}" Cursor="Hand"/>
+                <Button Content="Editar" Background="#BB8FCE" Foreground="White"
+                        FontSize="11" Padding="10,6" Command="{Binding EditProductCommand}" Cursor="Hand"/>
+                <Button Content="Eliminar" Background="#EF5350" Foreground="White"
+                        FontSize="11" Padding="10,6" Command="{Binding DeleteProductCommand}" Cursor="Hand"/>
+                <Button Content="Agregar al Carrito" Background="#4CAF50" Foreground="White"
+                        FontSize="11" Padding="10,6" Command="{Binding AddToCartCommand}" Cursor="Hand"/>
+            </StackPanel>
+
+        </Grid>
     </Border>
 </UserControl>

@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="SS.Dialogs.QuickAddProductDialog"
         Title="Agregar Producto Rápido"
-        Width="400" Height="420"
+        Width="400" Height="520"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         Background="#FAF3F7">
@@ -100,6 +100,29 @@
                        FontWeight="SemiBold"
                        IsVisible="False"
                        Margin="0,2,0,0"/>
+
+            <!-- Stock -->
+            <TextBlock Text="Stock inicial:"
+                       FontSize="12"
+                       Foreground="#6C3483"
+                       FontWeight="SemiBold"/>
+            <TextBox Name="StockBox"
+                     PlaceholderText="Ej: 10"/>
+            <TextBlock Name="StockError"
+                       FontSize="11"
+                       Foreground="#EF5350"
+                       FontWeight="SemiBold"
+                       IsVisible="False"
+                       Margin="0,2,0,0"/>
+
+            <!-- Stock minimo -->
+            <TextBlock Text="Stock m\u00ednimo (alerta):"
+                       FontSize="12"
+                       Foreground="#6C3483"
+                       FontWeight="SemiBold"/>
+            <TextBox Name="MinStockBox"
+                     Text="5"
+                     PlaceholderText="5"/>
 
             <!-- Error general (para errores de BD) -->
             <Border Name="ErrorBorder"
