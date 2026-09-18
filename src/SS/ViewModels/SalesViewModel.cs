@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -82,6 +83,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     public ICommand ToggleProductSelectionCommand { get; }
 
     public event Action<string>? QuickAddRequested;
+    public event Action? ClearSelectionRequested;
 
     public SalesViewModel(string dbPath, User currentUser)
     {
@@ -307,6 +309,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         StatusMessage = $"{count} producto(s) agregado(s) al carrito";
         ScanFeedback = $"\u2713 {count} producto(s) agregado(s)";
         ScanFeedbackColor = "#4CAF50";
+        ClearSelectionRequested?.Invoke();
     }
 
     private void ToggleProductSelection(Product? product)
@@ -317,6 +320,16 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
             SelectedProducts.Remove(product);
         else
             SelectedProducts.Add(product);
+
+        OnPropertyChanged(nameof(SelectedProductsCount));
+        OnPropertyChanged(nameof(HasSelectedProducts));
+    }
+
+    public void SyncSelectedProducts(List<Product> selected)
+    {
+        SelectedProducts.Clear();
+        foreach (var p in selected)
+            SelectedProducts.Add(p);
 
         OnPropertyChanged(nameof(SelectedProductsCount));
         OnPropertyChanged(nameof(HasSelectedProducts));

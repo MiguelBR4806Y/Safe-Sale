@@ -32,18 +32,31 @@
         <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
             <Setter Property="Background" Value="#FFFFFF"/>
         </Style>
-        <Style Selector="Button:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#7B1FA2"/>
+
+        <!-- COBRAR button: wrap in Border since FluentTheme ignores ContentPresenter styles -->
+        <Style Selector="Button#CheckoutBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
         </Style>
         <Style Selector="Button#CheckoutBtn:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#388E3C"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <!-- Agregar Seleccionados button: wrap in Border -->
+        <Style Selector="Button#AddSelectedBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button#AddSelectedBtn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
         </Style>
     </UserControl.Styles>
 
     <Border Background="#FAF3F7" CornerRadius="8">
         <Grid ColumnDefinitions="*,360" Margin="15" RowDefinitions="Auto,*">
             <!-- Panel izquierdo -->
-            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="12">
+            <ScrollViewer Grid.Column="0" Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="12">
                 <!-- Camara + Escaner -->
                 <Border Background="#FFFFFF"
                         CornerRadius="8"
@@ -157,22 +170,17 @@
                         BoxShadow="0 1 4 0 #11000000">
                     <StackPanel Spacing="6">
                         <Border Background="#F3E5F5" CornerRadius="4" Padding="10,6">
-                            <Grid ColumnDefinitions="30,*,120,90">
-                                <TextBlock Text=""
+                            <Grid ColumnDefinitions="*,120,90">
+                                <TextBlock Text="Nombre del Producto"
                                            FontSize="11"
                                            FontWeight="SemiBold"
                                            Foreground="#4A148C"/>
                                 <TextBlock Grid.Column="1"
-                                           Text="Nombre del Producto"
-                                           FontSize="11"
-                                           FontWeight="SemiBold"
-                                           Foreground="#4A148C"/>
-                                <TextBlock Grid.Column="2"
                                            Text="Código"
                                            FontSize="11"
                                            FontWeight="SemiBold"
                                            Foreground="#4A148C"/>
-                                <TextBlock Grid.Column="3"
+                                <TextBlock Grid.Column="2"
                                            Text="Precio"
                                            FontSize="11"
                                            FontWeight="SemiBold"
@@ -181,76 +189,79 @@
                             </Grid>
                         </Border>
 
-                        <ListBox ItemsSource="{Binding AvailableProducts}"
-                                 SelectedItem="{Binding SelectedProduct}"
-                                 BorderThickness="0"
-                                 MaxHeight="180">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Padding="10,7"
-                                            BorderBrush="#E0E0E0"
-                                            BorderThickness="0,0,0,1"
-                                            Background="#FFFFFF">
-                                        <Grid ColumnDefinitions="30,*,120,90">
-                                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                      VerticalAlignment="Center"
-                                                      MinWidth="20"/>
-                                            <TextBlock Grid.Column="1"
-                                                       Text="{Binding Name}"
-                                                       FontSize="12"
-                                                       Foreground="#2D1B4E"
-                                                       VerticalAlignment="Center"
-                                                       TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Grid.Column="2"
-                                                       Text="{Binding BarcodeDisplay}"
-                                                       FontSize="11"
-                                                       Foreground="#757575"
-                                                       FontStyle="Italic"
-                                                       VerticalAlignment="Center"/>
-                                            <TextBlock Grid.Column="3"
-                                                       Text="{Binding Price, StringFormat={}{0:F2}}"
-                                                       FontSize="12"
-                                                       FontWeight="Bold"
-                                                       Foreground="#7B1FA2"
-                                                       HorizontalAlignment="Right"
-                                                       VerticalAlignment="Center"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                        <ScrollViewer MaxHeight="250">
+                            <ListBox Name="ProductsListBox"
+                                     ItemsSource="{Binding AvailableProducts}"
+                                     SelectionMode="Multiple"
+                                     SelectionChanged="OnProductsSelectionChanged"
+                                     BorderThickness="0">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="10,7"
+                                                BorderBrush="#E0E0E0"
+                                                BorderThickness="0,0,0,1"
+                                                Background="#FFFFFF">
+                                            <Grid ColumnDefinitions="*,120,90">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontSize="12"
+                                                           Foreground="#2D1B4E"
+                                                           VerticalAlignment="Center"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding BarcodeDisplay}"
+                                                           FontSize="11"
+                                                           Foreground="#757575"
+                                                           FontStyle="Italic"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="2"
+                                                           Text="{Binding Price, StringFormat={}{0:F2}}"
+                                                           FontSize="12"
+                                                           FontWeight="Bold"
+                                                           Foreground="#7B1FA2"
+                                                           HorizontalAlignment="Right"
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </ScrollViewer>
                     </StackPanel>
                 </Border>
 
                 <!-- Boton agregar seleccionados -->
-                <Button Background="#9C27B0"
-                        Foreground="White"
-                        FontSize="13"
-                        FontWeight="SemiBold"
-                        Padding="20,10"
-                        CornerRadius="6"
-                        HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Center"
-                        Command="{Binding AddSelectedToCartCommand}"
-                        IsEnabled="{Binding HasSelectedProducts}"
-                        Cursor="Hand">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
-                        <TextBlock Text="+" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-                        <TextBlock Text="Agregar Seleccionados"
-                                   VerticalAlignment="Center"/>
-                        <Border Background="#7B1FA2"
-                                CornerRadius="10"
-                                Padding="8,2"
-                                MinWidth="24"
-                                HorizontalAlignment="Center">
-                            <TextBlock Text="{Binding SelectedProductsCount}"
-                                       FontSize="12"
-                                       FontWeight="Bold"
-                                       Foreground="White"
-                                       HorizontalAlignment="Center"/>
-                        </Border>
-                    </StackPanel>
-                </Button>
+                <Border Background="#9C27B0"
+                        CornerRadius="6">
+                    <Button Name="AddSelectedBtn"
+                            Background="Transparent"
+                            Foreground="White"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Padding="20,10"
+                            BorderThickness="0"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Command="{Binding AddSelectedToCartCommand}"
+                            IsEnabled="{Binding HasSelectedProducts}"
+                            Cursor="Hand">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
+                            <TextBlock Text="+" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <TextBlock Text="Agregar Seleccionados"
+                                       VerticalAlignment="Center"/>
+                            <Border Background="#7B1FA2"
+                                    CornerRadius="10"
+                                    Padding="8,2"
+                                    MinWidth="24"
+                                    HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding SelectedProductsCount}"
+                                           FontSize="12"
+                                           FontWeight="Bold"
+                                           Foreground="White"
+                                           HorizontalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                    </Button>
+                </Border>
 
                 <!-- Mensaje de feedback -->
                 <Border CornerRadius="6"
@@ -312,9 +323,9 @@
                         </Border>
 
                         <!-- Items del carrito -->
-                        <ListBox ItemsSource="{Binding CartItems}"
-                                 BorderThickness="0"
-                                 MaxHeight="220">
+                        <ScrollViewer MaxHeight="250">
+                            <ListBox ItemsSource="{Binding CartItems}"
+                                     BorderThickness="0">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Border Padding="10,8"
@@ -389,7 +400,8 @@
                                     </Border>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
-                        </ListBox>
+                            </ListBox>
+                        </ScrollViewer>
 
                         <!-- Carrito vacio -->
                         <Border IsVisible="{Binding !CartItems.Count}"
@@ -409,6 +421,7 @@
                     </StackPanel>
                 </Border>
             </StackPanel>
+            </ScrollViewer>
 
             <!-- Panel derecho: Resumen y cobro -->
             <Border Grid.Column="1"
@@ -456,19 +469,23 @@
 
                     <Border Height="1" Background="#CE93D8"/>
 
-                    <Button Name="CheckoutBtn"
-                            Content="COBRAR"
-                            Background="#4CAF50"
-                            Foreground="White"
-                            FontSize="20"
-                            FontWeight="Bold"
-                            Height="60"
-                            Padding="20,15"
+                    <Border Background="#4CAF50"
                             CornerRadius="8"
-                            Command="{Binding CheckoutCommand}"
-                            Cursor="Hand"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center"/>
+                            Margin="0,4">
+                        <Button Name="CheckoutBtn"
+                                Content="COBRAR"
+                                Background="Transparent"
+                                Foreground="White"
+                                FontSize="20"
+                                FontWeight="Bold"
+                                Height="60"
+                                Padding="20,15"
+                                BorderThickness="0"
+                                Command="{Binding CheckoutCommand}"
+                                Cursor="Hand"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
+                    </Border>
 
                     <Button Content="Vaciar Carrito"
                             Background="#EF5350"
@@ -478,6 +495,7 @@
                             Height="40"
                             CornerRadius="6"
                             Padding="10,0"
+                            BorderThickness="0"
                             Command="{Binding ClearCartCommand}"
                             Cursor="Hand"/>
 
