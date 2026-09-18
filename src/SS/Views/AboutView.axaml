@@ -4,12 +4,13 @@
              x:Class="SS.Views.AboutView"
              x:DataType="vm:AboutViewModel">
 
-    <Border Background="#FAF3F7" CornerRadius="8" Margin="10">
+    <Border Background="{StaticResource BackgroundAppBrush}" CornerRadius="8">
         <ScrollViewer>
             <StackPanel Margin="24" Spacing="20" HorizontalAlignment="Center" MaxWidth="500">
 
                 <!-- Logo -->
-                <Border Background="#7B1FA2" CornerRadius="20"
+                <Border Background="{StaticResource PrimaryMediumBrush}"
+                        CornerRadius="20"
                         Width="80" Height="80"
                         HorizontalAlignment="Center"
                         Margin="0,20,0,0">
@@ -26,60 +27,48 @@
                     <TextBlock Text="{Binding AppName}"
                                FontSize="24"
                                FontWeight="Bold"
-                               Foreground="#4A148C"
+                               Foreground="{StaticResource PrimaryDarkBrush}"
                                HorizontalAlignment="Center"/>
                     <TextBlock Text="{Binding AppVersion}"
                                FontSize="14"
-                               Foreground="#7B1FA2"
+                               Foreground="{StaticResource PrimaryMediumBrush}"
                                HorizontalAlignment="Center"/>
                     <TextBlock Text="{Binding Description}"
-                               FontSize="12"
-                               Foreground="#9C8EBF"
+                               Classes="page-subtitle"
                                HorizontalAlignment="Center"
                                Margin="0,4,0,0"/>
                 </StackPanel>
 
-                <Border Height="1" Background="#E8DAEF"/>
+                <Border Classes="separator"/>
 
                 <!-- Features -->
-                <Border Background="#FFFFFF" CornerRadius="10" Padding="18"
-                        BoxShadow="0 2 8 0 #11000000">
+                <Border Classes="card">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="Características"
-                                   FontSize="14"
-                                   FontWeight="SemiBold"
-                                   Foreground="#4A148C"/>
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="• Punto de venta con carrito de compras" FontSize="12" Foreground="#6C3483"/>
-                            <TextBlock Text="• Gestión de inventario con código de barras" FontSize="12" Foreground="#6C3483"/>
-                            <TextBlock Text="• Escáner de cámara PC y móvil" FontSize="12" Foreground="#6C3483"/>
-                            <TextBlock Text="• Dashboard con estadísticas en tiempo real" FontSize="12" Foreground="#6C3483"/>
-                            <TextBlock Text="• Historial de ventas y registros" FontSize="12" Foreground="#6C3483"/>
-                            <TextBlock Text="• Actualizaciones automáticas" FontSize="12" Foreground="#6C3483"/>
+                        <TextBlock Text="Características" Classes="section-title"/>
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="• Punto de venta con carrito de compras" Classes="body"/>
+                            <TextBlock Text="• Gestión de inventario con código de barras" Classes="body"/>
+                            <TextBlock Text="• Escáner de cámara PC y móvil" Classes="body"/>
+                            <TextBlock Text="• Dashboard con estadísticas en tiempo real" Classes="body"/>
+                            <TextBlock Text="• Historial de ventas y registros" Classes="body"/>
+                            <TextBlock Text="• Actualizaciones automáticas" Classes="body"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
                 <!-- Update Section -->
-                <Border Background="#FFFFFF" CornerRadius="10" Padding="18"
-                        BoxShadow="0 2 8 0 #11000000">
+                <Border Classes="card">
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="🔄"
-                                       FontSize="16"
-                                       VerticalAlignment="Center"/>
-                            <TextBlock Text="Actualizaciones"
-                                       FontSize="14"
-                                       FontWeight="SemiBold"
-                                       Foreground="#4A148C"
-                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="🔄" FontSize="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Actualizaciones" Classes="section-title" VerticalAlignment="Center"/>
                         </StackPanel>
 
-                        <Border Height="1" Background="#F0EAF5"/>
+                        <Border Classes="separator"/>
 
                         <Border CornerRadius="8"
-                                Padding="12,8"
-                                Background="#F5F0FA"
+                                Padding="14,10"
+                                Background="{StaticResource PrimarySurfaceLightBrush}"
                                 IsVisible="{Binding UpdateStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                             <TextBlock Text="{Binding UpdateStatus}"
                                        FontSize="12"
@@ -89,19 +78,11 @@
                         </Border>
 
                         <Button Command="{Binding CheckForUpdatesCommand}"
+                                Classes="primary"
                                 IsEnabled="{Binding !IsChecking}"
-                                Background="#7B1FA2"
-                                Foreground="White"
-                                FontSize="13"
-                                FontWeight="SemiBold"
-                                Padding="0,12"
-                                CornerRadius="8"
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Center"
-                                Cursor="Hand">
+                                HorizontalAlignment="Stretch">
                             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                <TextBlock Text="Buscar Actualizaciones"
-                                           VerticalAlignment="Center"/>
+                                <TextBlock Text="Buscar Actualizaciones" VerticalAlignment="Center"/>
                                 <ProgressBar IsVisible="{Binding IsChecking}"
                                              Width="16" Height="16"
                                              IsIndeterminate="True"
@@ -114,25 +95,20 @@
                 </Border>
 
                 <!-- Credits -->
-                <Border Background="#FFFFFF" CornerRadius="10" Padding="18"
-                        BoxShadow="0 2 8 0 #11000000">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Equipo de Desarrollo"
-                                   FontSize="14"
-                                   FontWeight="SemiBold"
-                                   Foreground="#4A148C"/>
-                        <Border Height="1" Background="#F0EAF5"/>
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Lucas — Backend" FontSize="12" Foreground="#6C3483"/>
-                            <TextBlock Text="Jandir — Frontend" FontSize="12" Foreground="#6C3483"/>
-                            <TextBlock Text="Dante — Documentación" FontSize="12" Foreground="#6C3483"/>
+                <Border Classes="card">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Equipo de Desarrollo" Classes="section-title"/>
+                        <Border Classes="separator"/>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Lucas — Backend" Classes="body"/>
+                            <TextBlock Text="Jandir — Frontend" Classes="body"/>
+                            <TextBlock Text="Dante — Documentación" Classes="body"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
                 <TextBlock Text="© 2026 Safe-Sale. Todos los derechos reservados."
-                           FontSize="10"
-                           Foreground="#BBB0CB"
+                           Classes="caption"
                            HorizontalAlignment="Center"
                            Margin="0,10,0,20"/>
             </StackPanel>

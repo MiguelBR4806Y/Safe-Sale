@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -75,6 +76,12 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     private string _mobileScanFeedbackColor = "#4A148C";
 
+    [ObservableProperty]
+    private List<string> _availableCameras = new();
+
+    [ObservableProperty]
+    private int _selectedCameraIndex;
+
     public event Action<bool>? ScannerToggled;
 
     public ICommand AddByBarcodeCommand { get; }
@@ -94,6 +101,8 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         _cameraService = new CameraService();
         _barcodeScanner = new BarcodeScannerService();
         _mobileScanner = mobileScanner;
+        AvailableCameras = _cameraService.GetAvailableCameras().ToList();
+        SelectedCameraIndex = 0;
 
         _cameraService.FrameAvailable += OnFrameAvailable;
         _mobileScanner.BarcodeReceived += OnMobileBarcodeReceived;
@@ -236,7 +245,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         {
             Task.Run(async () =>
             {
-                await _cameraService.StartCaptureAsync();
+                await _cameraService.StartCaptureAsync(SelectedCameraIndex);
                 var isCapturing = _cameraService.IsCapturing;
 
                 Dispatcher.UIThread.Post(() =>

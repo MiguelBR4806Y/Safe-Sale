@@ -5,7 +5,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <NoWarn>NU1903</NoWarn>
+    <NoWarn>NU1903;AVLN3001</NoWarn>
     <Version>1.0.0</Version>
     <AssemblyName>SafeSale</AssemblyName>
     <Product>Safe-Sale</Product>
@@ -16,6 +16,7 @@
   <ItemGroup>
     <Folder Include="Models" />
     <AvaloniaResource Include="Assets\*" />
+    <AvaloniaResource Include="Styles.axaml" />
     <None Include="www\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
@@ -39,7 +40,21 @@
   </ItemGroup>
 
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
-    <PackageReference Include="OpenCvSharp4.runtime.osx.arm64" Version="4.9.0.20240103" />
+    <PackageReference Include="OpenCvSharp4.runtime.osx.arm64" Version="4.13.0.20260627" />
   </ItemGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <CFBundleName>Safe-Sale</CFBundleName>
+    <CFBundleDisplayName>Safe-Sale</CFBundleDisplayName>
+    <CFBundleIdentifier>com.safesale.app</CFBundleIdentifier>
+    <CFBundleVersion>1.0.0</CFBundleVersion>
+    <CFBundleShortVersionString>1.0.0</CFBundleShortVersionString>
+    <LSMinimumSystemVersion>12.0</LSMinimumSystemVersion>
+    <NSHighResolutionCapable>true</NSHighResolutionCapable>
+    <LSApplicationCategoryType>public.app-category.business</LSApplicationCategoryType>
+    <InfoPlistFile>Platforms/macOS/Info.plist</InfoPlistFile>
+    <AppInfoPlistFile>Platforms/macOS/Info.plist</AppInfoPlistFile>
+    <CodeSignEntitlements>Platforms/macOS/Entitlements.plist</CodeSignEntitlements>
+  </PropertyGroup>
 
 </Project>

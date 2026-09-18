@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -78,6 +79,12 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
     [ObservableProperty]
     private Avalonia.Media.Imaging.Bitmap? _cameraPreview;
 
+    [ObservableProperty]
+    private List<string> _availableCameras = new();
+
+    [ObservableProperty]
+    private int _selectedCameraIndex;
+
     public ICommand AddProductCommand { get; }
     public ICommand EditProductCommand { get; }
     public ICommand DeleteProductCommand { get; }
@@ -100,6 +107,8 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
         _mobileScanner = mobileScanner;
         _cameraService = new CameraService();
         _barcodeScanner = new BarcodeScannerService();
+        AvailableCameras = _cameraService.GetAvailableCameras().ToList();
+        SelectedCameraIndex = 0;
 
         _mobileScanner.BarcodeReceived += OnMobileBarcodeReceived;
         _cameraService.FrameAvailable += OnFrameAvailable;
@@ -338,7 +347,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
         {
             Task.Run(async () =>
             {
-                await _cameraService.StartCaptureAsync();
+                await _cameraService.StartCaptureAsync(SelectedCameraIndex);
                 var isCapturing = _cameraService.IsCapturing;
 
                 Dispatcher.UIThread.Post(() =>

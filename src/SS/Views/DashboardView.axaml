@@ -13,106 +13,84 @@
         </Style>
     </UserControl.Styles>
 
-    <Border Background="#FAF3F7" CornerRadius="8">
+    <Border Background="{StaticResource BackgroundAppBrush}" CornerRadius="8">
         <ScrollViewer>
             <StackPanel Margin="24" Spacing="20">
 
                 <!-- Header -->
                 <StackPanel Spacing="2">
-                    <TextBlock Text="DASHBOARD"
-                        FontSize="26"
-                        FontWeight="Bold"
-                        Foreground="#4A148C"/>
-                    <TextBlock Text="Resumen general del sistema"
-                        FontSize="12"
-                        Foreground="#9C8EBF"/>
+                    <TextBlock Text="DASHBOARD" Classes="page-title"/>
+                    <TextBlock Text="Resumen general del sistema" Classes="page-subtitle"/>
                 </StackPanel>
 
                 <!-- KPI Cards -->
                 <UniformGrid Columns="2" Rows="2" Margin="0,5">
                     <!-- Ventas Hoy -->
-                    <Border Background="#FFFFFF" CornerRadius="10" Padding="18" Margin="4"
-                            BoxShadow="0 2 8 0 #11000000">
+                    <Border Classes="stat-card" Margin="4">
                         <Grid>
                             <StackPanel Spacing="4">
                                 <TextBlock Text="VENTAS HOY"
                                     FontSize="10"
                                     FontWeight="SemiBold"
-                                    Foreground="#9C8EBF"
+                                    Foreground="{StaticResource TextMutedBrush}"
                                     LetterSpacing="1"/>
-                                <TextBlock Text="{Binding TodaySales, StringFormat=${0}}"
-                                    FontSize="28"
-                                    FontWeight="Bold"
-                                    Foreground="#4A148C"/>
-                                <TextBlock Text="ingresos del día"
-                                    FontSize="10"
-                                    Foreground="#BBB0CB"/>
+                                <TextBlock Text="{Binding TodaySales, StringFormat='{}${0}'}"
+                                    Classes="kpi-value"
+                                    Foreground="{StaticResource PrimaryDarkBrush}"/>
+                                <TextBlock Text="ingresos del día" Classes="caption"/>
                             </StackPanel>
                             <TextBlock Text="&#x1F4B0;" Classes="card-icon"/>
                         </Grid>
                     </Border>
 
                     <!-- Ingresos Mes -->
-                    <Border Background="#FFFFFF" CornerRadius="10" Padding="18" Margin="4"
-                            BoxShadow="0 2 8 0 #11000000">
+                    <Border Classes="stat-card" Margin="4">
                         <Grid>
                             <StackPanel Spacing="4">
                                 <TextBlock Text="INGRESOS MES"
                                     FontSize="10"
                                     FontWeight="SemiBold"
-                                    Foreground="#9C8EBF"
+                                    Foreground="{StaticResource TextMutedBrush}"
                                     LetterSpacing="1"/>
-                                <TextBlock Text="{Binding MonthIncome, StringFormat=${0}}"
-                                    FontSize="28"
-                                    FontWeight="Bold"
-                                    Foreground="#7B1FA2"/>
-                                <TextBlock Text="acumulado mensual"
-                                    FontSize="10"
-                                    Foreground="#BBB0CB"/>
+                                <TextBlock Text="{Binding MonthIncome, StringFormat='{}${0}'}"
+                                    Classes="kpi-value"/>
+                                <TextBlock Text="acumulado mensual" Classes="caption"/>
                             </StackPanel>
                             <TextBlock Text="&#x1F4C8;" Classes="card-icon"/>
                         </Grid>
                     </Border>
 
                     <!-- Productos Activos -->
-                    <Border Background="#FFFFFF" CornerRadius="10" Padding="18" Margin="4"
-                            BoxShadow="0 2 8 0 #11000000">
+                    <Border Classes="stat-card" Margin="4">
                         <Grid>
                             <StackPanel Spacing="4">
                                 <TextBlock Text="PRODUCTOS"
                                     FontSize="10"
                                     FontWeight="SemiBold"
-                                    Foreground="#9C8EBF"
+                                    Foreground="{StaticResource TextMutedBrush}"
                                     LetterSpacing="1"/>
                                 <TextBlock Text="{Binding ActiveProducts}"
-                                    FontSize="28"
-                                    FontWeight="Bold"
-                                    Foreground="#4CAF50"/>
-                                <TextBlock Text="productos activos"
-                                    FontSize="10"
-                                    Foreground="#BBB0CB"/>
+                                    Classes="kpi-value"
+                                    Foreground="{StaticResource SuccessBrush}"/>
+                                <TextBlock Text="productos activos" Classes="caption"/>
                             </StackPanel>
                             <TextBlock Text="&#x1F4E6;" Classes="card-icon"/>
                         </Grid>
                     </Border>
 
                     <!-- Total Ventas -->
-                    <Border Background="#FFFFFF" CornerRadius="10" Padding="18" Margin="4"
-                            BoxShadow="0 2 8 0 #11000000">
+                    <Border Classes="stat-card" Margin="4">
                         <Grid>
                             <StackPanel Spacing="4">
                                 <TextBlock Text="TRANSACCIONES"
                                     FontSize="10"
                                     FontWeight="SemiBold"
-                                    Foreground="#9C8EBF"
+                                    Foreground="{StaticResource TextMutedBrush}"
                                     LetterSpacing="1"/>
                                 <TextBlock Text="{Binding TodayCustomers}"
-                                    FontSize="28"
-                                    FontWeight="Bold"
-                                    Foreground="#FF9800"/>
-                                <TextBlock Text="ventas realizadas"
-                                    FontSize="10"
-                                    Foreground="#BBB0CB"/>
+                                    Classes="kpi-value"
+                                    Foreground="{StaticResource WarningBrush}"/>
+                                <TextBlock Text="ventas realizadas" Classes="caption"/>
                             </StackPanel>
                             <TextBlock Text="&#x1F4CB;" Classes="card-icon"/>
                         </Grid>
@@ -120,36 +98,26 @@
                 </UniformGrid>
 
                 <!-- Últimas ventas -->
-                <Border Background="#FFFFFF" CornerRadius="10" Padding="18"
-                        BoxShadow="0 2 8 0 #11000000">
+                <Border Classes="card">
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="&#x1F4C5;"
-                                       FontSize="16"
-                                       VerticalAlignment="Center"/>
-                            <TextBlock Text="Últimas Ventas"
-                                FontSize="15"
-                                FontWeight="SemiBold"
-                                Foreground="#4A148C"
-                                VerticalAlignment="Center"/>
+                            <TextBlock Text="&#x1F4C5;" FontSize="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Últimas Ventas" Classes="section-title" VerticalAlignment="Center"/>
                         </StackPanel>
 
-                        <Border Height="1" Background="#F0EAF5"/>
+                        <Border Classes="separator"/>
 
-                        <ListBox ItemsSource="{Binding RecentSales}"
-                                 Height="220"
-                                 Background="Transparent"
-                                 BorderThickness="0">
+                        <ListBox ItemsSource="{Binding RecentSales}" Height="220">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Padding="8,6"
-                                            Background="#FBF8FE"
-                                            CornerRadius="6"
-                                            Margin="0,1">
+                                    <Border Padding="10,8"
+                                            Background="{StaticResource PrimaryBackgroundBrush}"
+                                            CornerRadius="8"
+                                            Margin="0,2">
                                         <Grid ColumnDefinitions="Auto,*,Auto">
                                             <Border Grid.Column="0"
-                                                    Background="#E8DAEF"
-                                                    CornerRadius="6"
+                                                    Background="{StaticResource PrimarySurfaceBrush}"
+                                                    CornerRadius="8"
                                                     Width="36" Height="36"
                                                     Margin="0,0,10,0">
                                                 <TextBlock Text="&#x1F4B3;"
@@ -157,20 +125,16 @@
                                                            HorizontalAlignment="Center"
                                                            VerticalAlignment="Center"/>
                                             </Border>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                                 <TextBlock Text="{Binding Id, StringFormat='Venta #{0}'}"
-                                                           FontSize="12"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="#4A148C"/>
-                                                <TextBlock Text="{Binding CreatedAt}"
-                                                           FontSize="10"
-                                                           Foreground="#9C8EBF"/>
+                                                           Classes="card-value"/>
+                                                <TextBlock Text="{Binding CreatedAt}" Classes="caption"/>
                                             </StackPanel>
                                             <TextBlock Grid.Column="2"
-                                                       Text="{Binding Total, StringFormat=${0:F2}}"
+                                                       Text="{Binding Total, StringFormat='{}${0:F2}'}"
                                                        FontSize="15"
                                                        FontWeight="Bold"
-                                                       Foreground="#7B1FA2"
+                                                       Foreground="{StaticResource PrimaryMediumBrush}"
                                                        VerticalAlignment="Center"/>
                                         </Grid>
                                     </Border>
