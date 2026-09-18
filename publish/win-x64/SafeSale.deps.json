@@ -20,7 +20,7 @@
           "OpenCvSharp4.Extensions": "4.9.0.20240103",
           "OpenCvSharp4.runtime.win": "4.9.0.20240103",
           "QRCoder": "1.8.0",
-          "Velopack": "0.0.1251",
+          "Velopack": "1.0.1",
           "ZXing.Net": "0.16.9",
           "runtimepack.Microsoft.NETCore.App.Runtime.win-x64": "10.0.12"
         },
@@ -1062,14 +1062,6 @@
           }
         }
       },
-      "NuGet.Versioning/6.13.2": {
-        "runtime": {
-          "lib/netstandard2.0/NuGet.Versioning.dll": {
-            "assemblyVersion": "6.13.2.1",
-            "fileVersion": "6.13.2.1"
-          }
-        }
-      },
       "OpenCvSharp4/4.9.0.20240103": {
         "runtime": {
           "lib/net6.0/OpenCvSharp.dll": {
@@ -1189,14 +1181,11 @@
           }
         }
       },
-      "Velopack/0.0.1251": {
-        "dependencies": {
-          "NuGet.Versioning": "6.13.2"
-        },
+      "Velopack/1.0.1": {
         "runtime": {
-          "lib/net9.0/Velopack.dll": {
-            "assemblyVersion": "0.0.0.0",
-            "fileVersion": "0.0.1251.18941"
+          "lib/net10.0/Velopack.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.1.62190"
           }
         }
       },
@@ -1389,13 +1378,6 @@
       "path": "microsoft.win32.systemevents/7.0.0",
       "hashPath": "microsoft.win32.systemevents.7.0.0.nupkg.sha512"
     },
-    "NuGet.Versioning/6.13.2": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-pGYNyvCVM+Z9jITTiJiuxFC8oJXFdh2k25ZDV4tSAOSuKyAWvh1VcfJy0WZGWdI6J7Avkbl0qra7XENYFSy4Ng==",
-      "path": "nuget.versioning/6.13.2",
-      "hashPath": "nuget.versioning.6.13.2.nupkg.sha512"
-    },
     "OpenCvSharp4/4.9.0.20240103": {
       "type": "package",
       "serviceable": true,
@@ -1480,12 +1462,12 @@
       "path": "tmds.dbus.protocol/0.94.1",
       "hashPath": "tmds.dbus.protocol.0.94.1.nupkg.sha512"
     },
-    "Velopack/0.0.1251": {
+    "Velopack/1.0.1": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-rDojkZXbakJgTKn8wmw4/kPGP+j63AO87dKRhzwYIVYL1rj7KZKXw+uhA6R6nCXMnHZ0isW9QXNW0O2h7bTVAQ==",
-      "path": "velopack/0.0.1251",
-      "hashPath": "velopack.0.0.1251.nupkg.sha512"
+      "sha512": "sha512-LlmymFeEYBGNQfNiG89buDUT6C09MgqJnLzkvQz997fk/+KfmlyXlwbxOBFxt24HL4B8TQAFmNa6Oy9K4XlH0Q==",
+      "path": "velopack/1.0.1",
+      "hashPath": "velopack.1.0.1.nupkg.sha512"
     },
     "ZXing.Net/0.16.9": {
       "type": "package",

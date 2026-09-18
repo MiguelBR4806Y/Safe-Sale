@@ -15,6 +15,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private readonly InventoryViewModel _inventoryViewModel;
     private readonly SalesViewModel _salesViewModel;
     private readonly RecordsViewModel _recordsViewModel;
+    private readonly AboutViewModel _aboutViewModel;
     private readonly MobileScannerService _sharedScanner;
     private readonly Timer _pollTimer;
 
@@ -34,6 +35,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     public ICommand NavigateInventoryCommand { get; }
     public ICommand NavigateSalesCommand { get; }
     public ICommand NavigateRecordsCommand { get; }
+    public ICommand NavigateAboutCommand { get; }
     public ICommand LogoutCommand { get; }
 
     public event Action? LogoutRequested;
@@ -50,6 +52,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         _inventoryViewModel = new InventoryViewModel(dbPath, _sharedScanner);
         _salesViewModel = new SalesViewModel(dbPath, user, _sharedScanner);
         _recordsViewModel = new RecordsViewModel(dbPath);
+        _aboutViewModel = new AboutViewModel();
 
         _inventoryViewModel.AddToCartRequested += OnAddToCartFromInventory;
         _inventoryViewModel.ScannerToggled += OnScannerToggled;
@@ -84,6 +87,12 @@ public partial class MainViewModel : ViewModelBase, IDisposable
             CurrentViewModel = _recordsViewModel;
             _recordsViewModel.LoadData();
             CurrentViewTitle = "Registros";
+        });
+
+        NavigateAboutCommand = new RelayCommand(() =>
+        {
+            CurrentViewModel = _aboutViewModel;
+            CurrentViewTitle = "Acerca de";
         });
 
         LogoutCommand = new RelayCommand(() =>
