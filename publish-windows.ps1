@@ -45,6 +45,7 @@ if ($LASTEXITCODE -ne 0) {
 $oldName = Get-ChildItem -Path $ReleaseDir -Filter "SafeSale-win-Setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 if ($oldName) {
     $newName = Join-Path $oldName.Directory "SS-Installer.exe"
+    if (Test-Path $newName) { Remove-Item -Path $newName -Force }
     Rename-Item -Path $oldName.FullName -NewName $newName -Force
     Write-Host "Renombrado: $($oldName.Name) → SS-Installer.exe" -ForegroundColor Yellow
 }
