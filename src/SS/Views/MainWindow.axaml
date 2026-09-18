@@ -94,6 +94,20 @@
                             <TextBlock Text="Registros" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+
+                    <Button Command="{Binding NavigateAboutCommand}"
+                            Background="Transparent"
+                            Foreground="#E8DAEF"
+                            BorderThickness="0"
+                            HorizontalContentAlignment="Left"
+                            Padding="15,12"
+                            FontSize="14"
+                            Cursor="Hand">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="ℹ️" FontSize="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Acerca de" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
 
                 <!-- Espacio flexible -->
@@ -157,4 +171,19 @@
                             Margin="15"/>
         </DockPanel>
     </DockPanel>
+
+    <Window.Styles>
+        <Style Selector="ListBox">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#F3E5F5"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#E1BEE7"/>
+        </Style>
+    </Window.Styles>
 </Window>

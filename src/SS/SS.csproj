@@ -1,15 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <NoWarn>NU1903;AVLN3001</NoWarn>
+    <Version>1.0.0</Version>
+    <AssemblyName>SafeSale</AssemblyName>
+    <Product>Safe-Sale</Product>
+    <Authors>Safe-Sale Team</Authors>
+    <Description>Sistema de Gestión de Supermercado</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="Models" />
     <AvaloniaResource Include="Assets\*" />
+    <AvaloniaResource Include="Styles.axaml" />
+    <None Include="www\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +27,34 @@
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.11" />
+    <PackageReference Include="OpenCvSharp4" Version="4.9.0.20240103" />
+    <PackageReference Include="OpenCvSharp4.Extensions" Version="4.9.0.20240103" />
+    <PackageReference Include="QRCoder" Version="1.8.0" />
+    <PackageReference Include="ZXing.Net" Version="0.16.9" />
+    <PackageReference Include="Velopack" Version="1.0.1" />
   </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.9.0.20240103" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <PackageReference Include="OpenCvSharp4.runtime.osx.arm64" Version="4.13.0.20260627" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <CFBundleName>Safe-Sale</CFBundleName>
+    <CFBundleDisplayName>Safe-Sale</CFBundleDisplayName>
+    <CFBundleIdentifier>com.safesale.app</CFBundleIdentifier>
+    <CFBundleVersion>1.0.0</CFBundleVersion>
+    <CFBundleShortVersionString>1.0.0</CFBundleShortVersionString>
+    <LSMinimumSystemVersion>12.0</LSMinimumSystemVersion>
+    <NSHighResolutionCapable>true</NSHighResolutionCapable>
+    <LSApplicationCategoryType>public.app-category.business</LSApplicationCategoryType>
+    <InfoPlistFile>Platforms/macOS/Info.plist</InfoPlistFile>
+    <AppInfoPlistFile>Platforms/macOS/Info.plist</AppInfoPlistFile>
+    <CodeSignEntitlements>Platforms/macOS/Entitlements.plist</CodeSignEntitlements>
+  </PropertyGroup>
 
 </Project>

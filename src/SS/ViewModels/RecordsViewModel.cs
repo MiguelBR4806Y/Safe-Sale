@@ -19,10 +19,10 @@ public partial class RecordsViewModel : ViewModelBase
     private decimal _totalSales;
 
     [ObservableProperty]
-    private DateTime _filterFrom = DateTime.Today.AddDays(-30);
+    private DateTimeOffset? _filterFrom = DateTimeOffset.Now.AddDays(-30);
 
     [ObservableProperty]
-    private DateTime _filterTo = DateTime.Today;
+    private DateTimeOffset? _filterTo = DateTimeOffset.Now;
 
     [ObservableProperty]
     private int _totalTransactions;
@@ -38,8 +38,10 @@ public partial class RecordsViewModel : ViewModelBase
 
     public void LoadData()
     {
-        Sales = _saleRepo.GetByDateRange(FilterFrom, FilterTo);
-        TotalSales = _saleRepo.GetTotalByDateRange(FilterFrom, FilterTo);
+        var from = FilterFrom?.DateTime ?? DateTime.MinValue;
+        var to = FilterTo?.DateTime ?? DateTime.MaxValue;
+        Sales = _saleRepo.GetByDateRange(from, to);
+        TotalSales = _saleRepo.GetTotalByDateRange(from, to);
         TotalTransactions = Sales.Count;
     }
 }

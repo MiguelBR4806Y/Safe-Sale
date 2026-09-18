@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows.Input;
@@ -27,7 +28,23 @@ public partial class LoginViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isLoading;
 
+    [ObservableProperty]
+    private bool _isPasswordVisible;
+
+    [ObservableProperty]
+    private string _passwordChar = "*";
+
+    [ObservableProperty]
+    private string _eyeIcon = "\U0001F441";
+
+    [ObservableProperty]
+    private string _updateMessage = "";
+
+    [ObservableProperty]
+    private bool _isUpdateAvailable;
+
     public ICommand LoginCommand { get; }
+    public ICommand TogglePasswordCommand { get; }
 
     public event Action<User>? LoginSuccess;
 
@@ -35,6 +52,70 @@ public partial class LoginViewModel : ViewModelBase
     {
         _userRepo = new SqliteUserRepository(dbPath);
         LoginCommand = new RelayCommand(OnLogin);
+        TogglePasswordCommand = new RelayCommand(OnTogglePassword);
+
+        _ = CheckForUpdatesAsync();
+    }
+
+    private async Task CheckForUpdatesAsync()
+    {
+        try
+        {
+            UpdateService.Initialize();
+            var hasUpdate = await UpdateService.CheckForUpdateAsync((msg) =>
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    UpdateMessage = msg;
+                });
+            });
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                if (hasUpdate)
+                {
+                    IsUpdateAvailable = true;
+                    UpdateMessage = "Actualización instalada. La app se reiniciará...";
+                }
+                else
+                {
+                    UpdateMessage = "";
+                }
+            });
+        }
+        catch
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                UpdateMessage = "";
+            });
+        }
+    }
+
+    partial void OnUsernameChanged(string value)
+    {
+        ClearError();
+    }
+
+    partial void OnPasswordChanged(string value)
+    {
+        ClearError();
+    }
+
+    private void ClearError()
+    {
+        if (IsError)
+        {
+            IsError = false;
+            ErrorMessage = "";
+        }
+    }
+
+    private void OnTogglePassword()
+    {
+        IsPasswordVisible = !IsPasswordVisible;
+        PasswordChar = IsPasswordVisible ? "" : "*";
+        EyeIcon = IsPasswordVisible ? "\U0001F441\U0001F441" : "\U0001F441";
     }
 
     private void OnLogin()
@@ -87,5 +168,8 @@ public partial class LoginViewModel : ViewModelBase
         ErrorMessage = "";
         IsError = false;
         IsLoading = false;
+        IsPasswordVisible = false;
+        PasswordChar = "*";
+        EyeIcon = "\U0001F441";
     }
 }

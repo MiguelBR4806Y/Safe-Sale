@@ -2,14 +2,62 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="SS.App"
              xmlns:local="using:SS"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Light">
 
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
 
+    <Application.Resources>
+        <!-- Primary Purple Palette -->
+        <Color x:Key="PrimaryDark">#4A148C</Color>
+        <Color x:Key="PrimaryMedium">#7B1FA2</Color>
+        <Color x:Key="PrimaryLight">#BB8FCE</Color>
+        <Color x:Key="PrimarySurface">#E8DAEF</Color>
+        <Color x:Key="PrimaryHover">#F3E5F5</Color>
+        <Color x:Key="PrimarySurfaceLight">#F5F0FA</Color>
+        <Color x:Key="PrimaryBackground">#FBF8FE</Color>
+
+        <!-- Neutrals -->
+        <Color x:Key="BackgroundApp">#FAF3F7</Color>
+        <Color x:Key="BackgroundCard">#FFFFFF</Color>
+        <Color x:Key="TextPrimary">#2D1B4E</Color>
+        <Color x:Key="TextSecondary">#6C3483</Color>
+        <Color x:Key="TextMuted">#9C8EBF</Color>
+        <Color x:Key="TextLight">#BBB0CB</Color>
+        <Color x:Key="BorderLight">#E0D4ED</Color>
+        <Color x:Key="Separator">#F0EAF5</Color>
+
+        <!-- Semantic Colors -->
+        <Color x:Key="Success">#4CAF50</Color>
+        <Color x:Key="Warning">#FF9800</Color>
+        <Color x:Key="Danger">#EF5350</Color>
+
+        <!-- Brush Resources -->
+        <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{StaticResource PrimaryDark}"/>
+        <SolidColorBrush x:Key="PrimaryMediumBrush" Color="{StaticResource PrimaryMedium}"/>
+        <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLight}"/>
+        <SolidColorBrush x:Key="PrimarySurfaceBrush" Color="{StaticResource PrimarySurface}"/>
+        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHover}"/>
+        <SolidColorBrush x:Key="PrimarySurfaceLightBrush" Color="{StaticResource PrimarySurfaceLight}"/>
+        <SolidColorBrush x:Key="PrimaryBackgroundBrush" Color="{StaticResource PrimaryBackground}"/>
+
+        <SolidColorBrush x:Key="BackgroundAppBrush" Color="{StaticResource BackgroundApp}"/>
+        <SolidColorBrush x:Key="BackgroundCardBrush" Color="{StaticResource BackgroundCard}"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}"/>
+        <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}"/>
+        <SolidColorBrush x:Key="TextLightBrush" Color="{StaticResource TextLight}"/>
+        <SolidColorBrush x:Key="BorderLightBrush" Color="{StaticResource BorderLight}"/>
+        <SolidColorBrush x:Key="SeparatorBrush" Color="{StaticResource Separator}"/>
+
+        <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Success}"/>
+        <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Warning}"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource Danger}"/>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://SafeSale/Styles.axaml"/>
     </Application.Styles>
 </Application>

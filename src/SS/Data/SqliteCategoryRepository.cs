@@ -52,7 +52,7 @@ public class SqliteCategoryRepository
             INSERT INTO categories (name, description) VALUES (@name, @description)";
 
         cmd.Parameters.AddWithValue("@name", category.Name);
-        cmd.Parameters.AddWithValue("@description", (object)category.Description ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@description", (object?)category.Description ?? DBNull.Value);
 
         cmd.ExecuteNonQuery();
     }
@@ -68,7 +68,7 @@ public class SqliteCategoryRepository
 
         cmd.Parameters.AddWithValue("@id", category.Id);
         cmd.Parameters.AddWithValue("@name", category.Name);
-        cmd.Parameters.AddWithValue("@description", (object)category.Description ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@description", (object?)category.Description ?? DBNull.Value);
 
         cmd.ExecuteNonQuery();
     }

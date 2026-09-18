@@ -4,101 +4,123 @@
              x:Class="SS.Views.RecordsView"
              x:DataType="vm:RecordsViewModel">
 
-    <Border Background="#FAF3F7" CornerRadius="8">
+    <Border Background="{StaticResource BackgroundAppBrush}" CornerRadius="8">
         <ScrollViewer>
-            <StackPanel Margin="20" Spacing="15">
+            <StackPanel Margin="24" Spacing="16">
 
-                <TextBlock Text="REGISTROS"
-                    FontSize="24"
-                    FontWeight="Bold"
-                    Foreground="#4A148C"
-                    HorizontalAlignment="Center"/>
+                <!-- Header -->
+                <StackPanel Spacing="2">
+                    <TextBlock Text="REGISTROS" Classes="page-title"/>
+                    <TextBlock Text="Historial de ventas y transacciones" Classes="page-subtitle"/>
+                </StackPanel>
 
                 <!-- Filtros -->
-                <Border Background="#FFFFFF" CornerRadius="6" Margin="0,10" Padding="10">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="Desde:" FontSize="12" VerticalAlignment="Center"/>
-                        <DatePicker Width="150"
-                                    FontSize="12"
-                                    SelectedDate="{Binding FilterFrom}"/>
-                        <TextBlock Text="Hasta:" FontSize="12" VerticalAlignment="Center"/>
-                        <DatePicker Width="150"
-                                    FontSize="12"
-                                    SelectedDate="{Binding FilterTo}"/>
-                        <Button Content="Filtrar"
-                                Background="#BB8FCE"
-                                Foreground="White"
-                                FontSize="12"
-                                Command="{Binding FilterCommand}"
-                                Cursor="Hand"
-                                VerticalAlignment="Center"/>
+                <Border Classes="card">
+                    <StackPanel Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="&#x1F50D;" FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="Filtros de búsqueda" Classes="section-title" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <Border Classes="separator"/>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Desde:" Classes="caption"/>
+                                <DatePicker Width="150" SelectedDate="{Binding FilterFrom}"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Hasta:" Classes="caption"/>
+                                <DatePicker Width="150" SelectedDate="{Binding FilterTo}"/>
+                            </StackPanel>
+                            <Button Content="Filtrar"
+                                    Classes="primary"
+                                    Command="{Binding FilterCommand}"
+                                    VerticalAlignment="Bottom"/>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 
-                <!-- Estadisticas -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20" Margin="0,5">
-                    <Border Background="#E8DAEF" CornerRadius="6" Padding="15">
-                        <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="Total Ventas"
-                                FontSize="12"
-                                Foreground="#4A148C"
-                                HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding TotalSales, StringFormat=${0:F2}}"
-                                FontSize="18"
-                                FontWeight="Bold"
-                                Foreground="#7B1FA2"
-                                HorizontalAlignment="Center"/>
+                <!-- Estadísticas -->
+                <Grid ColumnDefinitions="*,*" Margin="0,2">
+                    <Border Grid.Column="0" Classes="card" Margin="0,0,4,0">
+                        <StackPanel HorizontalAlignment="Center" Spacing="6">
+                            <TextBlock Text="&#x1F4B0;" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Total Ventas" Classes="card-label" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{Binding TotalSales, StringFormat='{}${0:F2}'}"
+                                       FontSize="22" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryMediumBrush}"
+                                       HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Border>
-                    <Border Background="#E8DAEF" CornerRadius="6" Padding="15">
-                        <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="Transacciones"
-                                FontSize="12"
-                                Foreground="#4A148C"
-                                HorizontalAlignment="Center"/>
+                    <Border Grid.Column="1" Classes="card" Margin="4,0,0,0">
+                        <StackPanel HorizontalAlignment="Center" Spacing="6">
+                            <TextBlock Text="&#x1F4CA;" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Transacciones" Classes="card-label" HorizontalAlignment="Center"/>
                             <TextBlock Text="{Binding TotalTransactions}"
-                                FontSize="18"
-                                FontWeight="Bold"
-                                Foreground="#7B1FA2"
-                                HorizontalAlignment="Center"/>
+                                       FontSize="22" FontWeight="Bold"
+                                       Foreground="{StaticResource SuccessBrush}"
+                                       HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Border>
-                </StackPanel>
+                </Grid>
 
                 <!-- Tabla de registros -->
-                <Border Background="#FFFFFF" CornerRadius="6" Margin="0,10" Padding="5">
-                    <ListBox ItemsSource="{Binding Sales}"
-                             Height="300">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,3">
-                                    <TextBlock Text="{Binding Id, StringFormat='Venta #{0}'}"
-                                               FontSize="12"
-                                               FontWeight="Medium"
-                                               Foreground="#4A148C"
-                                               VerticalAlignment="Center"
-                                               Width="80"/>
-                                    <TextBlock Text="{Binding CreatedAt}"
-                                               FontSize="12"
-                                               Foreground="#6C3483"
-                                               VerticalAlignment="Center"
-                                               Width="160"/>
-                                    <TextBlock Text="Venta"
-                                               FontSize="12"
-                                               FontWeight="Medium"
-                                               VerticalAlignment="Center"
-                                               Width="80"
-                                               Foreground="#4A148C"/>
-                                    <TextBlock Text="{Binding Total, StringFormat=${0:F2}}"
-                                               FontSize="14"
-                                               FontWeight="Bold"
-                                               Foreground="#7B1FA2"
-                                               HorizontalAlignment="Right"
-                                               VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                <Border Classes="card">
+                    <StackPanel Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="&#x1F4DD;" FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="Detalle de ventas" Classes="section-title" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding TotalTransactions, StringFormat='({0} registros)'}"
+                                       Classes="caption" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </StackPanel>
+
+                        <Border Classes="separator"/>
+
+                        <ListBox ItemsSource="{Binding Sales}" Height="280">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="12,10"
+                                            Background="{StaticResource PrimaryBackgroundBrush}"
+                                            CornerRadius="8"
+                                            Margin="0,2">
+                                        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                            <Border Grid.Column="0"
+                                                    Background="{StaticResource PrimarySurfaceBrush}"
+                                                    CornerRadius="8"
+                                                    Width="34" Height="34"
+                                                    Margin="0,0,10,0">
+                                                <TextBlock Text="&#x1F4B3;"
+                                                           FontSize="14"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                                <TextBlock Text="{Binding Id, StringFormat='Venta #{0}'}"
+                                                           Classes="card-value"/>
+                                                <TextBlock Text="{Binding CreatedAt}" Classes="caption"/>
+                                            </StackPanel>
+                                            <Border Grid.Column="2"
+                                                    Background="{StaticResource PrimaryHoverBrush}"
+                                                    CornerRadius="6"
+                                                    Padding="8,3"
+                                                    VerticalAlignment="Center"
+                                                    Margin="0,0,10,0">
+                                                <TextBlock Text="Venta"
+                                                           FontSize="10"
+                                                           FontWeight="Medium"
+                                                           Foreground="{StaticResource PrimaryMediumBrush}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="3"
+                                                       Text="{Binding Total, StringFormat='{}${0:F2}'}"
+                                                       FontSize="14"
+                                                       FontWeight="Bold"
+                                                       Foreground="{StaticResource PrimaryMediumBrush}"
+                                                       VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
                 </Border>
             </StackPanel>
         </ScrollViewer>
