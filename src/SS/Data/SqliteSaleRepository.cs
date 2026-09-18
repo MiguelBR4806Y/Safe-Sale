@@ -22,12 +22,13 @@ public class SqliteSaleRepository
 
         using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
-            INSERT INTO sales (user_id, total, created_at)
-            VALUES (@user_id, @total, @created_at);
+            INSERT INTO sales (user_id, total, payment_method, created_at)
+            VALUES (@user_id, @total, @payment_method, @created_at);
             SELECT last_insert_rowid();";
 
         cmd.Parameters.AddWithValue("@user_id", sale.UserId == 0 ? (object)DBNull.Value : sale.UserId);
         cmd.Parameters.AddWithValue("@total", sale.Total);
+        cmd.Parameters.AddWithValue("@payment_method", sale.PaymentMethod);
         cmd.Parameters.AddWithValue("@created_at", sale.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
 
         return Convert.ToInt32(cmd.ExecuteScalar());
@@ -58,7 +59,7 @@ public class SqliteSaleRepository
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT id, user_id, total, created_at FROM sales ORDER BY created_at DESC";
+        cmd.CommandText = "SELECT id, user_id, total, payment_method, created_at FROM sales ORDER BY created_at DESC";
 
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
@@ -68,7 +69,8 @@ public class SqliteSaleRepository
                 Id = reader.GetInt32(0),
                 UserId = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
                 Total = reader.GetDecimal(2),
-                CreatedAt = DateTime.Parse(reader.GetString(3))
+                PaymentMethod = reader.IsDBNull(3) ? "" : reader.GetString(3),
+                CreatedAt = DateTime.Parse(reader.GetString(4))
             });
         }
         return result;
@@ -81,7 +83,7 @@ public class SqliteSaleRepository
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT id, user_id, total, created_at FROM sales WHERE created_at BETWEEN @from AND @to ORDER BY created_at DESC";
+        cmd.CommandText = "SELECT id, user_id, total, payment_method, created_at FROM sales WHERE created_at BETWEEN @from AND @to ORDER BY created_at DESC";
         cmd.Parameters.AddWithValue("@from", from.ToString("yyyy-MM-dd 00:00:00"));
         cmd.Parameters.AddWithValue("@to", to.ToString("yyyy-MM-dd 23:59:59"));
 
@@ -93,7 +95,8 @@ public class SqliteSaleRepository
                 Id = reader.GetInt32(0),
                 UserId = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
                 Total = reader.GetDecimal(2),
-                CreatedAt = DateTime.Parse(reader.GetString(3))
+                PaymentMethod = reader.IsDBNull(3) ? "" : reader.GetString(3),
+                CreatedAt = DateTime.Parse(reader.GetString(4))
             });
         }
         return result;

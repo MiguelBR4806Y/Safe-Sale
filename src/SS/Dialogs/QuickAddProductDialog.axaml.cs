@@ -71,13 +71,15 @@ public partial class QuickAddProductDialog : Window
         }
 
         var price = decimal.Parse(PriceBox.Text!.Trim());
+        var stock = int.TryParse(StockBox.Text?.Trim(), out var s) ? s : 0;
+        var minStock = int.TryParse(MinStockBox.Text?.Trim(), out var ms) ? ms : 5;
         var product = new Product
         {
             Name = NameBox.Text!.Trim(),
             Barcode = BarcodeBox.Text!.Trim(),
             Price = price,
-            Stock = 0,
-            MinStock = 5
+            Stock = stock,
+            MinStock = minStock
         };
 
         try
@@ -104,12 +106,6 @@ public partial class QuickAddProductDialog : Window
 
         if (string.IsNullOrEmpty(barcode))
             return (false, "El c\u00f3digo de barras es obligatorio", "Barcode");
-
-        if (!barcode.All(char.IsDigit))
-            return (false, "El c\u00f3digo debe contener solo n\u00fameros", "Barcode");
-
-        if (barcode.Length != 12 && barcode.Length != 13)
-            return (false, "El c\u00f3digo debe tener 12 o 13 d\u00edgitos", "Barcode");
 
         if (string.IsNullOrEmpty(name))
             return (false, "El nombre del producto es obligatorio", "Name");

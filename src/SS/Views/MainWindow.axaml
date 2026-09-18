@@ -157,4 +157,19 @@
                             Margin="15"/>
         </DockPanel>
     </DockPanel>
+
+    <Window.Styles>
+        <Style Selector="ListBox">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#F3E5F5"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#E1BEE7"/>
+        </Style>
+    </Window.Styles>
 </Window>

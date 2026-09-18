@@ -4,132 +4,196 @@
         x:Class="SS.Views.LoginWindow"
         x:DataType="vm:LoginViewModel"
         Title="Safe-Sale - Iniciar Sesión"
-        Width="400" Height="480"
-        MinWidth="350" MinHeight="420"
+        Width="420" Height="540"
+        MinWidth="380" MinHeight="480"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
-        Background="#FAF3F7">
+        Background="#F3E5F5"
+        KeyDown="Window_KeyDown">
 
-    <Border CornerRadius="16"
-            Background="#FFFFFF"
-            Margin="20"
-            Padding="32,24"
-            BorderBrush="#E8DAEF"
-            BorderThickness="1"
-            BoxShadow="0 4 16 0 #22000000">
-        <StackPanel Spacing="0" VerticalAlignment="Center">
+    <Window.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#212121"/>
+            <Setter Property="CaretBrush" Value="#7B1FA2"/>
+            <Setter Property="SelectionBrush" Value="#E8DAEF"/>
+            <Setter Property="BorderBrush" Value="#E0D4ED"/>
+        </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#212121"/>
+            <Setter Property="BorderBrush" Value="#9C27B0"/>
+        </Style>
+        <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#FFFFFF"/>
+        </Style>
+        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#FFFFFF"/>
+        </Style>
+    </Window.Styles>
 
-            <!-- Estilos para TextBox - siempre fondo blanco y texto oscuro -->
-            <StackPanel.Styles>
-                <Style Selector="TextBox">
-                    <Setter Property="Background" Value="#FFFFFF"/>
-                    <Setter Property="Foreground" Value="#212121"/>
-                    <Setter Property="CaretBrush" Value="#4A148C"/>
-                    <Setter Property="SelectionBrush" Value="#E8DAEF"/>
-                    <Setter Property="BorderBrush" Value="#E8DAEF"/>
-                </Style>
-                <Style Selector="TextBox:focus">
-                    <Setter Property="Background" Value="#FFFFFF"/>
-                    <Setter Property="Foreground" Value="#212121"/>
-                    <Setter Property="BorderBrush" Value="#BB8FCE"/>
-                </Style>
-                <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-                    <Setter Property="Background" Value="#FFFFFF"/>
-                </Style>
-                <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-                    <Setter Property="Background" Value="#FFFFFF"/>
-                </Style>
-            </StackPanel.Styles>
+    <!-- Fondo decorativo -->
+    <Panel>
+        <Border Background="#7B1FA2" Opacity="0.08"
+                CornerRadius="200" Width="400" Height="400"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                Margin="-100,-100,0,0"/>
+        <Border Background="#9C27B0" Opacity="0.05"
+                CornerRadius="200" Width="300" Height="300"
+                HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                Margin="0,0,-80,-80"/>
 
-            <!-- Logo -->
-            <TextBlock Text="SS"
-                       FontSize="48"
-                       FontWeight="Bold"
-                       Foreground="#4A148C"
-                       HorizontalAlignment="Center"/>
-            <TextBlock Text="Safe-Sale"
-                       FontSize="14"
-                       Foreground="#BB8FCE"
-                       HorizontalAlignment="Center"
-                       Margin="0,2,0,0"/>
-            <TextBlock Text="Sistema de Gestión de Supermercado"
-                       FontSize="11"
-                       Foreground="#7B1FA2"
-                       HorizontalAlignment="Center"
-                       Margin="0,4,0,24"/>
+        <Border CornerRadius="20"
+                Background="#FFFFFF"
+                Margin="24"
+                Padding="36,28"
+                BoxShadow="0 8 32 0 #22000000"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Center">
+            <StackPanel Spacing="0" VerticalAlignment="Center">
 
-            <!-- Usuario -->
-            <TextBlock Text="Usuario"
-                       FontSize="12"
-                       Foreground="#4A148C"
-                       FontWeight="SemiBold"
-                       Margin="0,0,0,6"/>
-            <TextBox Text="{Binding Username}"
-                     PlaceholderText="Ingrese su usuario"
-                     FontSize="14"
-                     Padding="12,10"
-                     CornerRadius="8"
-                     BorderBrush="#E8DAEF"
-                     BorderThickness="1"
-                     Background="#FDFBFE"
-                     Foreground="#2D1B4E"
-                     FontFamily="Inter"
-                     Margin="0,0,0,16"/>
+                <!-- Logo -->
+                <Border Background="#7B1FA2" CornerRadius="16"
+                        Width="64" Height="64"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,12">
+                    <TextBlock Text="SS"
+                               FontSize="22"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Safe-Sale"
+                    FontSize="22"
+                    FontWeight="Bold"
+                    Foreground="#4A148C"
+                    HorizontalAlignment="Center"/>
+                <TextBlock Text="Sistema de Gestión de Supermercado"
+                    FontSize="11"
+                    Foreground="#9C8EBF"
+                    HorizontalAlignment="Center"
+                    Margin="0,4,0,28"/>
 
-            <!-- Contraseña -->
-            <TextBlock Text="Contraseña"
-                       FontSize="12"
-                       Foreground="#4A148C"
-                       FontWeight="SemiBold"
-                       Margin="0,0,0,6"/>
-            <TextBox Text="{Binding Password}"
-                     PasswordChar="*"
-                     PlaceholderText="Ingrese su contraseña"
-                     FontSize="14"
-                     Padding="12,10"
-                     CornerRadius="8"
-                     BorderBrush="#E8DAEF"
-                     BorderThickness="1"
-                     Background="#FDFBFE"
-                     Foreground="#2D1B4E"
-                     FontFamily="Inter"
-                     Margin="0,0,0,8"/>
+                <!-- Usuario -->
+                <StackPanel Spacing="4" Margin="0,0,0,16">
+                    <TextBlock Text="USUARIO"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Foreground="#9C8EBF"
+                               LetterSpacing="1"/>
+                    <TextBox Name="UsernameBox"
+                             Text="{Binding Username}"
+                             PlaceholderText="Ingrese su usuario"
+                             FontSize="14"
+                             Padding="14,12"
+                             CornerRadius="10"
+                             BorderBrush="#E0D4ED"
+                             BorderThickness="1.5"
+                             Background="#FBF8FE"
+                             Foreground="#2D1B4E"/>
+                </StackPanel>
 
-            <!-- Mensaje de error -->
-            <Border Background="#22EF5350"
-                    CornerRadius="6"
-                    Padding="10,8"
-                    Margin="0,0,0,16"
-                    IsVisible="{Binding IsError}">
-                <TextBlock Text="{Binding ErrorMessage}"
-                           Foreground="#EF5350"
-                           FontSize="12"
-                           FontWeight="SemiBold"
-                           HorizontalAlignment="Center"/>
-            </Border>
+                <!-- Contraseña -->
+                <StackPanel Spacing="4" Margin="0,0,0,12">
+                    <TextBlock Text="CONTRASEÑA"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Foreground="#9C8EBF"
+                               LetterSpacing="1"/>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Name="PasswordBox"
+                                 Text="{Binding Password}"
+                                 PasswordChar="{Binding PasswordChar}"
+                                 PlaceholderText="Ingrese su contraseña"
+                                 FontSize="14"
+                                 Padding="14,12"
+                                 CornerRadius="10"
+                                 BorderBrush="#E0D4ED"
+                                 BorderThickness="1.5"
+                                 Background="#FBF8FE"
+                                 Foreground="#2D1B4E"/>
+                        <Button Name="TogglePasswordBtn"
+                                Grid.Column="1"
+                                Width="36"
+                                Height="36"
+                                Margin="4,0,0,0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                VerticalAlignment="Center"
+                                Command="{Binding TogglePasswordCommand}"
+                                ToolTip.Tip="Mostrar/ocultar contraseña">
+                            <TextBlock Name="EyeIcon"
+                                       Text="{Binding EyeIcon}"
+                                       FontSize="18"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"/>
+                        </Button>
+                    </Grid>
+                </StackPanel>
 
-            <!-- Botón Iniciar Sesión -->
-            <Button Command="{Binding LoginCommand}"
-                    Background="#4A148C"
-                    Foreground="White"
-                    FontSize="15"
-                    FontWeight="SemiBold"
-                    Padding="0,14"
-                    CornerRadius="8"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center"
-                    Cursor="Hand">
-                <TextBlock Text="Iniciar Sesión"/>
-            </Button>
+                <!-- Mensaje de error -->
+                <Border Background="#22EF5350"
+                        CornerRadius="8"
+                        Padding="12,10"
+                        Margin="0,0,0,16"
+                        IsVisible="{Binding IsError}">
+                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                        <TextBlock Text="&#x26A0;"
+                                   FontSize="13"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding ErrorMessage}"
+                                   Foreground="#EF5350"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
 
-            <!-- Credenciales por defecto -->
-            <TextBlock Text="Admin por defecto: admin / admin123"
-                       FontSize="10"
-                       Foreground="#BB8FCE"
-                       HorizontalAlignment="Center"
-                       Margin="0,16,0,0"
-                       Opacity="0.7"/>
+                <!-- Botón Iniciar Sesión -->
+                <Button Command="{Binding LoginCommand}"
+                        Background="#7B1FA2"
+                        Foreground="White"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Padding="0,14"
+                        CornerRadius="10"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        Cursor="Hand"
+                        Margin="0,0,0,16">
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                        <TextBlock Name="LoginBtnText"
+                                   Text="Iniciar Sesión"
+                                   VerticalAlignment="Center"/>
+                        <ProgressBar Name="LoginSpinner"
+                                     IsVisible="{Binding IsLoading}"
+                                     Width="18" Height="18"
+                                     IsIndeterminate="True"
+                                     Foreground="White"
+                                     Background="Transparent"
+                                     VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
 
-        </StackPanel>
-    </Border>
+                <!-- Credenciales por defecto -->
+                <Border Background="#F5F0FA" CornerRadius="8" Padding="12,8">
+                    <StackPanel HorizontalAlignment="Center" Spacing="2">
+                        <TextBlock Text="Credenciales por defecto"
+                                   FontSize="9"
+                                   FontWeight="SemiBold"
+                                   Foreground="#9C8EBF"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="admin / admin123"
+                                   FontSize="11"
+                                   FontWeight="Medium"
+                                   Foreground="#7B1FA2"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </Border>
+    </Panel>
 </Window>

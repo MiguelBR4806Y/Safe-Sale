@@ -10,8 +10,14 @@
                                      TrueValue="Cerrar Cámara"
                                      FalseValue="Iniciar Cámara"/>
         <conv:BoolToColorConverter x:Key="CameraColorConverter"
-                                    TrueColor="#EF5350"
-                                    FalseColor="#4CAF50"/>
+                                     TrueColor="#EF5350"
+                                     FalseColor="#4CAF50"/>
+        <conv:BoolToStringConverter x:Key="MobileTextConverter"
+                                     TrueValue="Cerrar Móvil"
+                                     FalseValue="Escanear Móvil"/>
+        <conv:BoolToColorConverter x:Key="MobileColorConverter"
+                                     TrueColor="#EF5350"
+                                     FalseColor="#9C27B0"/>
     </UserControl.Resources>
 
     <UserControl.Styles>
@@ -110,6 +116,46 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Escáner Móvil -->
+                <Border Background="#FFFFFF"
+                        CornerRadius="6"
+                        Padding="10">
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Escáner Móvil"
+                                FontSize="13"
+                                Foreground="#4A148C"
+                                FontWeight="SemiBold"
+                                VerticalAlignment="Center"/>
+                            <Button Command="{Binding ToggleMobileScannerCommand}"
+                                    FontSize="11"
+                                    Padding="12,6"
+                                    CornerRadius="4"
+                                    Foreground="White"
+                                    Cursor="Hand"
+                                    Content="{Binding IsMobileScannerActive, Converter={StaticResource MobileTextConverter}}"
+                                    Background="{Binding IsMobileScannerActive, Converter={StaticResource MobileColorConverter}}"/>
+                        </StackPanel>
+                        <Border CornerRadius="4" Padding="6,4" Background="#F5F5F5"
+                                IsVisible="{Binding MobileScanFeedback, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Text="{Binding MobileScanFeedback}"
+                                       FontSize="11" FontWeight="SemiBold"
+                                       Foreground="{Binding MobileScanFeedbackColor}"/>
+                        </Border>
+                        <Border Background="#F5F0FA" CornerRadius="4" Padding="8"
+                                IsVisible="{Binding IsMobileScannerActive}">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                <Image Source="{Binding MobileQrBitmap}" Width="70" Height="70" Stretch="Uniform"/>
+                                <StackPanel VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock Text="Escanea desde tu teléfono" FontSize="10" Foreground="#6C3483"/>
+                                    <TextBlock Text="Solo productos existentes" FontSize="9" Foreground="#BB8FCE"/>
+                                    <TextBlock Text="{Binding MobileUrl}" FontSize="7" Foreground="#BB8FCE" TextWrapping="Wrap" MaxWidth="150"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
                 <!-- Barra de búsqueda por código de barras -->
                 <Border Background="#FFFFFF"
                         CornerRadius="6"
@@ -139,72 +185,12 @@
                                     Command="{Binding AddByBarcodeCommand}"
                                     Cursor="Hand"
                                     VerticalContentAlignment="Center"/>
-                            <Button Content="+ Agregar Nuevo"
-                                    Background="#4CAF50"
-                                    Foreground="White"
-                                    FontSize="11"
-                                    Command="{Binding OpenQuickAddDialogCommand}"
-                                    Cursor="Hand"
-                                    VerticalContentAlignment="Center"
-                                    Padding="10,6"/>
                         </StackPanel>
                         <TextBlock Text="{Binding StatusMessage}"
                                    FontSize="11"
                                    Foreground="#4A148C"/>
-                        <TextBlock Text="Formato: EAN-13 (13 dígitos) o UPC-A (12 dígitos)"
-                                   FontSize="10"
-                                   Foreground="#6C3483"
-                                   Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
-
-                <!-- Lista de productos disponibles -->
-                <Border Background="#FFFFFF"
-                        CornerRadius="6"
-                        Padding="10"
-                        Height="150">
-                    <StackPanel>
-                        <TextBlock Text="Productos disponibles"
-                            FontSize="12"
-                            Foreground="#6C3483"
-                            FontWeight="Medium"
-                            Margin="0,0,0,5"/>
-                        <ListBox ItemsSource="{Binding AvailableProducts}"
-                                 SelectedItem="{Binding SelectedProduct}">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <TextBlock Text="{Binding Name}"
-                                                   FontSize="12"
-                                                   VerticalAlignment="Center"
-                                                   Width="150"/>
-                                        <TextBlock Text="{Binding Barcode}"
-                                                   FontSize="11"
-                                                   Foreground="#6C3483"
-                                                   VerticalAlignment="Center"
-                                                   Width="130"/>
-                                        <TextBlock Text="{Binding Price, StringFormat=${0:F2}}"
-                                                   FontSize="12"
-                                                   FontWeight="Medium"
-                                                   Foreground="#7B1FA2"
-                                                   VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </StackPanel>
-                </Border>
-
-                <!-- Botón agregar seleccionado -->
-                <StackPanel HorizontalAlignment="Right">
-                    <Button Content="Agregar Seleccionado"
-                            Background="#BB8FCE"
-                            Foreground="White"
-                            FontSize="12"
-                            Command="{Binding AddToCartCommand}"
-                            Cursor="Hand"
-                            Padding="15,8"/>
-                </StackPanel>
 
                 <!-- Carrito -->
                 <Border Background="#FFFFFF"
@@ -317,6 +303,17 @@
                     </StackPanel>
 
                     <Border Height="1" Background="#E8DAEF"/>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Método de pago:"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="#4A148C"/>
+                        <ComboBox ItemsSource="{Binding PaymentMethods}"
+                                  SelectedItem="{Binding SelectedPaymentMethod}"
+                                  FontSize="13"
+                                  Padding="10,6"/>
+                    </StackPanel>
 
                     <Button Content="COBRAR"
                             Background="#4A148C"

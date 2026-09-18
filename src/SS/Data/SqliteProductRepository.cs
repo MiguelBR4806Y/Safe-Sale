@@ -102,15 +102,68 @@ public class SqliteProductRepository
         cmd.ExecuteNonQuery();
     }
 
-    public void Delete(int id)
+    public bool Delete(int id)
     {
         using var conn = new SqliteConnection($"Data Source={_dbPath}");
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "DELETE FROM products WHERE id = @id";
+        cmd.CommandText = "DELETE FROM sale_items WHERE product_id = @id; DELETE FROM products WHERE id = @id";
         cmd.Parameters.AddWithValue("@id", id);
-        cmd.ExecuteNonQuery();
+        var rows = cmd.ExecuteNonQuery();
+        return rows > 0;
+    }
+
+    public Product? GetById(int id)
+    {
+        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        conn.Open();
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT id, name, barcode, price, stock, category_id, min_stock FROM products WHERE id = @id";
+        cmd.Parameters.AddWithValue("@id", id);
+
+        using var reader = cmd.ExecuteReader();
+        if (reader.Read())
+        {
+            return new Product
+            {
+                Id = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                Barcode = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
+                Price = reader.GetDecimal(3),
+                Stock = reader.GetInt32(4),
+                CategoryId = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
+                MinStock = reader.GetInt32(6),
+            };
+        }
+        return null;
+    }
+
+    public Product? GetByBarcode(string barcode)
+    {
+        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        conn.Open();
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT id, name, barcode, price, stock, category_id, min_stock FROM products WHERE barcode = @barcode";
+        cmd.Parameters.AddWithValue("@barcode", barcode);
+
+        using var reader = cmd.ExecuteReader();
+        if (reader.Read())
+        {
+            return new Product
+            {
+                Id = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                Barcode = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
+                Price = reader.GetDecimal(3),
+                Stock = reader.GetInt32(4),
+                CategoryId = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
+                MinStock = reader.GetInt32(6),
+            };
+        }
+        return null;
     }
 
     public ObservableCollection<Product> GetLowStock()
