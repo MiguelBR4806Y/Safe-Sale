@@ -1,8 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:md="using:SS.Models"
         x:Class="SS.Dialogs.EditProductDialog"
         Title="Editar Producto"
-        Width="400" Height="520"
+        Width="400" Height="580"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         Background="#FAF3F7">
@@ -25,6 +26,22 @@
         </Style>
         <Style Selector="TextBox:error">
             <Setter Property="BorderBrush" Value="#EF5350"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="BorderBrush" Value="#E8DAEF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#212121"/>
+            <Setter Property="MinHeight" Value="34"/>
+        </Style>
+        <Style Selector="ComboBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#7B1FA2"/>
+        </Style>
+        <Style Selector="ComboBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#BB8FCE"/>
         </Style>
     </Window.Styles>
 
@@ -62,6 +79,23 @@
             <TextBox Name="PriceBox"/>
             <TextBlock Name="PriceError" FontSize="11" Foreground="#EF5350"
                        FontWeight="SemiBold" IsVisible="False" Margin="0,2,0,0"/>
+
+            <!-- Category -->
+            <TextBlock Text="Categoría:"
+                       FontSize="12" Foreground="#6C3483" FontWeight="SemiBold"/>
+            <ComboBox Name="CategoryCombo"
+                      PlaceholderText="Seleccionar categoría...">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="md:Category">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="{Binding Icon}" FontSize="14"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding Name}" FontSize="13"
+                                       VerticalAlignment="Center" Foreground="#212121"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
 
             <!-- Stock -->
             <TextBlock Text="Stock:"

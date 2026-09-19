@@ -137,13 +137,13 @@
             </Grid>
 
             <!-- Row 3: Categorias con productos -->
-            <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
-                <StackPanel Spacing="12">
+            <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Margin="0,0,0,4">
+                <StackPanel Spacing="24">
                     <ItemsControl ItemsSource="{Binding CategoryGroups}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:CategoryGroup}">
                                 <Border Background="#FFFFFF" CornerRadius="10" Padding="14"
-                                        BoxShadow="0 2 8 0 #11000000">
+                                        BoxShadow="0 4 14 0 #1A000000" Margin="4,4,4,0">
                                     <StackPanel Spacing="8">
                                         <!-- Header de categoria -->
                                         <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
@@ -197,44 +197,49 @@
                                         <Border Height="1" Background="#F0EAF5"/>
 
                                         <!-- Encabezados de columna -->
-                                        <Grid ColumnDefinitions="*,100,80,60" Margin="10,4">
-                                            <TextBlock Grid.Column="0" Text="Producto" FontSize="10"
+                                        <Grid ColumnDefinitions="Auto,*,120,80,60" Margin="10,4">
+                                            <!-- Col 0: espacio reservado para checkbox -->
+                                            <TextBlock Grid.Column="1" Text="Producto" FontSize="10"
                                                        FontWeight="SemiBold" Foreground="#9C8EBF"/>
-                                            <TextBlock Grid.Column="1" Text="Código" FontSize="10"
+                                            <TextBlock Grid.Column="2" Text="Código" FontSize="10"
                                                        FontWeight="SemiBold" Foreground="#9C8EBF"/>
-                                            <TextBlock Grid.Column="2" Text="Precio" FontSize="10"
+                                            <TextBlock Grid.Column="3" Text="Precio" FontSize="10"
                                                        FontWeight="SemiBold" Foreground="#9C8EBF"/>
-                                            <TextBlock Grid.Column="3" Text="Stock" FontSize="10"
+                                            <TextBlock Grid.Column="4" Text="Stock" FontSize="10"
                                                        FontWeight="SemiBold" Foreground="#9C8EBF"
                                                        HorizontalAlignment="Right"/>
                                         </Grid>
 
                                         <!-- Productos de esta categoria -->
                                         <ListBox ItemsSource="{Binding Products}"
-                                                 Background="Transparent" BorderThickness="0">
+                                                 Background="Transparent" BorderThickness="0"
+                                                 SelectedItem="{Binding $parent[ItemsControl].((vm:InventoryViewModel)DataContext).SelectedProduct, Mode=TwoWay}">
                                             <ListBox.ItemTemplate>
                                                 <DataTemplate>
                                                     <Border Padding="10,7" BorderBrush="#E0E0E0"
                                                             BorderThickness="0,0,0,1" Background="#FFFFFF">
-                                                        <Grid ColumnDefinitions="*,100,80,60">
-                                                            <TextBlock Text="{Binding Name}" FontSize="12"
+                                                        <Grid ColumnDefinitions="Auto,*,120,80,60">
+                                                            <!-- Checkbox de seleccion (solo visible en modo seleccion) -->
+                                                            <CheckBox Grid.Column="0"
+                                                                      IsVisible="{Binding $parent[UserControl].((vm:InventoryViewModel)DataContext).IsSelectionModeActive}"
+                                                                      Command="{Binding $parent[UserControl].((vm:InventoryViewModel)DataContext).ToggleProductSelectionCommand}"
+                                                                      CommandParameter="{Binding}"
+                                                                      Margin="0,0,8,0"
+                                                                      VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12"
                                                                        Foreground="#2D1B4E" VerticalAlignment="Center"
-                                                                       TextTrimming="CharacterEllipsis"/>
-                                                            <TextBlock Grid.Column="1" Text="{Binding Barcode}"
+                                                                       TextTrimming="CharacterEllipsis" Margin="0,0,4,0"/>
+                                                            <TextBlock Grid.Column="2" Text="{Binding Barcode}"
                                                                        FontSize="11" Foreground="#757575"
                                                                        FontStyle="Italic" VerticalAlignment="Center"/>
-                                                            <TextBlock Grid.Column="2"
+                                                            <TextBlock Grid.Column="3"
                                                                        Text="{Binding Price, StringFormat=${0:F2}}"
                                                                        FontSize="12" FontWeight="Bold"
                                                                        Foreground="#7B1FA2" VerticalAlignment="Center"/>
-                                                            <StackPanel Grid.Column="3" Orientation="Horizontal"
-                                                                        HorizontalAlignment="Right" VerticalAlignment="Center">
-                                                                <TextBlock Text="Stock: " FontSize="10"
-                                                                           Foreground="#9C8EBF" VerticalAlignment="Center"/>
-                                                                <TextBlock Text="{Binding Stock}" FontSize="12"
-                                                                           FontWeight="Bold" Foreground="#4A148C"
-                                                                           VerticalAlignment="Center"/>
-                                                            </StackPanel>
+                                                            <TextBlock Grid.Column="4" Text="{Binding Stock}"
+                                                                       FontSize="12" FontWeight="Bold"
+                                                                       Foreground="#4A148C" VerticalAlignment="Center"
+                                                                       HorizontalAlignment="Right"/>
                                                         </Grid>
                                                     </Border>
                                                 </DataTemplate>
@@ -272,19 +277,30 @@
             </ScrollViewer>
 
             <!-- Row 4: Botones de accion -->
-            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8"
-                        Margin="0,8,0,0">
-                <Button Content="Agregar" Classes="primary"
-                        Command="{Binding AddProductCommand}"/>
-                <Button Content="Editar" Classes="primary"
-                        Command="{Binding EditProductCommand}"/>
-                <Button Content="Eliminar" Classes="danger"
-                        Command="{Binding DeleteProductCommand}"/>
-                <Button Content="Agregar al Carrito" Classes="success"
-                        Command="{Binding AddToCartCommand}"/>
-                <Button Content="Vaciar Inventario" Classes="danger"
-                        Command="{Binding ClearInventoryCommand}"/>
-            </StackPanel>
+            <Grid Grid.Row="4" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                <!-- Columna izquierda: agregar / editar / demo -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="8">
+                    <Button Content="Agregar" Classes="primary"
+                            Command="{Binding AddProductCommand}"/>
+                    <Button Content="Editar" Classes="secondary"
+                            Command="{Binding EditProductCommand}"/>
+                    <Button Content="Rellenar Inventario" Classes="ghost"
+                            Command="{Binding FillDemoDataCommand}"/>
+                </StackPanel>
+                <!-- Columna derecha: eliminar / carrito / vaciar -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                    <Button Content="{Binding DeleteButtonText}"
+                            Classes="danger"
+                            IsEnabled="{Binding IsDeleteEnabled}"
+                            Command="{Binding DeleteProductCommand}"/>
+                    <Button Content="{Binding AddToCartButtonText}"
+                            Classes="success"
+                            IsEnabled="{Binding IsCartEnabled}"
+                            Command="{Binding AddToCartCommand}"/>
+                    <Button Content="Vaciar Inventario" Classes="danger"
+                            Command="{Binding ClearInventoryCommand}"/>
+                </StackPanel>
+            </Grid>
 
         </Grid>
     </Border>

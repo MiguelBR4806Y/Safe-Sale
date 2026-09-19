@@ -55,6 +55,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         _aboutViewModel = new AboutViewModel();
 
         _inventoryViewModel.AddToCartRequested += OnAddToCartFromInventory;
+        _inventoryViewModel.AddMultipleToCartRequested += OnAddMultipleToCartFromInventory;
         _inventoryViewModel.ScannerToggled += OnScannerToggled;
         _salesViewModel.ScannerToggled += OnScannerToggled;
 
@@ -170,6 +171,16 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         _salesViewModel.AddProductToCartById(productId);
         CurrentViewModel = _salesViewModel;
         CurrentViewTitle = "Ventas";
+    }
+
+    private void OnAddMultipleToCartFromInventory(System.Collections.Generic.List<int> productIds)
+    {
+        foreach (var id in productIds)
+        {
+            _salesViewModel.AddProductToCartById(id);
+        }
+        _inventoryViewModel.MobileScanFeedback = $"\u2713 {productIds.Count} productos agregados al carrito";
+        _inventoryViewModel.MobileScanFeedbackColor = "#4CAF50";
     }
 
     private void OnScannerToggled(bool active)
