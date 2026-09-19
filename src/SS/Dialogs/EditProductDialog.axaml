@@ -43,7 +43,7 @@
                        Margin="0,0,0,4"/>
 
             <!-- Barcode -->
-            <TextBlock Text="C\u00f3digo de barras:"
+            <TextBlock Text="Código de barras:"
                        FontSize="12" Foreground="#6C3483" FontWeight="SemiBold"/>
             <TextBox Name="BarcodeBox" MaxLength="13"/>
             <TextBlock Name="BarcodeError" FontSize="11" Foreground="#EF5350"
@@ -71,7 +71,7 @@
                        FontWeight="SemiBold" IsVisible="False" Margin="0,2,0,0"/>
 
             <!-- Min Stock -->
-            <TextBlock Text="Stock m\u00ednimo (alerta):"
+            <TextBlock Text="Stock mínimo (alerta):"
                        FontSize="12" Foreground="#6C3483" FontWeight="SemiBold"/>
             <TextBox Name="MinStockBox"/>
 

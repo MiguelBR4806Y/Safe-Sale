@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Threading;
@@ -15,6 +14,15 @@ using SS.Services;
 
 namespace SS.ViewModels;
 
+public class CategoryGroup
+{
+    public Category Category { get; set; } = null!;
+    public ObservableCollection<Product> Products { get; set; } = new();
+    public InventoryMetrics Metrics { get; set; } = new();
+    public bool IsEmpty => Products.Count == 0;
+    public bool HasProducts => Products.Count > 0;
+}
+
 public partial class InventoryViewModel : ViewModelBase, IDisposable
 {
     private readonly SqliteProductRepository _productRepo;
@@ -22,11 +30,18 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
     private readonly MobileScannerService _mobileScanner;
     private readonly ICameraService _cameraService;
     private readonly IBarcodeScannerService _barcodeScanner;
+    private List<Product> _allProducts = new();
     private string _lastScannedCode = "";
     private DateTime _lastScanTime = DateTime.MinValue;
 
     [ObservableProperty]
     private ObservableCollection<Product> _products = new();
+
+    [ObservableProperty]
+    private ObservableCollection<CategoryGroup> _categoryGroups = new();
+
+    [ObservableProperty]
+    private bool _isCategoryGroupsEmpty = true;
 
     [ObservableProperty]
     private Product? _selectedProduct;
@@ -35,16 +50,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
     private string _searchText = "";
 
     [ObservableProperty]
-    private int _totalProducts;
-
-    [ObservableProperty]
-    private int _lowStock;
-
-    [ObservableProperty]
-    private int _categoriesCount;
-
-    [ObservableProperty]
-    private decimal _valueTotal;
+    private InventoryMetrics _globalMetrics = new();
 
     [ObservableProperty]
     private bool _isMobileScannerActive;
@@ -54,9 +60,6 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     [ObservableProperty]
     private string _mobileUrl = "";
-
-    [ObservableProperty]
-    private string _mobileStatusMessage = "";
 
     [ObservableProperty]
     private string _mobileScanFeedback = "";
@@ -90,7 +93,6 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
     public ICommand DeleteProductCommand { get; }
     public ICommand AddToCartCommand { get; }
     public ICommand SearchCommand { get; }
-    public ICommand LoadByBarcodeCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand ToggleMobileScannerCommand { get; }
     public ICommand ToggleCameraCommand { get; }
@@ -118,7 +120,6 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
         DeleteProductCommand = new RelayCommand(OnDeleteProduct, () => SelectedProduct != null);
         AddToCartCommand = new RelayCommand(OnAddToCart, () => SelectedProduct != null);
         SearchCommand = new RelayCommand(OnSearch);
-        LoadByBarcodeCommand = new RelayCommand(OnLoadByBarcode);
         RefreshCommand = new RelayCommand(LoadData);
         ToggleMobileScannerCommand = new RelayCommand(OnToggleMobileScanner);
         ToggleCameraCommand = new RelayCommand(OnToggleCamera);
@@ -128,33 +129,71 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     public void LoadData()
     {
-        Products = _productRepo.GetAll();
-        CategoriesCount = _categoryRepo.GetAll().Count;
-        UpdateStats();
+        _allProducts = _productRepo.GetAll().ToList();
+        GlobalMetrics = InventoryMetrics.Calculate(_allProducts);
+        ApplyFilter();
     }
 
-    private void UpdateStats()
+    private void BuildCategoryGroups()
     {
-        TotalProducts = Products.Count;
-        LowStock = Products.Count(p => p.Stock <= p.MinStock);
-        ValueTotal = Products.Sum(p => p.Price * p.Stock);
+        var categories = _categoryRepo.GetAll();
+        CategoryGroups.Clear();
+
+        foreach (var cat in categories)
+        {
+            var catProducts = _allProducts.Where(p => p.CategoryId == cat.Id).ToList();
+
+            CategoryGroups.Add(new CategoryGroup
+            {
+                Category = cat,
+                Products = new ObservableCollection<Product>(catProducts),
+                Metrics = InventoryMetrics.Calculate(_allProducts, cat.Id)
+            });
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            Products = new ObservableCollection<Product>(_allProducts);
+        }
+        else
+        {
+            var filtered = _allProducts.Where(p =>
+                p.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                p.Barcode.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+            Products = new ObservableCollection<Product>(filtered);
+        }
+
+        GlobalMetrics = InventoryMetrics.Calculate(_allProducts);
+        RebuildCategoryGroupsWithFilter();
+    }
+
+    private void RebuildCategoryGroupsWithFilter()
+    {
+        var categories = _categoryRepo.GetAll();
+        CategoryGroups.Clear();
+
+        foreach (var cat in categories)
+        {
+            var catProducts = Products.Where(p => p.CategoryId == cat.Id).ToList();
+
+            CategoryGroups.Add(new CategoryGroup
+            {
+                Category = cat,
+                Products = new ObservableCollection<Product>(catProducts),
+                Metrics = InventoryMetrics.Calculate(_allProducts, cat.Id)
+            });
+        }
+
+        IsCategoryGroupsEmpty = CategoryGroups.Count == 0;
     }
 
     private void OnSearch()
     {
-        if (string.IsNullOrWhiteSpace(SearchText))
-        {
-            LoadData();
-            return;
-        }
-
-        var filtered = Products.Where(p =>
-            p.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-            p.Barcode.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
-        ).ToList();
-
-        Products = new ObservableCollection<Product>(filtered);
-        UpdateStats();
+        ApplyFilter();
     }
 
     private void OnAddProduct()
@@ -164,10 +203,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     public void HandleAddProductResult(bool success)
     {
-        if (success)
-        {
-            LoadData();
-        }
+        if (success) LoadData();
     }
 
     public void SetScannerMode(string mode)
@@ -207,11 +243,6 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
         LoadData();
     }
 
-    private void OnLoadByBarcode()
-    {
-        OnSearch();
-    }
-
     private void OnToggleMobileScanner()
     {
         if (_mobileScanner.IsRunning)
@@ -220,7 +251,6 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
             IsMobileScannerActive = false;
             MobileQrBitmap?.Dispose();
             MobileQrBitmap = null;
-            MobileStatusMessage = "";
             MobileScanFeedback = "";
             ScannerToggled?.Invoke(false);
         }
@@ -229,7 +259,6 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
             _mobileScanner.Start();
             IsMobileScannerActive = true;
             MobileUrl = _mobileScanner.Url ?? "";
-            MobileStatusMessage = "Escanea el QR con tu teléfono para agregar productos";
 
             if (_mobileScanner.QrImageBytes != null)
             {
@@ -243,9 +272,9 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     private void OnMobileBarcodeReceived(string barcode)
     {
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        Dispatcher.UIThread.Post(() =>
         {
-            MobileScanFeedback = $"Código recibido: {barcode}";
+            MobileScanFeedback = $"Codigo recibido: {barcode}";
             MobileScanFeedbackColor = "#4CAF50";
         });
     }
@@ -269,18 +298,16 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
             if (!decimal.TryParse(priceStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var price))
             {
-                MobileScanFeedback = "Precio inválido";
+                MobileScanFeedback = "Precio invalido";
                 MobileScanFeedbackColor = "#EF5350";
                 return;
             }
 
             int stock = 0;
-            if (!string.IsNullOrEmpty(stockStr))
-                int.TryParse(stockStr, out stock);
+            if (!string.IsNullOrEmpty(stockStr)) int.TryParse(stockStr, out stock);
 
             int minStock = 5;
-            if (!string.IsNullOrEmpty(minStockStr))
-                int.TryParse(minStockStr, out minStock);
+            if (!string.IsNullOrEmpty(minStockStr)) int.TryParse(minStockStr, out minStock);
 
             var product = new Product
             {
@@ -294,12 +321,12 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
             _productRepo.Add(product);
             LoadData();
 
-            MobileScanFeedback = $"✓ \"{name}\" agregado";
+            MobileScanFeedback = $"\u2713 \"{name}\" agregado";
             MobileScanFeedbackColor = "#4CAF50";
         }
         catch (Microsoft.Data.Sqlite.SqliteException)
         {
-            MobileScanFeedback = "Ya existe un producto con ese código";
+            MobileScanFeedback = "Ya existe un producto con ese codigo";
             MobileScanFeedbackColor = "#EF5350";
         }
         catch
@@ -356,7 +383,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
                     if (!IsCameraActive)
                     {
-                        ScanFeedback = "No se pudo acceder a la cámara";
+                        ScanFeedback = "No se pudo acceder a la camara";
                         ScanFeedbackColor = "#EF5350";
                     }
                 });
@@ -390,7 +417,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
                     }
                     else
                     {
-                        ScanFeedback = $"Nuevo código: {code}";
+                        ScanFeedback = $"Nuevo codigo: {code}";
                         ScanFeedbackColor = "#FF9800";
                         AddProductRequested?.Invoke();
                     }
@@ -399,9 +426,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
             else if (!string.IsNullOrEmpty(code) && code == _lastScannedCode)
             {
                 if ((DateTime.Now - _lastScanTime).TotalSeconds > 3)
-                {
                     _lastScannedCode = "";
-                }
             }
 
             UpdateCameraPreview(frameData);
@@ -426,9 +451,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
                 old?.Dispose();
             });
         }
-        catch
-        {
-        }
+        catch { }
     }
 
     public void Dispose()
