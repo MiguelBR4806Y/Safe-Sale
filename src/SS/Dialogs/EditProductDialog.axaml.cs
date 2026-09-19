@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -12,6 +13,8 @@ public partial class EditProductDialog : Window
 {
     private readonly Product _product;
     private readonly SqliteProductRepository _productRepo;
+    private readonly SqliteCategoryRepository _categoryRepo;
+    private List<Category> _categories = new();
 
     public bool WasUpdated { get; private set; }
 
@@ -20,6 +23,7 @@ public partial class EditProductDialog : Window
         InitializeComponent();
         _product = product;
         _productRepo = new SqliteProductRepository(dbPath);
+        _categoryRepo = new SqliteCategoryRepository(dbPath);
 
         BarcodeBox.Text = product.Barcode;
         NameBox.Text = product.Name;
@@ -34,6 +38,20 @@ public partial class EditProductDialog : Window
 
         SaveButton.Click += OnSave;
         CancelButton.Click += OnCancel;
+
+        LoadCategories();
+    }
+
+    private void LoadCategories()
+    {
+        _categories = _categoryRepo.GetAll().ToList();
+        CategoryCombo.ItemsSource = _categories;
+
+        var matchedCategory = _categories.FirstOrDefault(c => c.Id == _product.CategoryId);
+        if (matchedCategory != null)
+        {
+            CategoryCombo.SelectedItem = matchedCategory;
+        }
     }
 
     private void OnSave(object? sender, RoutedEventArgs e)
@@ -50,6 +68,7 @@ public partial class EditProductDialog : Window
         _product.Price = decimal.Parse(PriceBox.Text!.Trim());
         _product.Stock = int.TryParse(StockBox.Text?.Trim(), out var s) ? s : 0;
         _product.MinStock = int.TryParse(MinStockBox.Text?.Trim(), out var ms) ? ms : 5;
+        _product.CategoryId = (CategoryCombo.SelectedItem as Category)?.Id ?? 0;
 
         try
         {

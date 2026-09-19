@@ -1,4 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Interactivity;
 using SS.Dialogs;
 using SS.Models;
 using SS.ViewModels;
@@ -21,6 +26,8 @@ public partial class InventoryView : UserControl
         {
             _viewModel.AddProductRequested -= OnAddProductRequested;
             _viewModel.EditProductRequested -= OnEditProductRequested;
+            _viewModel.DeleteMultipleRequested -= OnDeleteMultipleRequested;
+            _viewModel.AddMultipleToCartRequested -= OnAddMultipleToCartRequested;
         }
 
         if (DataContext is InventoryViewModel vm)
@@ -28,26 +35,39 @@ public partial class InventoryView : UserControl
             _viewModel = vm;
             _viewModel.AddProductRequested += OnAddProductRequested;
             _viewModel.EditProductRequested += OnEditProductRequested;
+            _viewModel.DeleteMultipleRequested += OnDeleteMultipleRequested;
+            _viewModel.AddMultipleToCartRequested += OnAddMultipleToCartRequested;
         }
+    }
+
+    private Window? GetParentWindow()
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+        return topLevel as Window;
     }
 
     private async void OnAddProductRequested()
     {
         try
         {
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel == null) return;
+            var window = GetParentWindow();
+            if (window == null)
+            {
+                Console.WriteLine("[DIAG] OnAddProductRequested: parent window is null");
+                return;
+            }
 
             var dialog = new QuickAddProductDialog("", SS.Data.AppDatabase.DbPath);
-            var result = await dialog.ShowDialog<bool?>(topLevel as Window ?? throw new System.InvalidOperationException("No parent window"));
+            var result = await dialog.ShowDialog<bool?>(window);
 
             if (result == true && _viewModel != null)
             {
                 _viewModel.HandleAddProductResult(true);
             }
         }
-        catch (System.Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine($"[DIAG] OnAddProductRequested EXCEPTION: {ex}");
         }
     }
 
@@ -55,19 +75,83 @@ public partial class InventoryView : UserControl
     {
         try
         {
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel == null) return;
+            var window = GetParentWindow();
+            if (window == null)
+            {
+                Console.WriteLine("[DIAG] OnEditProductRequested: parent window is null");
+                return;
+            }
 
             var dialog = new EditProductDialog(product, SS.Data.AppDatabase.DbPath);
-            var result = await dialog.ShowDialog<bool?>(topLevel as Window ?? throw new System.InvalidOperationException("No parent window"));
+            var result = await dialog.ShowDialog<bool?>(window);
 
             if (result == true && _viewModel != null)
             {
                 _viewModel.HandleAddProductResult(true);
             }
         }
-        catch (System.Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine($"[DIAG] OnEditProductRequested EXCEPTION: {ex}");
+        }
+    }
+
+    private async void OnDeleteMultipleRequested(List<int> productIds)
+    {
+        Console.WriteLine($"[DIAG] OnDeleteMultipleRequested called with {productIds.Count} products");
+        try
+        {
+            var window = GetParentWindow();
+            if (window == null)
+            {
+                Console.WriteLine("[DIAG] OnDeleteMultipleRequested: parent window is null, aborting");
+                return;
+            }
+
+            var count = productIds.Count;
+            var message = count == 1
+                ? "¿Eliminar 1 producto del inventario?\nEsta acción no se puede deshacer."
+                : $"¿Eliminar {count} productos del inventario?\nEsta acción no se puede deshacer.";
+
+            Console.WriteLine("[DIAG] OnDeleteMultipleRequested: showing ConfirmDialog");
+            var confirmDialog = new ConfirmDialog(message);
+            var confirmed = await confirmDialog.ShowDialog<bool?>(window);
+            Console.WriteLine($"[DIAG] OnDeleteMultipleRequested: dialog result = {confirmed}");
+
+            if (confirmed == true && _viewModel != null)
+            {
+                Console.WriteLine("[DIAG] OnDeleteMultipleRequested: calling ConfirmDeleteProducts");
+                _viewModel.ConfirmDeleteProducts(productIds);
+            }
+            else
+            {
+                Console.WriteLine("[DIAG] OnDeleteMultipleRequested: cancelled or viewModel null");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DIAG] OnDeleteMultipleRequested EXCEPTION: {ex}");
+        }
+    }
+
+    private void OnAddMultipleToCartRequested(List<int> productIds)
+    {
+        Console.WriteLine($"[DIAG] OnAddMultipleToCartRequested called with {productIds.Count} products");
+        try
+        {
+            if (_viewModel != null)
+            {
+                _viewModel.ConfirmAddMultipleToCart(productIds);
+                Console.WriteLine("[DIAG] OnAddMultipleToCartRequested: ConfirmAddMultipleToCart completed");
+            }
+            else
+            {
+                Console.WriteLine("[DIAG] OnAddMultipleToCartRequested: viewModel is null");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DIAG] OnAddMultipleToCartRequested EXCEPTION: {ex}");
         }
     }
 }

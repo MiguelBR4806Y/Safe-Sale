@@ -15,31 +15,18 @@ Sistema punto de venta y gestión de supermercado desarrollado con **Avalonia UI
 
 ---
 
-## Estado del Progreso — 18 de Septiembre 2026
+## Estado del Progreso — 19 de Septiembre 2026
 
 ### Progreso General: **~99%** Completado
 
 ```
 Backend:       ████████████████████ 100%
 Frontend:      ████████████████████ 100%
-Integración:   ████████████████████ 100%
-Documentación: ████░░░░░░░░░░░░░░░░  20%
+Integracion:   ████████████████████ 100%
+Documentacion: ████░░░░░░░░░░░░░░░░  20%
 ```
 
-### Diagnóstico de Botones (Temporal)
-
-Se agregaron líneas de diagnóstico temporales para verificar el funcionamiento de los botones en la sección Inventario:
-
-| Ubicación | Mensaje de Diagnóstico |
-|-----------|------------------------|
-| `InventoryView.axaml.cs:OnDataContextChanged()` | `[DIAG] OnDataContextChanged - DataContext type: {tipo}` |
-| `InventoryViewModel.cs:OnSearch()` | `[DIAG] OnSearch ejecutado` |
-| `InventoryViewModel.cs:OnAddProduct()` | `[DIAG] OnAddProduct ejecutado` |
-| `InventoryViewModel.cs:LoadData()` | `[DIAG] LoadData ejecutado` |
-| `InventoryViewModel.cs:ApplyFilter()` | `[DIAG] ApplyFilter - SearchText/conteos` |
-| `InventoryView.axaml.cs:OnAddProductRequested()` | `[DIAG] EXCEPCIÓN` (catch instrumentado) |
-
-### Bugs Encontrados y Corregidos (18 sep 2026)
+### Bugs Encontrados y Corregidos (19 sep 2026)
 
 #### Bug 1: Botón "Agregar" no abre diálogo — NullReferenceException
 - **Causa raíz**: `FuncDataTemplate<Category>` en `QuickAddProductDialog.axaml.cs:50` recibía `item = null` al renderizar el ComboBox de categorías
@@ -60,6 +47,21 @@ Se agregaron líneas de diagnóstico temporales para verificar el funcionamiento
 - **Causa raíz**: `FuncDataTemplate` en code-behind + `DisplayMemberBinding = null` causaba que el área de selección del ComboBox no renderizara el item correctamente
 - **Síntoma**: Al elegir categoría, el campo quedaba visualmente vacío
 - **Fix**: Movido `ItemTemplate` a XAML con `x:DataType="md:Category"`, eliminado `DisplayMemberBinding = null`
+
+#### Bug 5: Botones Editar/Eliminar/Agregar al Carrito no funcionaban
+- **Causa raiz**: `ListBox` no tenia `SelectedItems` binding, `EditProductCommand`/`DeleteProductCommand`/`AddToCartCommand` fallaban sin feedback visual
+- **Sintoma**: Clic en Editar/Eliminar/Carrito no abria dialogo ni ejecutaba accion
+- **Fix**: Removidos diagnósticos, restaurada funcionalidad
+
+### Nuevas Funcionalidades (19 sep 2026)
+
+- [x] **Edicion con seleccion**: Boton Editar abre dialogo precargado con datos del producto seleccionado en la lista
+- [x] **Eliminacion multiple**: Checkboxes para seleccionar productos → boton Eliminar borra todos los seleccionados con confirmacion
+- [x] **Agregar al carrito multiple**: Checkboxes → boton Agregar al Carrito agrega todos los seleccionados al carrito
+- [x] **Colores diferenciados**: Editar (púrpura oscuro), Eliminar (rojo), Agregar al Carrito (verde)
+- [x] **Espaciado mejorado**: Cada subseccion de categoria ahora tiene separacion visual clara
+- [x] **Categoria en Edicion**: EditProductDialog ahora incluye dropdown de categorias (antes solo tenia Barcode/Nombre/Precio/Stock/MinStock)
+- [x] **Dialogo de confirmacion**: ConfirmDialog reutilizable para acciones criticas (Eliminar multiple)
 
 ### Nuevas Funcionalidades (18 sep 2026)
 
@@ -190,11 +192,12 @@ Se agregaron líneas de diagnóstico temporales para verificar el funcionamiento
 - Barra de busqueda por nombre o codigo
 - Estadisticas: Total, Stock bajo, Categorias, Valor total
 - Botones de escaner: Camara PC + Movil QR (tamano normal)
-- **Selector de camara**: ComboBox para elegir entre camaras disponibles
+- Selector de camara: ComboBox para elegir entre camaras disponibles
 - Vista previa de camara con marco de escaneo
 - QR inline cuando el escaner movil esta activo
-- Tabla de productos con ID, Nombre, Codigo, Precio, Stock, Minimo
-- Botones: Agregar, Editar, Eliminar, Agregar al Carrito
+- Tabla de productos con checkboxes (modo seleccion activado por Editar/Eliminar/Carrito)
+- Botones: Agregar (morado oscuro), Editar (morado oscuro), Eliminar (rojo), Agregar al Carrito (verde), Vaciar Inventario (rojo)
+- Botones de accion se iluminan segun el modo seleccionado
 
 #### 5. **SalesView** - Punto de Venta
 - **Escaner de Camara**: Boton toggle, preview en vivo con marco
@@ -211,7 +214,7 @@ Se agregaron líneas de diagnóstico temporales para verificar el funcionamiento
 - Tabla de registros con badges de tipo y totales destacados
 
 #### 7. **EditProductDialog** - Editar Producto
-- Campos: Codigo, Nombre, Precio, Stock, Stock Minimo
+- Campos: Codigo, Nombre, Precio, Categorias (dropdown), Stock, Stock Minimo
 - Validacion de campos obligatorios
 - Guardar con actualizacion en BD
 
@@ -392,7 +395,9 @@ Safe-Sale/
 │       │   └── AboutView.axaml          # Acerca de + check updates
 │       ├── Dialogs/
 │       │   ├── EditProductDialog.axaml  # Editar producto
-│       │   └── EditProductDialog.axaml.cs
+│       │   ├── EditProductDialog.axaml.cs
+│       │   ├── ConfirmDialog.axaml      # Dialogo de confirmacion
+│       │   └── ConfirmDialog.axaml.cs
 │       ├── Data/
 │       │   ├── AppDatabase.cs           # Ruta compartida de la BD
 │       │   ├── SqliteDatabaseInitializer.cs  # Crea tablas + migra columnas
@@ -470,4 +475,4 @@ Safe-Sale/
 *Proyecto: Safe-Sale - Sistema de Gestion de Supermercado*  
 *Fecha de entrega: 22 de septiembre de 2026*  
 *Integrantes: Lucas (Backend), Jandir (Frontend), Dante (Documentacion)*  
-*Ultima actualizacion: 18 de septiembre de 2026*
+*Ultima actualizacion: 19 de septiembre de 2026*

@@ -1,0 +1,49 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="SS.Dialogs.ConfirmDialog"
+        Title="Confirmar"
+        Width="380" Height="200"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="#FAF3F7">
+
+    <Border CornerRadius="12"
+            Background="#FFFFFF"
+            Margin="16"
+            Padding="24"
+            BorderBrush="#E8DAEF"
+            BorderThickness="1">
+        <StackPanel Spacing="16">
+            <TextBlock Name="MessageText"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="#4A148C"
+                       TextWrapping="Wrap"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"/>
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Spacing="12">
+                <Button Name="CancelButton"
+                        Content="Cancelar"
+                        Background="#EF5350"
+                        Foreground="White"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Padding="20,10"
+                        CornerRadius="8"
+                        Cursor="Hand"/>
+                <Button Name="ConfirmButton"
+                        Content="Confirmar"
+                        Background="#4A148C"
+                        Foreground="White"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Padding="20,10"
+                        CornerRadius="8"
+                        Cursor="Hand"/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>
