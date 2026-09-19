@@ -1,5 +1,6 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:md="using:SS.Models"
         x:Class="SS.Dialogs.QuickAddProductDialog"
         Title="Agregar Producto Rápido"
         Width="400" Height="580"
@@ -123,7 +124,18 @@
                        Foreground="#6C3483"
                        FontWeight="SemiBold"/>
             <ComboBox Name="CategoryCombo"
-                      PlaceholderText="Seleccionar categoría..."/>
+                      PlaceholderText="Seleccionar categoría...">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="md:Category">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="{Binding Icon}" FontSize="14"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding Name}" FontSize="13"
+                                       VerticalAlignment="Center" Foreground="#212121"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
             <TextBlock Name="CategoryError"
                        FontSize="11"
                        Foreground="#EF5350"

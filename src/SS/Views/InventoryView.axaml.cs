@@ -46,7 +46,7 @@ public partial class InventoryView : UserControl
                 _viewModel.HandleAddProductResult(true);
             }
         }
-        catch
+        catch (System.Exception)
         {
         }
     }
@@ -66,7 +66,7 @@ public partial class InventoryView : UserControl
                 _viewModel.HandleAddProductResult(true);
             }
         }
-        catch
+        catch (System.Exception)
         {
         }
     }

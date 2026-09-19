@@ -96,6 +96,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
     public ICommand RefreshCommand { get; }
     public ICommand ToggleMobileScannerCommand { get; }
     public ICommand ToggleCameraCommand { get; }
+    public ICommand ClearInventoryCommand { get; }
 
     public event Action? AddProductRequested;
     public event Action<Product>? EditProductRequested;
@@ -123,6 +124,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
         RefreshCommand = new RelayCommand(LoadData);
         ToggleMobileScannerCommand = new RelayCommand(OnToggleMobileScanner);
         ToggleCameraCommand = new RelayCommand(OnToggleCamera);
+        ClearInventoryCommand = new RelayCommand(OnClearInventory);
 
         LoadData();
     }
@@ -175,10 +177,14 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
     {
         var categories = _categoryRepo.GetAll();
         CategoryGroups.Clear();
+        var hasSearch = !string.IsNullOrWhiteSpace(SearchText);
 
         foreach (var cat in categories)
         {
             var catProducts = Products.Where(p => p.CategoryId == cat.Id).ToList();
+
+            if (hasSearch && catProducts.Count == 0)
+                continue;
 
             CategoryGroups.Add(new CategoryGroup
             {
@@ -204,6 +210,12 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
     public void HandleAddProductResult(bool success)
     {
         if (success) LoadData();
+    }
+
+    private void OnClearInventory()
+    {
+        _productRepo.DeleteAll();
+        LoadData();
     }
 
     public void SetScannerMode(string mode)

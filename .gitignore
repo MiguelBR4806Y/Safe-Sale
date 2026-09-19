@@ -39,3 +39,6 @@ _suite
 # Build artifacts
 Releases/
 publish/
+
+# Temp diagnostic logs
+diagnostico.log

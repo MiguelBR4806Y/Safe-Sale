@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
-using Avalonia.Controls.Templates;
 using Avalonia.Interactivity;
 using Microsoft.Data.Sqlite;
 using SS.Data;
@@ -43,16 +42,6 @@ public partial class QuickAddProductDialog : Window
     {
         _categories = _categoryRepo.GetAll().ToList();
         CategoryCombo.ItemsSource = _categories;
-        CategoryCombo.DisplayMemberBinding = null;
-        CategoryCombo.ItemTemplate = new FuncDataTemplate<Category>((item, _) =>
-        {
-            var sp = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 6 };
-            var icon = new TextBlock { Text = item.Icon, FontSize = 14, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
-            var name = new TextBlock { Text = item.Name, FontSize = 13, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
-            sp.Children.Add(icon);
-            sp.Children.Add(name);
-            return sp;
-        }, true);
     }
 
     private void OnBarcodeTextChanged(object? sender, TextChangedEventArgs e)

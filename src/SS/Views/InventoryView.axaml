@@ -31,7 +31,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBox Width="250" Height="32" FontSize="12"
                                  PlaceholderText="Buscar producto por nombre o código..."
-                                 Text="{Binding SearchText, Mode=TwoWay}"
+                                 Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  VerticalContentAlignment="Center"/>
                         <Button Content="Buscar" Classes="secondary"
                                 Command="{Binding SearchCommand}"/>
@@ -196,6 +196,19 @@
 
                                         <Border Height="1" Background="#F0EAF5"/>
 
+                                        <!-- Encabezados de columna -->
+                                        <Grid ColumnDefinitions="*,100,80,60" Margin="10,4">
+                                            <TextBlock Grid.Column="0" Text="Producto" FontSize="10"
+                                                       FontWeight="SemiBold" Foreground="#9C8EBF"/>
+                                            <TextBlock Grid.Column="1" Text="Código" FontSize="10"
+                                                       FontWeight="SemiBold" Foreground="#9C8EBF"/>
+                                            <TextBlock Grid.Column="2" Text="Precio" FontSize="10"
+                                                       FontWeight="SemiBold" Foreground="#9C8EBF"/>
+                                            <TextBlock Grid.Column="3" Text="Stock" FontSize="10"
+                                                       FontWeight="SemiBold" Foreground="#9C8EBF"
+                                                       HorizontalAlignment="Right"/>
+                                        </Grid>
+
                                         <!-- Productos de esta categoria -->
                                         <ListBox ItemsSource="{Binding Products}"
                                                  Background="Transparent" BorderThickness="0">
@@ -269,6 +282,8 @@
                         Command="{Binding DeleteProductCommand}"/>
                 <Button Content="Agregar al Carrito" Classes="success"
                         Command="{Binding AddToCartCommand}"/>
+                <Button Content="Vaciar Inventario" Classes="danger"
+                        Command="{Binding ClearInventoryCommand}"/>
             </StackPanel>
 
         </Grid>
