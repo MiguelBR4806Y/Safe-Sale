@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -12,6 +13,8 @@ public partial class QuickAddProductDialog : Window
 {
     private readonly string _barcode;
     private readonly SqliteProductRepository _productRepo;
+    private readonly SqliteCategoryRepository _categoryRepo;
+    private List<Category> _categories = new();
 
     public Product? CreatedProduct { get; private set; }
 
@@ -22,6 +25,7 @@ public partial class QuickAddProductDialog : Window
         InitializeComponent();
         _barcode = barcode;
         _productRepo = new SqliteProductRepository(dbPath);
+        _categoryRepo = new SqliteCategoryRepository(dbPath);
 
         BarcodeBox.Text = barcode;
         BarcodeBox.TextChanged += OnBarcodeTextChanged;
@@ -30,6 +34,14 @@ public partial class QuickAddProductDialog : Window
 
         SaveButton.Click += OnSave;
         CancelButton.Click += OnCancel;
+
+        LoadCategories();
+    }
+
+    private void LoadCategories()
+    {
+        _categories = _categoryRepo.GetAll().ToList();
+        CategoryCombo.ItemsSource = _categories;
     }
 
     private void OnBarcodeTextChanged(object? sender, TextChangedEventArgs e)
@@ -73,13 +85,16 @@ public partial class QuickAddProductDialog : Window
         var price = decimal.Parse(PriceBox.Text!.Trim());
         var stock = int.TryParse(StockBox.Text?.Trim(), out var s) ? s : 0;
         var minStock = int.TryParse(MinStockBox.Text?.Trim(), out var ms) ? ms : 5;
+        var selectedCategory = CategoryCombo.SelectedItem as Category;
+
         var product = new Product
         {
             Name = NameBox.Text!.Trim(),
             Barcode = BarcodeBox.Text!.Trim(),
             Price = price,
             Stock = stock,
-            MinStock = minStock
+            MinStock = minStock,
+            CategoryId = selectedCategory?.Id ?? 0
         };
 
         try
@@ -90,7 +105,7 @@ public partial class QuickAddProductDialog : Window
         }
         catch (SqliteException ex) when (ex.ErrorCode == 19)
         {
-            ShowGlobalError($"Ya existe un producto con el c\u00f3digo {product.Barcode}");
+            ShowGlobalError($"Ya existe un producto con el código {product.Barcode}");
         }
         catch (Exception)
         {
@@ -105,19 +120,22 @@ public partial class QuickAddProductDialog : Window
         var priceText = PriceBox.Text?.Trim() ?? "";
 
         if (string.IsNullOrEmpty(barcode))
-            return (false, "El c\u00f3digo de barras es obligatorio", "Barcode");
+            return (false, "El código de barras es obligatorio", "Barcode");
 
         if (string.IsNullOrEmpty(name))
             return (false, "El nombre del producto es obligatorio", "Name");
 
         if (name.Length < 3)
-            return (false, "El nombre debe tener m\u00ednimo 3 caracteres", "Name");
+            return (false, "El nombre debe tener mínimo 3 caracteres", "Name");
 
         if (string.IsNullOrEmpty(priceText))
             return (false, "El precio es obligatorio", "Price");
 
         if (!decimal.TryParse(priceText, out decimal price) || price < 0)
-            return (false, "El precio debe ser un n\u00famero v\u00e1lido (ej: 10.50)", "Price");
+            return (false, "El precio debe ser un número válido (ej: 10.50)", "Price");
+
+        if (CategoryCombo.SelectedItem == null)
+            return (false, "Debe seleccionar una categoría", "Category");
 
         return (true, "", "");
     }
@@ -142,6 +160,10 @@ public partial class QuickAddProductDialog : Window
                 PriceError.Text = message;
                 PriceError.IsVisible = true;
                 PriceBox.Classes.Add("error");
+                break;
+            case "Category":
+                CategoryError.Text = message;
+                CategoryError.IsVisible = true;
                 break;
         }
     }
@@ -168,6 +190,9 @@ public partial class QuickAddProductDialog : Window
                 PriceError.IsVisible = false;
                 PriceBox.Classes.Remove("error");
                 break;
+            case "Category":
+                CategoryError.IsVisible = false;
+                break;
         }
         ErrorBorder.IsVisible = false;
     }
@@ -177,6 +202,7 @@ public partial class QuickAddProductDialog : Window
         BarcodeError.IsVisible = false;
         NameError.IsVisible = false;
         PriceError.IsVisible = false;
+        CategoryError.IsVisible = false;
         ErrorBorder.IsVisible = false;
         BarcodeBox.Classes.Remove("error");
         NameBox.Classes.Remove("error");

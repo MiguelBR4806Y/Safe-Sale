@@ -1,8 +1,9 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:md="using:SS.Models"
         x:Class="SS.Dialogs.QuickAddProductDialog"
-        Title="Agregar Producto R\u00e1pido"
-        Width="400" Height="520"
+        Title="Agregar Producto Rápido"
+        Width="400" Height="580"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         Background="#FAF3F7">
@@ -37,6 +38,22 @@
             <Setter Property="Background" Value="#FFFFFF"/>
             <Setter Property="BorderBrush" Value="#BB8FCE"/>
         </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="BorderBrush" Value="#E8DAEF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#212121"/>
+            <Setter Property="MinHeight" Value="34"/>
+        </Style>
+        <Style Selector="ComboBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#7B1FA2"/>
+        </Style>
+        <Style Selector="ComboBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#BB8FCE"/>
+        </Style>
     </Window.Styles>
 
     <Border CornerRadius="12"
@@ -54,15 +71,15 @@
                        Margin="0,0,0,4"/>
 
             <!-- Barcode -->
-            <TextBlock Text="C\u00f3digo de barras:"
+            <TextBlock Text="Código de barras:"
                        FontSize="12"
                        Foreground="#6C3483"
                        FontWeight="SemiBold"/>
             <TextBox Name="BarcodeBox"
-                     PlaceholderText="Ej: 1234567890123 (13 d\u00edgitos)"
+                     PlaceholderText="Ej: 1234567890123 (13 dígitos)"
                      MaxLength="13"/>
             <TextBlock Name="BarcodeHelp"
-                       Text="Solo n\u00fameros. EAN-13 (13) o UPC-A (12) d\u00edgitos"
+                       Text="Solo números. EAN-13 (13) o UPC-A (12) dígitos"
                        FontSize="10"
                        Foreground="#6C3483"
                        Margin="0,2,0,0"/>
@@ -79,7 +96,7 @@
                        Foreground="#6C3483"
                        FontWeight="SemiBold"/>
             <TextBox Name="NameBox"
-                     PlaceholderText="M\u00ednimo 3 caracteres"/>
+                     PlaceholderText="Mínimo 3 caracteres"/>
             <TextBlock Name="NameError"
                        FontSize="11"
                        Foreground="#EF5350"
@@ -101,6 +118,31 @@
                        IsVisible="False"
                        Margin="0,2,0,0"/>
 
+            <!-- Categoría -->
+            <TextBlock Text="Categoría:"
+                       FontSize="12"
+                       Foreground="#6C3483"
+                       FontWeight="SemiBold"/>
+            <ComboBox Name="CategoryCombo"
+                      PlaceholderText="Seleccionar categoría...">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="md:Category">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="{Binding Icon}" FontSize="14"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding Name}" FontSize="13"
+                                       VerticalAlignment="Center" Foreground="#212121"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Name="CategoryError"
+                       FontSize="11"
+                       Foreground="#EF5350"
+                       FontWeight="SemiBold"
+                       IsVisible="False"
+                       Margin="0,2,0,0"/>
+
             <!-- Stock -->
             <TextBlock Text="Stock inicial:"
                        FontSize="12"
@@ -115,8 +157,8 @@
                        IsVisible="False"
                        Margin="0,2,0,0"/>
 
-            <!-- Stock minimo -->
-            <TextBlock Text="Stock m\u00ednimo (alerta):"
+            <!-- Stock mínimo -->
+            <TextBlock Text="Stock mínimo (alerta):"
                        FontSize="12"
                        Foreground="#6C3483"
                        FontWeight="SemiBold"/>

@@ -26,13 +26,54 @@ Integración:   ████████████████████ 100
 Documentación: ████░░░░░░░░░░░░░░░░  20%
 ```
 
+### Diagnóstico de Botones (Temporal)
+
+Se agregaron líneas de diagnóstico temporales para verificar el funcionamiento de los botones en la sección Inventario:
+
+| Ubicación | Mensaje de Diagnóstico |
+|-----------|------------------------|
+| `InventoryView.axaml.cs:OnDataContextChanged()` | `[DIAG] OnDataContextChanged - DataContext type: {tipo}` |
+| `InventoryViewModel.cs:OnSearch()` | `[DIAG] OnSearch ejecutado` |
+| `InventoryViewModel.cs:OnAddProduct()` | `[DIAG] OnAddProduct ejecutado` |
+| `InventoryViewModel.cs:LoadData()` | `[DIAG] LoadData ejecutado` |
+| `InventoryViewModel.cs:ApplyFilter()` | `[DIAG] ApplyFilter - SearchText/conteos` |
+| `InventoryView.axaml.cs:OnAddProductRequested()` | `[DIAG] EXCEPCIÓN` (catch instrumentado) |
+
+### Bugs Encontrados y Corregidos (18 sep 2026)
+
+#### Bug 1: Botón "Agregar" no abre diálogo — NullReferenceException
+- **Causa raíz**: `FuncDataTemplate<Category>` en `QuickAddProductDialog.axaml.cs:50` recibía `item = null` al renderizar el ComboBox de categorías
+- **Síntoma**: Excepción silenciada por `catch {}` vacío en `OnAddProductRequested`
+- **Fix**: Null-check en el FuncDataTemplate (`item is null` → retorna TextBlock vacío)
+
+#### Bug 2: Botón "Buscar" no filtra — Binding SearchText no actualiza
+- **Causa raíz**: `TextBox.Text` con `Mode=TwoWay` sin `UpdateSourceTrigger` usa `LostFocus` por defecto en Avalonia, causando que el binding no se actualice antes del click del botón
+- **Síntoma**: `SearchText` siempre `''` al ejecutar OnSearch
+- **Fix**: Agregado `UpdateSourceTrigger=PropertyChanged` al binding del TextBox de búsqueda
+
+#### Bug 3: Búsqueda filtra internamente pero no se refleja en UI
+- **Causa raíz**: `RebuildCategoryGroupsWithFilter()` iteraba TODAS las categorías de la BD sin importar si tenían productos coincidentes con el filtro
+- **Síntoma**: CategoryGroups siempre mostraba 9 categorías (todas), incluso con búsqueda activa
+- **Fix**: Cuando `SearchText` no está vacío, se ocultan categorías sin productos coincidentes
+
+#### Bug 4: ComboBox de categoría no muestra selección
+- **Causa raíz**: `FuncDataTemplate` en code-behind + `DisplayMemberBinding = null` causaba que el área de selección del ComboBox no renderizara el item correctamente
+- **Síntoma**: Al elegir categoría, el campo quedaba visualmente vacío
+- **Fix**: Movido `ItemTemplate` a XAML con `x:DataType="md:Category"`, eliminado `DisplayMemberBinding = null`
+
+### Nuevas Funcionalidades (18 sep 2026)
+
+- [x] **Vaciar Inventario**: Botón "Vaciar Inventario" con `ClearInventoryCommand` que borra todos los productos (conserva categorías)
+- [x] **Encabezados de columna**: Cada categoría muestra etiquetas (Producto, Código, Precio, Stock) antes de listar productos
+- [x] **DeleteAll en repositorio**: Método `SqliteProductRepository.DeleteAll()` que limpia `sale_items` y `products`
+
 ### Completado
 
 #### Backend (100%)
 - [x] **Base de datos SQLite**: `Microsoft.Data.Sqlite` configurado
 - [x] **Inicializador de BD**: `SqliteDatabaseInitializer.cs` crea tablas automaticamente + migracion `payment_method`
 - [x] **Modelos**: `Product.cs`, `Category.cs`, `Sale.cs` (con `PaymentMethod`), `SaleItem.cs`, `CartItem.cs`, `User.cs`
-- [x] **Repositorios CRUD**: `SqliteProductRepository.cs` (con `GetById`, `GetByBarcode`), `SqliteCategoryRepository.cs`, `SqliteSaleRepository.cs` (con `payment_method`), `SqliteUserRepository.cs`
+- [x] **Repositorios CRUD**: `SqliteProductRepository.cs` (con `GetById`, `GetByBarcode`, `DeleteAll`), `SqliteCategoryRepository.cs`, `SqliteSaleRepository.cs` (con `payment_method`), `SqliteUserRepository.cs`
 - [x] **Compilacion**: `dotnet build` → 0 errores, 0 warnings
 - [x] **Estructura MVVM**: Separacion de concerns implementada
 - [x] **Autenticacion**: Sistema de login con SHA256 + salt, usuario admin por defecto
@@ -42,7 +83,7 @@ Documentación: ████░░░░░░░░░░░░░░░░  20
 - [x] **Navegacion**: Sidebar con 4 secciones (Dashboard, Inventario, Ventas, Registros)
 - [x] **MainWindow**: Barra lateral con navegacion MVVM, estilos globales para ListBox/ListBoxItem
 - [x] **DashboardView**: Tarjetas KPI modernas con iconos, sombras, colores diferenciados, lista de ventas recientes con diseno de tarjetas
-- [x] **InventoryView**: CRUD completo conectado a SQLite, busqueda, estadisticas, escaner de camara PC, escaner movil QR
+- [x] **InventoryView**: CRUD completo conectado a SQLite, busqueda con filtrado por categoria, estadisticas, escaner de camara PC, escaner movil QR, encabezados de columna, boton vaciar inventario
 - [x] **SalesView**: Carrito de compras funcional, busqueda por codigo de barras, escaner de camara PC, escaner movil QR, selector de metodo de pago (Efectivo/Tarjeta/Transferencia), cobro con actualizacion de stock
 - [x] **RecordsView**: Filtros modernos con DatePicker, estadisticas con iconos, tabla de registros con badges
 - [x] **LoginWindow**: Diseno moderno con fondo decorativo, logo con fondo morado, inputs redondeados, credenciales por defecto en tarjeta
@@ -108,9 +149,10 @@ Documentación: ████░░░░░░░░░░░░░░░░  20
 
 ### Pendiente
 
-- [ ] **Testing**: Pruebas en Windows, macOS y Linux
+- [ ] **Testing**: Pruebas en Windows, macOS y Linux (verificar fixes de botones)
 - [ ] **Documentacion**: Diagrama E-R, manual de usuario (Dante)
 - [ ] **Diapositivas**: Presentacion para defensa
+- [x] **Diagnostico Inventario**: Verificado — botones Agregar, Buscar, Refrescar ejecutan handlers correctamente
 
 ---
 

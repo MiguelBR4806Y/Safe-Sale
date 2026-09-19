@@ -114,6 +114,16 @@ public class SqliteProductRepository
         return rows > 0;
     }
 
+    public void DeleteAll()
+    {
+        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        conn.Open();
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "DELETE FROM sale_items WHERE product_id IN (SELECT id FROM products); DELETE FROM products";
+        cmd.ExecuteNonQuery();
+    }
+
     public Product? GetById(int id)
     {
         using var conn = new SqliteConnection($"Data Source={_dbPath}");
