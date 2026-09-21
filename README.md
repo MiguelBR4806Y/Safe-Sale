@@ -28,7 +28,7 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 
 ### Nuevas Funcionalidades (21 sep 2026)
 
-- [x] **Categorias colapsables**: Cada categoria se expande/contrae individualmente con chevron (▶/▼), estado independiente por categoria, todas expandidas por defecto
+- [x] **Categorias colapsables**: Cada categoria se expande/contrae individualmente con chevron (▶/▼), estado independiente por categoria, todas colapsadas por defecto
 - [x] **Selector de camara**: ComboBox funcional junto a "Iniciar Cámara" en Inventario, reutiliza `AvailableCameras`/`SelectedCameraIndex` del ViewModel
 - [x] **Confirmacion al vaciar**: `ConfirmDialog` al presionar "Vaciar Inventario" con mensaje explícito antes de borrar todo
 - [x] **Refrescar limpia busqueda**: `LoadData()` resetea `SearchText` y recalcula `CategoryGroups` sin filtro
