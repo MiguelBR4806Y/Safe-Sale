@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using SS.Dialogs;
 using SS.Models;
@@ -28,6 +30,7 @@ public partial class InventoryView : UserControl
             _viewModel.EditProductRequested -= OnEditProductRequested;
             _viewModel.DeleteMultipleRequested -= OnDeleteMultipleRequested;
             _viewModel.AddMultipleToCartRequested -= OnAddMultipleToCartRequested;
+            _viewModel.ClearInventoryRequested -= OnClearInventoryRequested;
         }
 
         if (DataContext is InventoryViewModel vm)
@@ -37,6 +40,7 @@ public partial class InventoryView : UserControl
             _viewModel.EditProductRequested += OnEditProductRequested;
             _viewModel.DeleteMultipleRequested += OnDeleteMultipleRequested;
             _viewModel.AddMultipleToCartRequested += OnAddMultipleToCartRequested;
+            _viewModel.ClearInventoryRequested += OnClearInventoryRequested;
         }
     }
 
@@ -152,6 +156,36 @@ public partial class InventoryView : UserControl
         catch (Exception ex)
         {
             Console.WriteLine($"[DIAG] OnAddMultipleToCartRequested EXCEPTION: {ex}");
+        }
+    }
+
+    private async void OnClearInventoryRequested()
+    {
+        try
+        {
+            var window = GetParentWindow();
+            if (window == null) return;
+
+            var message = "¿Está seguro que desea vaciar todo el inventario?\nEsta acción no se puede deshacer.";
+            var confirmDialog = new ConfirmDialog(message);
+            var confirmed = await confirmDialog.ShowDialog<bool?>(window);
+
+            if (confirmed == true && _viewModel != null)
+            {
+                _viewModel.ConfirmClearInventory();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DIAG] OnClearInventoryRequested EXCEPTION: {ex}");
+        }
+    }
+
+    private void OnCategoryHeaderPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is Visual visual && visual.DataContext is CategoryGroup group)
+        {
+            group.IsExpanded = !group.IsExpanded;
         }
     }
 }
