@@ -25,7 +25,7 @@ public partial class CategoryGroup : ObservableObject
     public bool HasProducts => Products.Count > 0;
 
     [ObservableProperty]
-    private bool _isExpanded = true;
+    private bool _isExpanded = false;
 
     public string ChevronIcon => IsExpanded ? "\u25BC" : "\u25B6";
 

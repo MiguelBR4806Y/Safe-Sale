@@ -15,7 +15,7 @@ Sistema punto de venta y gestión de supermercado desarrollado con **Avalonia UI
 
 ---
 
-## Estado del Progreso — 19 de Septiembre 2026
+## Estado del Progreso — 21 de Septiembre 2026
 
 ### Progreso General: **~99%** Completado
 
@@ -25,6 +25,17 @@ Frontend:      ████████████████████ 100%
 Integracion:   ████████████████████ 100%
 Documentacion: ████░░░░░░░░░░░░░░░░  20%
 ```
+
+### Nuevas Funcionalidades (21 sep 2026)
+
+- [x] **Categorias colapsables**: Cada categoria se expande/contrae individualmente con chevron (▶/▼), estado independiente por categoria, todas expandidas por defecto
+- [x] **Selector de camara**: ComboBox funcional junto a "Iniciar Cámara" en Inventario, reutiliza `AvailableCameras`/`SelectedCameraIndex` del ViewModel
+- [x] **Confirmacion al vaciar**: `ConfirmDialog` al presionar "Vaciar Inventario" con mensaje explícito antes de borrar todo
+- [x] **Refrescar limpia busqueda**: `LoadData()` resetea `SearchText` y recalcula `CategoryGroups` sin filtro
+- [x] **Botones deshabilitados**: Eliminar, Agregar al Carrito y Vaciar Inventario se deshabilitan visualmente cuando `HasProducts=false` (0 productos)
+- [x] **Botón Iniciar Cámara mejorado**: Color verde (#4CAF50) consistente con SalesView en vez del lila claro anterior
+- [x] **Layout de cámara reorganizado**: Spacing y alineación corregidos, dropdown con `MinWidth="180"` para nombres largos
+- [x] **Botón "Rellenar Inventario" eliminado**: Removido junto con toda su lógica demo (`FillDemoDataCommand`, datos hardcodeados)
 
 ### Bugs Encontrados y Corregidos (19 sep 2026)
 
@@ -85,7 +96,7 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 - [x] **Navegacion**: Sidebar con 4 secciones (Dashboard, Inventario, Ventas, Registros)
 - [x] **MainWindow**: Barra lateral con navegacion MVVM, estilos globales para ListBox/ListBoxItem
 - [x] **DashboardView**: Tarjetas KPI modernas con iconos, sombras, colores diferenciados, lista de ventas recientes con diseno de tarjetas
-- [x] **InventoryView**: CRUD completo conectado a SQLite, busqueda con filtrado por categoria, estadisticas, escaner de camara PC, escaner movil QR, encabezados de columna, boton vaciar inventario
+- [x] **InventoryView**: CRUD completo conectado a SQLite, busqueda con filtrado por categoria, estadisticas, escaner de camara PC, escaner movil QR, encabezados de columna, categorias colapsables, selector de camara, boton vaciar inventario con confirmacion, botones deshabilitados cuando inventario vacio
 - [x] **SalesView**: Carrito de compras funcional, busqueda por codigo de barras, escaner de camara PC, escaner movil QR, selector de metodo de pago (Efectivo/Tarjeta/Transferencia), cobro con actualizacion de stock
 - [x] **RecordsView**: Filtros modernos con DatePicker, estadisticas con iconos, tabla de registros con badges
 - [x] **LoginWindow**: Diseno moderno con fondo decorativo, logo con fondo morado, inputs redondeados, credenciales por defecto en tarjeta
@@ -192,11 +203,12 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 - Barra de busqueda por nombre o codigo
 - Estadisticas: Total, Stock bajo, Categorias, Valor total
 - Botones de escaner: Camara PC + Movil QR (tamano normal)
-- Selector de camara: ComboBox para elegir entre camaras disponibles
+- Selector de camara: ComboBox con label "Cámara:" alineado horizontalmente, `MinWidth="180"`, botón "Iniciar Cámara" en verde (#4CAF50)
 - Vista previa de camara con marco de escaneo
 - QR inline cuando el escaner movil esta activo
+- Categorias colapsables: chevron (▶/▼) por categoria, click en header alterna visibilidad de productos
 - Tabla de productos con checkboxes (modo seleccion activado por Editar/Eliminar/Carrito)
-- Botones: Agregar (morado oscuro), Editar (morado oscuro), Eliminar (rojo), Agregar al Carrito (verde), Vaciar Inventario (rojo)
+- Botones deshabilitados visualmente cuando inventario vacio: Eliminar, Agregar al Carrito, Vaciar Inventario
 - Botones de accion se iluminan segun el modo seleccionado
 
 #### 5. **SalesView** - Punto de Venta
@@ -475,4 +487,4 @@ Safe-Sale/
 *Proyecto: Safe-Sale - Sistema de Gestion de Supermercado*  
 *Fecha de entrega: 22 de septiembre de 2026*  
 *Integrantes: Lucas (Backend), Jandir (Frontend), Dante (Documentacion)*  
-*Ultima actualizacion: 19 de septiembre de 2026*
+*Ultima actualizacion: 21 de septiembre de 2026*
