@@ -121,6 +121,16 @@
         <Setter Property="Background" Value="{StaticResource PrimaryMediumBrush}"/>
     </Style>
 
+    <!-- "Editar": estado activo (habilitado) con el mismo primario de los demas botones activos.
+         El estado deshabilitado no matchea :not(:disabled) y conserva su apariencia actual. -->
+    <Style Selector="Button.secondary.edit:not(:disabled)">
+        <Setter Property="Background" Value="{StaticResource PrimaryMediumBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.secondary.edit:not(:disabled):pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource PrimaryDarkBrush}"/>
+    </Style>
+
     <!-- Danger Button: "Eliminar", "Vaciar Carrito" -->
     <Style Selector="Button.danger">
         <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
@@ -191,6 +201,26 @@
         <Setter Property="BorderBrush" Value="{StaticResource PrimaryMediumBrush}"/>
     </Style>
     <Style Selector="TextBox:pointerover">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryLightBrush}"/>
+    </Style>
+
+    <!-- ============================================ -->
+    <!-- AUTOCOMPLETEBOX STYLES (busqueda con sugerencias) -->
+    <!-- ============================================ -->
+
+    <Style Selector="AutoCompleteBox">
+        <Setter Property="Background" Value="{StaticResource BackgroundCardBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderLightBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="FontSize" Value="13"/>
+    </Style>
+    <Style Selector="AutoCompleteBox:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryMediumBrush}"/>
+    </Style>
+    <Style Selector="AutoCompleteBox:pointerover">
         <Setter Property="BorderBrush" Value="{StaticResource PrimaryLightBrush}"/>
     </Style>
 

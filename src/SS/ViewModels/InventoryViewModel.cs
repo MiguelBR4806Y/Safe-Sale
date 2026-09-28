@@ -45,6 +45,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
     private List<Product> _allProducts = new();
     private string _lastScannedCode = "";
     private DateTime _lastScanTime = DateTime.MinValue;
+    private readonly DispatcherTimer _searchDebounceTimer;
 
     [ObservableProperty]
     private ObservableCollection<Product> _products = new();
@@ -60,6 +61,9 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     [ObservableProperty]
     private string _searchText = "";
+
+    [ObservableProperty]
+    private List<string> _productSuggestions = new();
 
     [ObservableProperty]
     private InventoryMetrics _globalMetrics = new();
@@ -133,7 +137,6 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
     public ICommand EditProductCommand { get; }
     public ICommand DeleteProductCommand { get; }
     public ICommand AddToCartCommand { get; }
-    public ICommand SearchCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand ToggleMobileScannerCommand { get; }
     public ICommand ToggleCameraCommand { get; }
@@ -165,11 +168,13 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
         _mobileScanner.BarcodeReceived += OnMobileBarcodeReceived;
         _cameraService.FrameAvailable += OnFrameAvailable;
 
+        _searchDebounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(180) };
+        _searchDebounceTimer.Tick += OnSearchDebounceTick;
+
         AddProductCommand = new RelayCommand(OnAddProduct);
         EditProductCommand = new RelayCommand(OnEditProduct, () => SelectedProduct != null);
         DeleteProductCommand = new RelayCommand(OnDeleteProductClick);
         AddToCartCommand = new RelayCommand(OnAddToCartClick);
-        SearchCommand = new RelayCommand(OnSearch);
         RefreshCommand = new RelayCommand(LoadData);
         ToggleMobileScannerCommand = new RelayCommand(OnToggleMobileScanner);
         ToggleCameraCommand = new RelayCommand(OnToggleCamera);
@@ -185,6 +190,12 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
     {
         SearchText = "";
         _allProducts = _productRepo.GetAll().ToList();
+        ProductSuggestions = _allProducts
+            .Select(p => p.Name)
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+            .ToList();
         GlobalMetrics = InventoryMetrics.Calculate(_allProducts);
         OnPropertyChanged(nameof(HasProducts));
         OnPropertyChanged(nameof(IsDeleteEnabled));
@@ -246,15 +257,24 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
             {
                 Category = cat,
                 Products = new ObservableCollection<Product>(catProducts),
-                Metrics = InventoryMetrics.Calculate(_allProducts, cat.Id)
+                Metrics = InventoryMetrics.Calculate(_allProducts, cat.Id),
+                IsExpanded = hasSearch
             });
         }
 
         IsCategoryGroupsEmpty = CategoryGroups.Count == 0;
     }
 
-    private void OnSearch()
+    partial void OnSearchTextChanged(string value)
     {
+        if (_searchDebounceTimer == null) return;
+        _searchDebounceTimer.Stop();
+        _searchDebounceTimer.Start();
+    }
+
+    private void OnSearchDebounceTick(object? sender, EventArgs e)
+    {
+        _searchDebounceTimer.Stop();
         ApplyFilter();
     }
 
@@ -318,12 +338,29 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     partial void OnActiveSelectionModeChanged(SelectionMode value)
     {
+        if (value != SelectionMode.None)
+        {
+            SetAllCategoriesExpanded(true);
+        }
+        else if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            SetAllCategoriesExpanded(false);
+        }
+
         OnPropertyChanged(nameof(DeleteButtonText));
         OnPropertyChanged(nameof(AddToCartButtonText));
         OnPropertyChanged(nameof(IsDeleteEnabled));
         OnPropertyChanged(nameof(IsCartEnabled));
         OnPropertyChanged(nameof(IsDeleteHighlighted));
         OnPropertyChanged(nameof(IsCartHighlighted));
+    }
+
+    private void SetAllCategoriesExpanded(bool expanded)
+    {
+        foreach (var group in CategoryGroups)
+        {
+            group.IsExpanded = expanded;
+        }
     }
 
     private void OnToggleProductSelection(Product? product)
@@ -667,6 +704,8 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     public void Dispose()
     {
+        _searchDebounceTimer.Stop();
+        _searchDebounceTimer.Tick -= OnSearchDebounceTick;
         _mobileScanner.BarcodeReceived -= OnMobileBarcodeReceived;
         MobileQrBitmap?.Dispose();
         MobileQrBitmap = null;
