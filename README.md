@@ -15,7 +15,7 @@ Sistema punto de venta y gestión de supermercado desarrollado con **Avalonia UI
 
 ---
 
-## Estado del Progreso — 21 de Septiembre 2026
+## Estado del Progreso — 27 de Septiembre 2026
 
 ### Progreso General: **~99%** Completado
 
@@ -25,6 +25,14 @@ Frontend:      ████████████████████ 100%
 Integracion:   ████████████████████ 100%
 Documentacion: ████░░░░░░░░░░░░░░░░  20%
 ```
+
+### Nuevas Funcionalidades (27 sep 2026)
+
+- [x] **Busqueda con autocompletado**: El buscador de Inventario usa `AutoCompleteBox` con sugerencias en vivo de los productos (coincidencia en cualquier parte del nombre, `FilterMode="Contains"`), sin nuevas consultas a la base de datos
+- [x] **Busqueda 100% en vivo**: El listado y las categorias se filtran al escribir con un debounce de 180ms; se elimino el boton "Buscar" porque quedo redundante
+- [x] **Categorias se expanden al buscar**: Con busqueda activa, las categorias con productos coincidentes aparecen expandidas; al limpiar la busqueda o usar "Refrescar" vuelven a estar colapsadas por defecto
+- [x] **Auto-expand en modo seleccion**: Al pulsar "Eliminar" o "Agregar al Carrito" todas las categorias visibles se expanden para revisar la seleccion y colapsan al salir del modo (si hay busqueda activa al salir se conserva el estado de la busqueda)
+- [x] **Boton "Editar" mas visible**: Estado habilitado con el primario fuerte (#7B1FA2) y hover oscuro (#4A148C), mismos acentos del resto de botones activos; el estado deshabilitado no cambia
 
 ### Nuevas Funcionalidades (21 sep 2026)
 
@@ -96,7 +104,7 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 - [x] **Navegacion**: Sidebar con 4 secciones (Dashboard, Inventario, Ventas, Registros)
 - [x] **MainWindow**: Barra lateral con navegacion MVVM, estilos globales para ListBox/ListBoxItem
 - [x] **DashboardView**: Tarjetas KPI modernas con iconos, sombras, colores diferenciados, lista de ventas recientes con diseno de tarjetas
-- [x] **InventoryView**: CRUD completo conectado a SQLite, busqueda con filtrado por categoria, estadisticas, escaner de camara PC, escaner movil QR, encabezados de columna, categorias colapsables, selector de camara, boton vaciar inventario con confirmacion, botones deshabilitados cuando inventario vacio
+- [x] **InventoryView**: CRUD completo conectado a SQLite, busqueda en vivo con autocompletado y filtrado por categoria, estadisticas, escaner de camara PC, escaner movil QR, encabezados de columna, categorias colapsables, selector de camara, boton vaciar inventario con confirmacion, botones deshabilitados cuando inventario vacio
 - [x] **SalesView**: Carrito de compras funcional, busqueda por codigo de barras, escaner de camara PC, escaner movil QR, selector de metodo de pago (Efectivo/Tarjeta/Transferencia), cobro con actualizacion de stock
 - [x] **RecordsView**: Filtros modernos con DatePicker, estadisticas con iconos, tabla de registros con badges
 - [x] **LoginWindow**: Diseno moderno con fondo decorativo, logo con fondo morado, inputs redondeados, credenciales por defecto en tarjeta
@@ -165,7 +173,7 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 - [ ] **Testing**: Pruebas en Windows, macOS y Linux (verificar fixes de botones)
 - [ ] **Documentacion**: Diagrama E-R, manual de usuario (Dante)
 - [ ] **Diapositivas**: Presentacion para defensa
-- [x] **Diagnostico Inventario**: Verificado — botones Agregar, Buscar, Refrescar ejecutan handlers correctamente
+- [x] **Diagnostico Inventario**: Verificado — botones Agregar y Refrescar ejecutan handlers correctamente (la busqueda ya no usa boton: es en vivo con autocompletado)
 
 ---
 
@@ -200,13 +208,13 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 - Lista de ultimas ventas con diseno de tarjetas y badges
 
 #### 4. **InventoryView** - Gestion de Inventario
-- Barra de busqueda por nombre o codigo
+- Busqueda en vivo por nombre o codigo con sugerencias de autocompletado mientras se escribe (sin boton "Buscar"; resultado filtrado al dejar de teclear)
 - Estadisticas: Total, Stock bajo, Categorias, Valor total
 - Botones de escaner: Camara PC + Movil QR (tamano normal)
 - Selector de camara: ComboBox con label "Cámara:" alineado horizontalmente, `MinWidth="180"`, botón "Iniciar Cámara" en verde (#4CAF50)
 - Vista previa de camara con marco de escaneo
 - QR inline cuando el escaner movil esta activo
-- Categorias colapsables: chevron (▶/▼) por categoria, click en header alterna visibilidad de productos
+- Categorias colapsables: chevron (▶/▼) por categoria, click en header alterna visibilidad de productos; se expanden solas al buscar y al entrar en modo seleccion (Eliminar/Carrito), y regresan a colapsadas al limpiar la busqueda o salir del modo seleccion
 - Tabla de productos con checkboxes (modo seleccion activado por Editar/Eliminar/Carrito)
 - Botones deshabilitados visualmente cuando inventario vacio: Eliminar, Agregar al Carrito, Vaciar Inventario
 - Botones de accion se iluminan segun el modo seleccionado
@@ -487,4 +495,4 @@ Safe-Sale/
 *Proyecto: Safe-Sale - Sistema de Gestion de Supermercado*  
 *Fecha de entrega: 22 de septiembre de 2026*  
 *Integrantes: Lucas (Backend), Jandir (Frontend), Dante (Documentacion)*  
-*Ultima actualizacion: 21 de septiembre de 2026*
+*Ultima actualizacion: 27 de septiembre de 2026*
