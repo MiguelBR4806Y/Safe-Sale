@@ -1,40 +1,42 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Microsoft.Data.Sqlite;
 using SS.Data;
 using SS.Models;
+using SS.Services;
 
 namespace SS.Dialogs;
 
 public partial class EditProductDialog : Window
 {
     private readonly Product _product;
-    private readonly SqliteProductRepository _productRepo;
-    private readonly SqliteCategoryRepository _categoryRepo;
+    private readonly ProductRepository _productRepo;
+    private readonly CategoryRepository _categoryRepo;
     private List<Category> _categories = new();
 
     public bool WasUpdated { get; private set; }
 
-    public EditProductDialog(Product product, string dbPath)
+    public EditProductDialog(Product product, string connectionString)
     {
         InitializeComponent();
         _product = product;
-        _productRepo = new SqliteProductRepository(dbPath);
-        _categoryRepo = new SqliteCategoryRepository(dbPath);
+        _productRepo = new ProductRepository(connectionString);
+        _categoryRepo = new CategoryRepository(connectionString);
 
         BarcodeBox.Text = product.Barcode;
         NameBox.Text = product.Name;
-        PriceBox.Text = product.Price.ToString("0.##");
-        StockBox.Text = product.Stock.ToString();
-        MinStockBox.Text = product.MinStock.ToString();
+        PriceBox.Text = product.Price.ToString("0.##", CultureInfo.InvariantCulture);
+        StockBox.Text = product.Stock.ToString(CultureInfo.InvariantCulture);
+        MinStockBox.Text = product.MinStock.ToString(CultureInfo.InvariantCulture);
 
         BarcodeBox.TextChanged += (_, _) => HideError("Barcode");
         NameBox.TextChanged += (_, _) => HideError("Name");
         PriceBox.TextChanged += (_, _) => HideError("Price");
         StockBox.TextChanged += (_, _) => HideError("Stock");
+        MinStockBox.TextChanged += (_, _) => HideError("MinStock");
 
         SaveButton.Click += OnSave;
         CancelButton.Click += OnCancel;
@@ -56,7 +58,7 @@ public partial class EditProductDialog : Window
 
     private void OnSave(object? sender, RoutedEventArgs e)
     {
-        var (isValid, errorMsg, field) = ValidateInputs();
+        var (isValid, errorMsg, field) = ValidateInputs(out var price, out var stock, out var minStock);
         if (!isValid)
         {
             ShowFieldError(field, errorMsg);
@@ -65,9 +67,9 @@ public partial class EditProductDialog : Window
 
         _product.Barcode = BarcodeBox.Text!.Trim();
         _product.Name = NameBox.Text!.Trim();
-        _product.Price = decimal.Parse(PriceBox.Text!.Trim());
-        _product.Stock = int.TryParse(StockBox.Text?.Trim(), out var s) ? s : 0;
-        _product.MinStock = int.TryParse(MinStockBox.Text?.Trim(), out var ms) ? ms : 5;
+        _product.Price = price;
+        _product.Stock = stock;
+        _product.MinStock = minStock;
         _product.CategoryId = (CategoryCombo.SelectedItem as Category)?.Id ?? 0;
 
         try
@@ -76,7 +78,7 @@ public partial class EditProductDialog : Window
             WasUpdated = true;
             Close(true);
         }
-        catch (SqliteException ex) when (ex.ErrorCode == 19)
+        catch (Exception ex) when (DbErrors.IsDuplicateKey(ex))
         {
             ShowGlobalError($"Ya existe otro producto con el c\u00f3digo {_product.Barcode}");
         }
@@ -86,12 +88,15 @@ public partial class EditProductDialog : Window
         }
     }
 
-    private (bool isValid, string errorMsg, string field) ValidateInputs()
+    private (bool isValid, string errorMsg, string field) ValidateInputs(
+        out decimal price, out int stock, out int minStock)
     {
+        price = 0m;
+        stock = 0;
+        minStock = 0;
+
         var barcode = BarcodeBox.Text?.Trim() ?? "";
         var name = NameBox.Text?.Trim() ?? "";
-        var priceText = PriceBox.Text?.Trim() ?? "";
-        var stockText = StockBox.Text?.Trim() ?? "";
 
         if (string.IsNullOrEmpty(barcode))
             return (false, "El c\u00f3digo de barras es obligatorio", "Barcode");
@@ -102,14 +107,14 @@ public partial class EditProductDialog : Window
         if (name.Length < 3)
             return (false, "El nombre debe tener m\u00ednimo 3 caracteres", "Name");
 
-        if (string.IsNullOrEmpty(priceText))
-            return (false, "El precio es obligatorio", "Price");
+        if (!InputValidator.TryParsePrice(PriceBox.Text, out price, out var priceError))
+            return (false, priceError, "Price");
 
-        if (!decimal.TryParse(priceText, out decimal price) || price < 0)
-            return (false, "El precio debe ser un n\u00famero v\u00e1lido", "Price");
+        if (!InputValidator.TryParseStock(StockBox.Text, out stock, out var stockError))
+            return (false, stockError, "Stock");
 
-        if (!string.IsNullOrEmpty(stockText) && (!int.TryParse(stockText, out int stock) || stock < 0))
-            return (false, "El stock debe ser un n\u00famero entero positivo", "Stock");
+        if (!InputValidator.TryParseMinStock(MinStockBox.Text, out minStock, out var minStockError))
+            return (false, minStockError, "MinStock");
 
         return (true, "", "");
     }
@@ -138,6 +143,11 @@ public partial class EditProductDialog : Window
                 StockError.Text = message;
                 StockError.IsVisible = true;
                 StockBox.Classes.Add("error");
+                break;
+            case "MinStock":
+                MinStockError.Text = message;
+                MinStockError.IsVisible = true;
+                MinStockBox.Classes.Add("error");
                 break;
         }
     }
@@ -168,6 +178,10 @@ public partial class EditProductDialog : Window
                 StockError.IsVisible = false;
                 StockBox.Classes.Remove("error");
                 break;
+            case "MinStock":
+                MinStockError.IsVisible = false;
+                MinStockBox.Classes.Remove("error");
+                break;
         }
         ErrorBorder.IsVisible = false;
     }
@@ -178,11 +192,13 @@ public partial class EditProductDialog : Window
         NameError.IsVisible = false;
         PriceError.IsVisible = false;
         StockError.IsVisible = false;
+        MinStockError.IsVisible = false;
         ErrorBorder.IsVisible = false;
         BarcodeBox.Classes.Remove("error");
         NameBox.Classes.Remove("error");
         PriceBox.Classes.Remove("error");
         StockBox.Classes.Remove("error");
+        MinStockBox.Classes.Remove("error");
     }
 
     private void OnCancel(object? sender, RoutedEventArgs e)

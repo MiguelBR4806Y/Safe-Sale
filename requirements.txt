@@ -1,5 +1,5 @@
 # Save-Sale - Requisitos y configuración del proyecto
-# Supermercado multiplataforma con Avalonia UI, C# y SQLite
+# Supermercado multiplataforma con Avalonia UI, C# y MySQL local incluido
 
 # ==========================================
 # INSTRUCCIONES PARA INICIAR
@@ -21,10 +21,10 @@ dotnet run --project src/SS/SS.csproj
 # - Version: 12.1.1
 # - Paquetes: Avalonia, Avalonia.Desktop, Avalonia.Themes.Fluent, Avalonia.Fonts.Inter
 
-# SQLite - Base de datos local embebida
-# - Version: 8.0.0 (Microsoft.Data.Sqlite)
-# - Sin configuración extra de servidores ni MySQL
-# - .db creado automáticamente en primer arranque
+# MySQL local incluido - Base de datos cliente-servidor local
+# - Version: 8.4 LTS + MySqlConnector 2.6.2
+# - El motor se incluye en vendor/mysql y la app lo administra sola
+# - Datos y credenciales quedan en el perfil local del usuario; sin configuración manual
 
 # MVVM - Patrón de arquitectura
 # - Version: 8.4.2 (CommunityToolkit.Mvvm)
@@ -64,7 +64,7 @@ dotnet run --project src/SS/SS.csproj
 # ├── MainWindow.axaml.cs     # Code-behind de MainWindow
 # ├── MainViewModel.cs        # ViewModel principal (Patrón MVVM)
 # ├── ViewModelBase.cs        # Clase base para ViewModels
-# ├── SS.csproj               # Proyecto Avalonia con SQLite + Android opcional
+# ├── SS.csproj               # Proyecto Avalonia con MySQL local + Android opcional
 # ├── ViewLocator.cs          # Localizador de vistas
 # ├── Assets/                 # Recursos e iconos
 # │   └── avalonia-logo.ico
@@ -89,7 +89,7 @@ dotnet run --project src/SS/SS.csproj
 # ==========================================
 
 # backend:
-# ✓ Base de datos SQLite conectada y funcional
+# ✓ Base de datos MySQL local conectada y funcional
 # ✓ Repositorios CRUD (Productos, Categorías)
 # ✓ 6 tablas automáticas (categories, products, users, sales, sale_items)
 # ✓ Multiplataforma: Windows, macOS, Linux

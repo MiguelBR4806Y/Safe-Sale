@@ -1,23 +1,23 @@
-using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.ObjectModel;
+using MySqlConnector;
 using SS.Models;
 
 namespace SS.Data;
 
-public class SqliteCategoryRepository
+public class CategoryRepository
 {
-    private readonly string _dbPath;
+    private readonly string _connectionString;
 
-    public SqliteCategoryRepository(string dbPath)
+    public CategoryRepository(string connectionString)
     {
-        _dbPath = dbPath;
+        _connectionString = connectionString;
     }
 
     public ObservableCollection<Category> GetAll()
     {
         var result = new ObservableCollection<Category>();
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
@@ -39,7 +39,7 @@ public class SqliteCategoryRepository
 
     public Category? GetById(int id)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
@@ -62,7 +62,7 @@ public class SqliteCategoryRepository
 
     public void Add(Category category)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
@@ -79,7 +79,7 @@ public class SqliteCategoryRepository
 
     public void Update(Category category)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
@@ -96,7 +96,7 @@ public class SqliteCategoryRepository
 
     public void Delete(int id)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
@@ -107,7 +107,7 @@ public class SqliteCategoryRepository
 
     public int GetProductCount(int categoryId)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();

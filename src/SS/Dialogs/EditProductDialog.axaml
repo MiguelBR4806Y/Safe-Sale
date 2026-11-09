@@ -3,6 +3,7 @@
         xmlns:md="using:SS.Models"
         x:Class="SS.Dialogs.EditProductDialog"
         Title="Editar Producto"
+        Icon="/Assets/SS-ico.png"
         Width="400" Height="580"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
@@ -76,7 +77,7 @@
             <!-- Price -->
             <TextBlock Text="Precio:"
                        FontSize="12" Foreground="#6C3483" FontWeight="SemiBold"/>
-            <TextBox Name="PriceBox"/>
+            <TextBox Name="PriceBox" PlaceholderText="Ej: 10.98 (punto decimal)"/>
             <TextBlock Name="PriceError" FontSize="11" Foreground="#EF5350"
                        FontWeight="SemiBold" IsVisible="False" Margin="0,2,0,0"/>
 
@@ -100,14 +101,16 @@
             <!-- Stock -->
             <TextBlock Text="Stock:"
                        FontSize="12" Foreground="#6C3483" FontWeight="SemiBold"/>
-            <TextBox Name="StockBox"/>
+            <TextBox Name="StockBox" PlaceholderText="Ej: 1"/>
             <TextBlock Name="StockError" FontSize="11" Foreground="#EF5350"
                        FontWeight="SemiBold" IsVisible="False" Margin="0,2,0,0"/>
 
             <!-- Min Stock -->
             <TextBlock Text="Stock mínimo (alerta):"
                        FontSize="12" Foreground="#6C3483" FontWeight="SemiBold"/>
-            <TextBox Name="MinStockBox"/>
+            <TextBox Name="MinStockBox" PlaceholderText="Ej: 5"/>
+            <TextBlock Name="MinStockError" FontSize="11" Foreground="#EF5350"
+                       FontWeight="SemiBold" IsVisible="False" Margin="0,2,0,0"/>
 
             <!-- Error general -->
             <Border Name="ErrorBorder" IsVisible="False"

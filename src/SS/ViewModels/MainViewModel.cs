@@ -14,6 +14,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private readonly DashboardViewModel _dashboardViewModel;
     private readonly InventoryViewModel _inventoryViewModel;
     private readonly SalesViewModel _salesViewModel;
+    private readonly CashSessionViewModel _cashSessionViewModel;
     private readonly RecordsViewModel _recordsViewModel;
     private readonly AboutViewModel _aboutViewModel;
     private readonly MobileScannerService _sharedScanner;
@@ -30,10 +31,12 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 
     public string CurrentUsername => CurrentUser?.Username ?? "";
     public string CurrentRole => CurrentUser?.Role == "admin" ? "Administrador" : "Cajero";
+    public bool IsAdmin => CurrentUser?.Role == "admin";
 
     public ICommand NavigateDashboardCommand { get; }
     public ICommand NavigateInventoryCommand { get; }
     public ICommand NavigateSalesCommand { get; }
+    public ICommand NavigateCashCommand { get; }
     public ICommand NavigateRecordsCommand { get; }
     public ICommand NavigateAboutCommand { get; }
     public ICommand LogoutCommand { get; }
@@ -44,14 +47,15 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     {
         CurrentUser = user;
 
-        var dbPath = AppDatabase.DbPath;
+        var connectionString = DatabaseConfig.ConnectionString;
 
-        _sharedScanner = new MobileScannerService(dbPath);
+        _sharedScanner = new MobileScannerService(connectionString);
 
-        _dashboardViewModel = new DashboardViewModel(dbPath);
-        _inventoryViewModel = new InventoryViewModel(dbPath, _sharedScanner);
-        _salesViewModel = new SalesViewModel(dbPath, user, _sharedScanner);
-        _recordsViewModel = new RecordsViewModel(dbPath);
+        _dashboardViewModel = new DashboardViewModel(connectionString);
+        _inventoryViewModel = new InventoryViewModel(connectionString, _sharedScanner, IsAdmin);
+        _salesViewModel = new SalesViewModel(connectionString, user, _sharedScanner);
+        _cashSessionViewModel = new CashSessionViewModel(connectionString, user);
+        _recordsViewModel = new RecordsViewModel(connectionString);
         _aboutViewModel = new AboutViewModel();
 
         _inventoryViewModel.AddToCartRequested += OnAddToCartFromInventory;
@@ -89,6 +93,13 @@ public partial class MainViewModel : ViewModelBase, IDisposable
             CurrentViewModel = _recordsViewModel;
             _recordsViewModel.LoadData();
             CurrentViewTitle = "Registros";
+        });
+
+        NavigateCashCommand = new RelayCommand(() =>
+        {
+            CurrentViewModel = _cashSessionViewModel;
+            _cashSessionViewModel.LoadData();
+            CurrentViewTitle = "Caja";
         });
 
         NavigateAboutCommand = new RelayCommand(() =>

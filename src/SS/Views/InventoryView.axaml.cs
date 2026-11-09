@@ -61,7 +61,7 @@ public partial class InventoryView : UserControl
                 return;
             }
 
-            var dialog = new QuickAddProductDialog("", SS.Data.AppDatabase.DbPath);
+            var dialog = new QuickAddProductDialog("", SS.Data.DatabaseConfig.ConnectionString);
             var result = await dialog.ShowDialog<bool?>(window);
 
             if (result == true && _viewModel != null)
@@ -86,7 +86,7 @@ public partial class InventoryView : UserControl
                 return;
             }
 
-            var dialog = new EditProductDialog(product, SS.Data.AppDatabase.DbPath);
+            var dialog = new EditProductDialog(product, SS.Data.DatabaseConfig.ConnectionString);
             var result = await dialog.ShowDialog<bool?>(window);
 
             if (result == true && _viewModel != null)

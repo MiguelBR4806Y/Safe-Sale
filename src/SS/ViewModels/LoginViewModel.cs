@@ -11,7 +11,7 @@ namespace SS.ViewModels;
 
 public partial class LoginViewModel : ViewModelBase
 {
-    private readonly SqliteUserRepository _userRepo;
+    private readonly UserRepository _userRepo;
 
     [ObservableProperty]
     private string _username = "";
@@ -43,14 +43,20 @@ public partial class LoginViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isUpdateAvailable;
 
+    [ObservableProperty]
+    private string _infoMessage = "";
+
+    [ObservableProperty]
+    private bool _isInfoVisible;
+
     public ICommand LoginCommand { get; }
     public ICommand TogglePasswordCommand { get; }
 
     public event Action<User>? LoginSuccess;
 
-    public LoginViewModel(string dbPath)
+    public LoginViewModel(string connectionString)
     {
-        _userRepo = new SqliteUserRepository(dbPath);
+        _userRepo = new UserRepository(connectionString);
         LoginCommand = new RelayCommand(OnLogin);
         TogglePasswordCommand = new RelayCommand(OnTogglePassword);
 
@@ -104,6 +110,8 @@ public partial class LoginViewModel : ViewModelBase
 
     private void ClearError()
     {
+        IsInfoVisible = false;
+
         if (IsError)
         {
             IsError = false;

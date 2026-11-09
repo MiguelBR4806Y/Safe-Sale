@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -22,7 +23,7 @@ namespace SS.Services
         private bool _running;
         private int _port;
         private string _localIp;
-        private readonly SqliteProductRepository? _productRepo;
+        private readonly ProductRepository? _productRepo;
 
         public event Action<string>? BarcodeReceived;
 
@@ -34,14 +35,14 @@ namespace SS.Services
         public bool HasBarcodes() => !_barcodeQueue.IsEmpty;
         public string Mode { get; set; } = "inventory";
 
-        public MobileScannerService(string? dbPath = null)
+        public MobileScannerService(string? connectionString = null)
         {
             _localIp = GetLocalIp();
             _listener = new TcpListener(IPAddress.Any, 0);
             _listener.Start();
             _port = ((IPEndPoint)_listener.LocalEndpoint).Port;
-            if (dbPath != null)
-                _productRepo = new SqliteProductRepository(dbPath);
+            if (connectionString != null)
+                _productRepo = new ProductRepository(connectionString);
         }
 
         public void Start()
@@ -164,6 +165,14 @@ namespace SS.Services
                 if (body.StartsWith("ADD:"))
                 {
                     var json = body.Substring(4);
+                    var validationError = ValidateAddedProduct(json);
+                    if (validationError != null)
+                    {
+                        var errorJson = JsonSerializer.Serialize(new { ok = false, error = validationError });
+                        await SendResponse(stream, 200, "application/json", errorJson);
+                        return;
+                    }
+
                     var code = $"ADD:{json}";
                     if (IsDuplicate(code)) { await SendResponse(stream, 200, "application/json", "{\"ok\":true,\"dup\":true}"); return; }
                     _barcodeQueue.Enqueue(code);
@@ -217,6 +226,84 @@ namespace SS.Services
             {
                 await SendResponse(stream, 400, "application/json", "{\"error\":\"bad request\"}");
             }
+        }
+
+        private static string? ValidateAddedProduct(string json)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                var barcode = GetStringProperty(root, "barcode");
+                var name = GetStringProperty(root, "name");
+
+                if (string.IsNullOrWhiteSpace(barcode))
+                    return "El codigo de barras es obligatorio.";
+
+                if (name.Trim().Length < 3)
+                    return "El nombre debe tener minimo 3 caracteres.";
+
+                if (!root.TryGetProperty("price", out var priceElement) ||
+                    !TryGetDecimal(priceElement, out var price) || price <= 0m)
+                    return "El precio debe ser mayor a 0. Usa punto (.) para los decimales. Ej: 10.98";
+
+                if (!root.TryGetProperty("stock", out var stockElement) ||
+                    !TryGetInt(stockElement, out var stock) || stock < 1)
+                    return "El stock debe ser un numero entero mayor o igual a 1.";
+
+                if (root.TryGetProperty("min_stock", out var minStockElement) &&
+                    !TryGetInt(minStockElement, out _))
+                    return "El stock minimo debe ser un numero entero.";
+
+                return null;
+            }
+            catch
+            {
+                return "Datos del producto invalidos.";
+            }
+        }
+
+        private static string GetStringProperty(JsonElement root, string name)
+        {
+            if (!root.TryGetProperty(name, out var element))
+                return string.Empty;
+
+            return element.ValueKind == JsonValueKind.String
+                ? element.GetString() ?? string.Empty
+                : element.ToString();
+        }
+
+        private static bool TryGetDecimal(JsonElement element, out decimal value)
+        {
+            value = 0m;
+            if (element.ValueKind == JsonValueKind.Number)
+                return element.TryGetDecimal(out value);
+
+            if (element.ValueKind == JsonValueKind.String)
+            {
+                var text = (element.GetString() ?? string.Empty).Trim();
+                if (text.Contains(','))
+                    return false;
+                return decimal.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out value);
+            }
+
+            return false;
+        }
+
+        private static bool TryGetInt(JsonElement element, out int value)
+        {
+            value = 0;
+            if (element.ValueKind == JsonValueKind.Number)
+                return element.TryGetInt32(out value);
+
+            if (element.ValueKind == JsonValueKind.String)
+            {
+                var text = (element.GetString() ?? string.Empty).Trim();
+                return int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value);
+            }
+
+            return false;
         }
 
         private async Task HandleCheck(NetworkStream stream, string body)
@@ -392,9 +479,9 @@ canvas{display:none}
 <label id=""fb1"" for=""fi1"" style=""width:100%;padding:12px;border-radius:8px;background:#4A148C;color:#fff;font-size:1em;cursor:pointer;text-align:center;margin:4px 0;font-weight:600;display:block"">Tomar Foto del Código</label>
 <div class=""form-group""><label>Código</label><input type=""text"" id=""bar1"" placeholder=""Código de barras""/></div>
 <div class=""form-group""><label>Nombre</label><input type=""text"" id=""nameIn"" placeholder=""Ej: Leche entera""/></div>
-<div class=""form-group""><label>Precio</label><input type=""number"" id=""priceIn"" placeholder=""0.00"" step=""0.01"" min=""0""/></div>
-<div class=""form-group""><label>Stock Inicial</label><input type=""number"" id=""stockIn"" placeholder=""0"" min=""0""/></div>
-<div class=""form-group""><label>Stock Mínimo (alerta)</label><input type=""number"" id=""minStockIn"" placeholder=""5"" min=""0""/></div>
+<div class=""form-group""><label>Precio</label><input type=""text"" id=""priceIn"" placeholder=""Ej: 10.98"" inputmode=""decimal"" autocomplete=""off""/></div>
+<div class=""form-group""><label>Stock Inicial</label><input type=""text"" id=""stockIn"" placeholder=""Ej: 1"" inputmode=""numeric"" autocomplete=""off""/></div>
+<div class=""form-group""><label>Stock Mínimo (alerta)</label><input type=""text"" id=""minStockIn"" placeholder=""5"" inputmode=""numeric"" autocomplete=""off""/></div>
 <button class=""save-btn"" onclick=""sendNew()"">Guardar Nuevo</button>
 <div class=""status"" id=""st1""></div>
 </div>
@@ -582,13 +669,23 @@ else{stat(i,'ok','\u2713 Enviado: '+val);document.getElementById('bar'+i).value=
 function sendNew(){
 var c=document.getElementById('bar1').value.trim();
 var n=document.getElementById('nameIn').value.trim();
-var p=document.getElementById('priceIn').value;
-var s=document.getElementById('stockIn').value||'0';
-var ms=document.getElementById('minStockIn').value||'5';
+var p=document.getElementById('priceIn').value.trim();
+var s=document.getElementById('stockIn').value.trim()||'1';
+var ms=document.getElementById('minStockIn').value.trim()||'0';
 if(!c||!n||!p){stat(1,'warn','Completa código, nombre y precio');return;}
+if(p.indexOf(',')>=0){stat(1,'warn','Usa punto (.) para los decimales, no coma. Ej: 10.98');return;}
+if(!/^\d+(\.\d{1,2})?$/.test(p)){stat(1,'warn','Precio inválido: usa hasta 2 decimales con punto. Ej: 10.98');return;}
+if(parseFloat(p)<=0){stat(1,'warn','El precio debe ser mayor a 0');return;}
+if(!/^\d+$/.test(s)||parseInt(s)<1){stat(1,'warn','El stock debe ser un número entero mayor o igual a 1');return;}
+if(!/^\d+$/.test(ms)){stat(1,'warn','El stock mínimo debe ser un número entero');return;}
 fetch('/scan',{method:'POST',body:'ADD:'+JSON.stringify({barcode:c,name:n,price:parseFloat(p),stock:parseInt(s),min_stock:parseInt(ms)}),headers:{'Content-Type':'text/plain'}})
 .then(function(r){return r.json();})
-.then(function(j){if(j.dup)stat(1,'dup','Duplicado');else{stat(1,'ok','\u2713 Guardado: '+n);document.getElementById('bar1').value='';document.getElementById('nameIn').value='';document.getElementById('priceIn').value='';document.getElementById('stockIn').value='';document.getElementById('minStockIn').value='';}})
+.then(function(j){
+if(j.error){stat(1,'warn',j.error);return;}
+if(j.dup){stat(1,'dup','Duplicado');return;}
+stat(1,'ok','\u2713 Guardado: '+n);
+document.getElementById('bar1').value='';document.getElementById('nameIn').value='';document.getElementById('priceIn').value='';document.getElementById('stockIn').value='';document.getElementById('minStockIn').value='';
+})
 .catch(function(){stat(1,'warn','Error de conexión');});
 }
 var searchTimer=null;

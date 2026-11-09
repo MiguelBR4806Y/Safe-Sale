@@ -3,34 +3,37 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Microsoft.Data.Sqlite;
 using SS.Data;
 using SS.Models;
+using SS.Services;
 
 namespace SS.Dialogs;
 
 public partial class QuickAddProductDialog : Window
 {
     private readonly string _barcode;
-    private readonly SqliteProductRepository _productRepo;
-    private readonly SqliteCategoryRepository _categoryRepo;
+    private readonly ProductRepository _productRepo;
+    private readonly CategoryRepository _categoryRepo;
     private List<Category> _categories = new();
 
     public Product? CreatedProduct { get; private set; }
 
-    public QuickAddProductDialog() : this("", AppDatabase.DbPath) { }
+    public QuickAddProductDialog() : this("", DatabaseConfig.ConnectionString) { }
 
-    public QuickAddProductDialog(string barcode, string dbPath)
+    public QuickAddProductDialog(string barcode, string connectionString)
     {
         InitializeComponent();
         _barcode = barcode;
-        _productRepo = new SqliteProductRepository(dbPath);
-        _categoryRepo = new SqliteCategoryRepository(dbPath);
+        _productRepo = new ProductRepository(connectionString);
+        _categoryRepo = new CategoryRepository(connectionString);
 
         BarcodeBox.Text = barcode;
         BarcodeBox.TextChanged += OnBarcodeTextChanged;
         NameBox.TextChanged += OnNameTextChanged;
         PriceBox.TextChanged += OnPriceTextChanged;
+        StockBox.TextChanged += (_, _) => HideError("Stock");
+        MinStockBox.TextChanged += (_, _) => HideError("MinStock");
+        CategoryCombo.SelectionChanged += (_, _) => HideError("Category");
 
         SaveButton.Click += OnSave;
         CancelButton.Click += OnCancel;
@@ -74,7 +77,7 @@ public partial class QuickAddProductDialog : Window
 
     private void OnSave(object? sender, RoutedEventArgs e)
     {
-        var (isValid, errorMsg, field) = ValidateInputs();
+        var (isValid, errorMsg, field) = ValidateInputs(out var price, out var stock, out var minStock);
 
         if (!isValid)
         {
@@ -82,9 +85,6 @@ public partial class QuickAddProductDialog : Window
             return;
         }
 
-        var price = decimal.Parse(PriceBox.Text!.Trim());
-        var stock = int.TryParse(StockBox.Text?.Trim(), out var s) ? s : 0;
-        var minStock = int.TryParse(MinStockBox.Text?.Trim(), out var ms) ? ms : 5;
         var selectedCategory = CategoryCombo.SelectedItem as Category;
 
         var product = new Product
@@ -103,7 +103,7 @@ public partial class QuickAddProductDialog : Window
             CreatedProduct = product;
             Close(true);
         }
-        catch (SqliteException ex) when (ex.ErrorCode == 19)
+        catch (Exception ex) when (DbErrors.IsDuplicateKey(ex))
         {
             ShowGlobalError($"Ya existe un producto con el código {product.Barcode}");
         }
@@ -113,11 +113,15 @@ public partial class QuickAddProductDialog : Window
         }
     }
 
-    private (bool isValid, string errorMsg, string field) ValidateInputs()
+    private (bool isValid, string errorMsg, string field) ValidateInputs(
+        out decimal price, out int stock, out int minStock)
     {
+        price = 0m;
+        stock = 0;
+        minStock = 0;
+
         var barcode = BarcodeBox.Text?.Trim() ?? "";
         var name = NameBox.Text?.Trim() ?? "";
-        var priceText = PriceBox.Text?.Trim() ?? "";
 
         if (string.IsNullOrEmpty(barcode))
             return (false, "El código de barras es obligatorio", "Barcode");
@@ -128,14 +132,17 @@ public partial class QuickAddProductDialog : Window
         if (name.Length < 3)
             return (false, "El nombre debe tener mínimo 3 caracteres", "Name");
 
-        if (string.IsNullOrEmpty(priceText))
-            return (false, "El precio es obligatorio", "Price");
-
-        if (!decimal.TryParse(priceText, out decimal price) || price < 0)
-            return (false, "El precio debe ser un número válido (ej: 10.50)", "Price");
+        if (!InputValidator.TryParsePrice(PriceBox.Text, out price, out var priceError))
+            return (false, priceError, "Price");
 
         if (CategoryCombo.SelectedItem == null)
             return (false, "Debe seleccionar una categoría", "Category");
+
+        if (!InputValidator.TryParseStock(StockBox.Text, out stock, out var stockError))
+            return (false, stockError, "Stock");
+
+        if (!InputValidator.TryParseMinStock(MinStockBox.Text, out minStock, out var minStockError))
+            return (false, minStockError, "MinStock");
 
         return (true, "", "");
     }
@@ -165,6 +172,16 @@ public partial class QuickAddProductDialog : Window
                 CategoryError.Text = message;
                 CategoryError.IsVisible = true;
                 break;
+            case "Stock":
+                StockError.Text = message;
+                StockError.IsVisible = true;
+                StockBox.Classes.Add("error");
+                break;
+            case "MinStock":
+                MinStockError.Text = message;
+                MinStockError.IsVisible = true;
+                MinStockBox.Classes.Add("error");
+                break;
         }
     }
 
@@ -193,6 +210,14 @@ public partial class QuickAddProductDialog : Window
             case "Category":
                 CategoryError.IsVisible = false;
                 break;
+            case "Stock":
+                StockError.IsVisible = false;
+                StockBox.Classes.Remove("error");
+                break;
+            case "MinStock":
+                MinStockError.IsVisible = false;
+                MinStockBox.Classes.Remove("error");
+                break;
         }
         ErrorBorder.IsVisible = false;
     }
@@ -203,10 +228,14 @@ public partial class QuickAddProductDialog : Window
         NameError.IsVisible = false;
         PriceError.IsVisible = false;
         CategoryError.IsVisible = false;
+        StockError.IsVisible = false;
+        MinStockError.IsVisible = false;
         ErrorBorder.IsVisible = false;
         BarcodeBox.Classes.Remove("error");
         NameBox.Classes.Remove("error");
         PriceBox.Classes.Remove("error");
+        StockBox.Classes.Remove("error");
+        MinStockBox.Classes.Remove("error");
     }
 
     private void OnCancel(object? sender, RoutedEventArgs e)

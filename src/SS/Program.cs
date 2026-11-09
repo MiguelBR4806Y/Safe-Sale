@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using System;
-using System.IO;
-using SS.Data;
+using SS.Services;
 using Velopack;
 
 namespace SS;
@@ -13,8 +12,7 @@ sealed class Program
     {
         VelopackApp.Build().Run();
 
-        var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "supermarket.db");
-        SqliteDatabaseInitializer.Initialize(dbPath);
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => MySqlServerManager.Instance.Stop();
 
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);

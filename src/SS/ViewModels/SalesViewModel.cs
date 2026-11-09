@@ -17,14 +17,16 @@ namespace SS.ViewModels;
 
 public partial class SalesViewModel : ViewModelBase, IDisposable
 {
-    private readonly SqliteProductRepository _productRepo;
-    private readonly SqliteSaleRepository _saleRepo;
+    private readonly ProductRepository _productRepo;
+    private readonly SaleRepository _saleRepo;
+    private readonly CashSessionRepository _cashRepo;
     private readonly User _currentUser;
     private readonly ICameraService _cameraService;
     private readonly IBarcodeScannerService _barcodeScanner;
     private readonly MobileScannerService _mobileScanner;
     private string _lastScannedCode = "";
     private DateTime _lastScanTime = DateTime.MinValue;
+    private CashSession? _openCashSession;
 
     [ObservableProperty]
     private ObservableCollection<CartItem> _cartItems = new();
@@ -72,6 +74,12 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
     public bool HasCartItems => CartItems.Count > 0;
     public bool IsCartEmpty => CartItems.Count == 0;
+    public bool HasOpenCashSession => _openCashSession != null;
+    public bool IsCashClosed => _openCashSession == null;
+    public bool CanCheckout => HasCartItems && HasOpenCashSession;
+    public string CashSessionStatus => _openCashSession == null
+        ? "No hay caja abierta. Abrí una caja para poder cobrar."
+        : $"Caja abierta desde {_openCashSession.OpenedAtLabel} · Efectivo esperado: {_openCashSession.ExpectedCashLabel}";
     public string CartCountLabel => $"{CartCount} items";
     public string CheckoutLabel => $"COBRAR  ${CartTotal:F2}";
 
@@ -110,11 +118,12 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     public ICommand ToggleCameraCommand { get; }
     public ICommand ToggleMobileScannerCommand { get; }
 
-    public SalesViewModel(string dbPath, User currentUser, MobileScannerService mobileScanner)
+    public SalesViewModel(string connectionString, User currentUser, MobileScannerService mobileScanner)
     {
         _currentUser = currentUser;
-        _productRepo = new SqliteProductRepository(dbPath);
-        _saleRepo = new SqliteSaleRepository(dbPath);
+        _productRepo = new ProductRepository(connectionString);
+        _saleRepo = new SaleRepository(connectionString);
+        _cashRepo = new CashSessionRepository(connectionString);
         _cameraService = new CameraService();
         _barcodeScanner = new BarcodeScannerService();
         _mobileScanner = mobileScanner;
@@ -130,7 +139,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         RemoveFromCartCommand = new RelayCommand<CartItem>(OnRemoveFromCart);
         IncreaseQtyCommand = new RelayCommand<CartItem>(OnIncreaseQty);
         DecreaseQtyCommand = new RelayCommand<CartItem>(OnDecreaseQty);
-        CheckoutCommand = new RelayCommand(OnCheckout, () => CartItems.Count > 0);
+        CheckoutCommand = new RelayCommand(OnCheckout, () => CanCheckout);
         ClearCartCommand = new RelayCommand(OnClearCart);
         ToggleCameraCommand = new RelayCommand(OnToggleCamera);
         ToggleMobileScannerCommand = new RelayCommand(OnToggleMobileScanner);
@@ -153,6 +162,19 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
         var lastSale = _saleRepo.GetAll().FirstOrDefault();
         LastSaleSummary = lastSale == null ? "Sin ventas aún" : $"Venta #{lastSale.Id} · ${lastSale.Total:F2}";
+
+        RefreshCashSession();
+    }
+
+    public void RefreshCashSession()
+    {
+        _openCashSession = _cashRepo.GetOpenSession(_currentUser.Id);
+        OnPropertyChanged(nameof(HasOpenCashSession));
+        OnPropertyChanged(nameof(IsCashClosed));
+        OnPropertyChanged(nameof(CashSessionStatus));
+        OnPropertyChanged(nameof(CanCheckout));
+        if (CheckoutCommand is RelayCommand command)
+            command.NotifyCanExecuteChanged();
     }
 
     public void AddProductToCartById(int productId)
@@ -408,6 +430,12 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     {
         if (CartItems.Count == 0) return;
 
+        if (!HasOpenCashSession)
+        {
+            SetFeedback("Abrí una caja antes de cobrar.", "#FF9800");
+            return;
+        }
+
         var sinStock = CartItems.FirstOrDefault(ci => ci.Product.Stock < ci.Quantity);
         if (sinStock != null)
         {
@@ -422,40 +450,33 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     {
         if (CartItems.Count == 0) return;
 
+        var lines = CartItems
+            .Select(ci => new SaleRepository.SaleLine(ci.Product.Id, ci.Quantity, ci.Price))
+            .ToList();
+
         try
         {
-            var total = CartTotal;
-            var sale = new Sale
+            var session = _cashRepo.GetOpenSession(_currentUser.Id);
+            if (session == null)
             {
-                UserId = _currentUser.Id,
-                Total = total,
-                PaymentMethod = SelectedPaymentMethod,
-                CreatedAt = DateTime.Now
-            };
+                SetFeedback("Abrí una caja antes de cobrar.", "#FF9800");
+                return;
+            }
 
-            int saleId = _saleRepo.Add(sale);
+            var total = CartTotal;
+            int saleId = _saleRepo.RegisterSale(_currentUser.Id, session.Id, SelectedPaymentMethod, lines);
 
             foreach (var ci in CartItems)
-            {
-                _saleRepo.AddItem(new SaleItem
-                {
-                    SaleId = saleId,
-                    ProductId = ci.Product.Id,
-                    Quantity = ci.Quantity,
-                    PriceSold = ci.Price
-                });
-
                 ci.Product.Stock -= ci.Quantity;
-                _productRepo.Update(ci.Product);
-            }
 
             LastSaleSummary = $"Venta #{saleId} · ${total:F2}";
             ClearCart();
+            RefreshCashSession();
             SetFeedback($"Venta #{saleId} completada - Total: ${total:F2}", "#4CAF50");
         }
         catch (Exception ex)
         {
-            SetFeedback($"Error: {ex.Message}", "#EF5350");
+            SetFeedback($"No se pudo cobrar: {ex.Message}", "#EF5350");
         }
     }
 
@@ -485,7 +506,9 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(IsCartEmpty));
         OnPropertyChanged(nameof(CartCountLabel));
         OnPropertyChanged(nameof(CheckoutLabel));
-        ((RelayCommand)CheckoutCommand).NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(CanCheckout));
+        if (CheckoutCommand is RelayCommand command)
+            command.NotifyCanExecuteChanged();
     }
 
     public void Dispose()

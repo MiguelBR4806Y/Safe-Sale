@@ -1,20 +1,22 @@
-using Microsoft.Data.Sqlite;
+using System;
+using System.Collections.ObjectModel;
+using MySqlConnector;
 using SS.Models;
 
 namespace SS.Data;
 
-public class SqliteUserRepository
+public class UserRepository
 {
-    private readonly string _dbPath;
+    private readonly string _connectionString;
 
-    public SqliteUserRepository(string dbPath)
+    public UserRepository(string connectionString)
     {
-        _dbPath = dbPath;
+        _connectionString = connectionString;
     }
 
     public User? GetByUsername(string username)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
@@ -39,7 +41,7 @@ public class SqliteUserRepository
 
     public void Add(User user)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
@@ -55,7 +57,7 @@ public class SqliteUserRepository
 
     public bool HasUsers()
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();

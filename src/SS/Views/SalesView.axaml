@@ -215,7 +215,7 @@
                                                 <!-- Producto + precio unitario -->
                                                 <StackPanel Grid.Column="0" VerticalAlignment="Center"
                                                             Spacing="2" Margin="0,0,6,0">
-                                                    <TextBlock Text="{Binding ProductName}"
+                                                    <SelectableTextBlock Text="{Binding ProductName}"
                                                                FontSize="13" FontWeight="SemiBold"
                                                                Foreground="#2D1B4E"
                                                                TextTrimming="CharacterEllipsis"/>
@@ -311,6 +311,20 @@
                                 </StackPanel>
                             </Border>
 
+                            <!-- Estado de caja -->
+                            <Border CornerRadius="8"
+                                    Padding="10,9"
+                                    Background="#FFF3E0"
+                                    BorderThickness="3,0,0,0"
+                                    BorderBrush="#FF9800"
+                                    IsVisible="{Binding IsCashClosed}">
+                                <TextBlock Text="{Binding CashSessionStatus}"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           Foreground="#E65100"
+                                           TextWrapping="Wrap"/>
+                            </Border>
+
                             <!-- Feedback unificado -->
                             <Border CornerRadius="8"
                                     Padding="10,9"
@@ -366,7 +380,7 @@
                                 <Button Classes="checkout"
                                         Height="50"
                                         HorizontalAlignment="Stretch"
-                                        IsEnabled="{Binding HasCartItems}"
+                                        IsEnabled="{Binding CanCheckout}"
                                         Command="{Binding CheckoutCommand}">
                                     <StackPanel Orientation="Horizontal"
                                                 HorizontalAlignment="Center"

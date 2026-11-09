@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="SS.Dialogs.ConfirmDialog"
         Title="Confirmar"
+        Icon="/Assets/SS-ico.png"
         Width="380" Height="200"
         WindowStartupLocation="CenterOwner"
         CanResize="False"

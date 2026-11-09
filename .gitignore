@@ -19,9 +19,13 @@ AppPackages/
 # Temp files
 *.Tmp
 *.Backup*
+.backup-*/
 
 # Local DB
 supermarket.db
+
+# Motor MySQL portable (se descarga con scripts/fetch-mysql-vendor.*)
+vendor/
 
 # NuGet
 packages/

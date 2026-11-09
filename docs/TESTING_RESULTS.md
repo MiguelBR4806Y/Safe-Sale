@@ -1,5 +1,7 @@
 # Resultados de Testing - Safe-Sale
 
+> **Documento histórico:** corresponde a la versión con SQLite, previa a la migración a MySQL local. Se conserva como registro; para la versión actual ver `docs/mysql-local.md` y `README.md`.
+
 **Fecha:** 15 de Septiembre 2026  
 **Plataforma:** Windows 10/11  
 **.NET SDK:** 10.0.400  

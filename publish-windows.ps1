@@ -1,84 +1,81 @@
-# Safe-Sale - Script de Publicación (Windows)
+#requires -Version 5.1
+# Safe-Sale - Publicación (Windows x64)
 # Requiere: dotnet, vpk (dotnet tool install --global vpk), gh (winget install GitHub.cli)
 
 $ErrorActionPreference = "Stop"
 
-$PublishDir = ".\publish"
-$ProjectPath = ".\src\SS\SS.csproj"
-$ReleaseDir = ".\Releases"
+$Root        = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectPath = Join-Path $Root "src\SS\SS.csproj"
+$PublishDir  = Join-Path $Root "publish"
+$ReleaseDir  = Join-Path $Root "Releases\win-x64"
+$PackId      = "SafeSale"
+$MainExe     = "SafeSale.exe"
+$Runtime     = "win-x64"
+$Channel     = "win"
 
-# Leer versión del .csproj
-$Version = (Select-String -Path $ProjectPath -Pattern '<Version>(.*?)</Version>' | ForEach-Object { $_.Matches.Groups[1].Value } | Select-Object -First 1).Trim()
+$Version = $null
+$match = Select-String -Path $ProjectPath -Pattern "<Version>(.*?)</Version>" | Select-Object -First 1
+if ($match) { $Version = $match.Matches[0].Groups[1].Value.Trim() }
 
 if (-not $Version) {
-    Write-Host "Error: No se pudo leer la versión del .csproj" -ForegroundColor Red
+    Write-Host "Error: No se pudo leer <Version> del .csproj" -ForegroundColor Red
     exit 1
 }
+
+$Tag = "v$Version-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 
 Write-Host "=== Safe-Sale - Publicación Windows ===" -ForegroundColor Cyan
 Write-Host "Versión: $Version" -ForegroundColor Yellow
+Write-Host "Canal:   $Channel" -ForegroundColor Yellow
+Write-Host "Runtime: $Runtime" -ForegroundColor Yellow
+Write-Host "Tag:     $Tag" -ForegroundColor Yellow
 
-# Generar tag único con timestamp
-$Timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-$Tag = "v$Version-$Timestamp"
-Write-Host "Tag: $Tag" -ForegroundColor Yellow
+# 1. Verificar el motor MySQL incluido
+$MysqlExe = Join-Path $Root "vendor\mysql\$Runtime\bin\mysqld.exe"
+if (-not (Test-Path $MysqlExe)) {
+    Write-Host "Error: falta el motor MySQL local para $Runtime." -ForegroundColor Red
+    Write-Host "Ejecutá primero: .\scripts\fetch-mysql-vendor.ps1" -ForegroundColor Yellow
+    exit 1
+}
 
-# 1. Publicar la app
+# 2. Publicar la aplicación
 Write-Host "`n[1/4] Publicando aplicación..." -ForegroundColor Green
-dotnet publish $ProjectPath -c Release -r win-x64 --self-contained -o "$PublishDir\win-x64"
+dotnet publish $ProjectPath -c Release -r $Runtime --self-contained true -o (Join-Path $PublishDir $Runtime)
+if ($LASTEXITCODE -ne 0) { Write-Host "Error al publicar" -ForegroundColor Red; exit 1 }
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Error al publicar" -ForegroundColor Red
-    exit 1
-}
-
-# 2. Empaquetar con Velopack
+# 3. Empaquetar con Velopack
 Write-Host "`n[2/4] Empaquetando instalador..." -ForegroundColor Green
-vpk pack --packId SafeSale --packVersion $Version --packDir "$PublishDir\win-x64" --mainExe SafeSale.exe
+if (Test-Path $ReleaseDir) { Remove-Item $ReleaseDir -Recurse -Force }
+vpk pack --packId $PackId --packVersion $Version --packDir (Join-Path $PublishDir $Runtime) `
+    --mainExe $MainExe --outputDir $ReleaseDir --channel $Channel `
+    --icon (Join-Path $Root "src\SS\Assets\SS-ico.ico") `
+    --packAuthors "Safe-Sale Team" --yes
+if ($LASTEXITCODE -ne 0) { Write-Host "Error al empaquetar" -ForegroundColor Red; exit 1 }
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "Error al empaquetar" -ForegroundColor Red
-    exit 1
+$setup = Get-ChildItem -Path $ReleaseDir -Filter "*-Setup.exe" -File | Select-Object -First 1
+if ($setup) {
+    $target = Join-Path $ReleaseDir "SS-Installer.exe"
+    if (Test-Path $target) { Remove-Item $target -Force }
+    Rename-Item -Path $setup.FullName -NewName "SS-Installer.exe" -Force
+    Write-Host "Instalador renombrado a SS-Installer.exe" -ForegroundColor Yellow
 }
 
-# Renombrar instalador
-$oldName = Get-ChildItem -Path $ReleaseDir -Filter "SafeSale-win-Setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-if ($oldName) {
-    $newName = Join-Path $oldName.Directory "SS-Installer.exe"
-    if (Test-Path $newName) { Remove-Item -Path $newName -Force }
-    Rename-Item -Path $oldName.FullName -NewName $newName -Force
-    Write-Host "Renombrado: $($oldName.Name) → SS-Installer.exe" -ForegroundColor Yellow
-}
-
-# 3. Crear Release en GitHub
+# 4. Crear Release en GitHub
 Write-Host "`n[3/4] Creando Release en GitHub..." -ForegroundColor Green
-gh release create "$Tag" --title "Safe-Sale v$Version" --notes "Versión $Version" --draft
-
+gh release create $Tag --title "Safe-Sale v$Version (Windows)" --notes "Versión $Version para Windows x64." --draft
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Error al crear release. Asegúrate de tener gh CLI instalado y autenticado." -ForegroundColor Red
-    Write-Host "Instalar gh: winget install GitHub.cli" -ForegroundColor Yellow
-    Write-Host "Autenticar: gh auth login" -ForegroundColor Yellow
+    Write-Host "Error al crear release. Instala/autentica gh: winget install GitHub.cli ; gh auth login" -ForegroundColor Red
     exit 1
 }
 
-# 4. Subir archivos al Release
-Write-Host "`n[4/4] Subiendo archivos al Release..." -ForegroundColor Green
-$setupExe = Get-ChildItem -Path $ReleaseDir -Filter "SS-Installer.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-$nupkg = Get-ChildItem -Path $ReleaseDir -Filter "*.nupkg" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-
-if ($setupExe) {
-    gh release upload "$Tag" $setupExe.FullName --clobber
-    Write-Host "Subido: $($setupExe.Name)" -ForegroundColor Green
+# 5. Subir todos los artefactos (feed de actualizaciones incluido)
+Write-Host "`n[4/4] Subiendo artefactos al Release..." -ForegroundColor Green
+Get-ChildItem -Path $ReleaseDir -File | ForEach-Object {
+    gh release upload $Tag $_.FullName --clobber
+    Write-Host "Subido: $($_.Name)" -ForegroundColor Green
 }
 
-if ($nupkg) {
-    gh release upload "$Tag" $nupkg.FullName --clobber
-    Write-Host "Subido: $($nupkg.Name)" -ForegroundColor Green
-}
-
-# 5. Publicar el Release (quitar draft)
-gh release edit "$Tag" --draft=false
+gh release edit $Tag --draft=false
 
 Write-Host "`n=== ¡Publicación completada! ===" -ForegroundColor Cyan
-Write-Host "Los usuarios recibirán la actualización automáticamente." -ForegroundColor Green
 Write-Host "URL: https://github.com/MiguelBR4806Y/Safe-Sale/releases/tag/$Tag" -ForegroundColor Yellow

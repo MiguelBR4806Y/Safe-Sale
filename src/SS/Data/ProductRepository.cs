@@ -1,70 +1,47 @@
-using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.ObjectModel;
+using MySqlConnector;
 using SS.Models;
 
 namespace SS.Data;
 
-public class SqliteProductRepository
+public class ProductRepository
 {
-    private readonly string _dbPath;
+    private readonly string _connectionString;
 
-    public SqliteProductRepository(string dbPath)
+    public ProductRepository(string connectionString)
     {
-        _dbPath = dbPath;
-        Initialize();
-    }
-
-    private void Initialize()
-    {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
-        conn.Open();
-
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = @"
-            CREATE TABLE IF NOT EXISTS products (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                barcode TEXT UNIQUE,
-                price DECIMAL(10,2) NOT NULL,
-                stock INTEGER DEFAULT 0,
-                category_id INTEGER,
-                min_stock INTEGER DEFAULT 5,
-                FOREIGN KEY (category_id) REFERENCES categories(id)
-            )";
-        cmd.ExecuteNonQuery();
+        _connectionString = connectionString;
     }
 
     public ObservableCollection<Product> GetAll()
     {
         var result = new ObservableCollection<Product>();
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT p.id, p.name, p.barcode, p.price, p.stock, p.category_id, c.name AS category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id";
+        cmd.CommandText = "SELECT p.id, p.name, p.barcode, p.price, p.stock, p.category_id FROM products p";
 
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
         {
-            var product = new Product
+            result.Add(new Product
             {
                 Id = reader.GetInt32(0),
                 Name = reader.GetString(1),
                 Barcode = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
                 Price = reader.GetDecimal(3),
                 Stock = reader.GetInt32(4),
-                CategoryId = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
-                // Note: we're not mapping category name to the product model for simplicity
-            };
-            result.Add(product);
+                CategoryId = reader.IsDBNull(5) ? 0 : reader.GetInt32(5)
+            });
         }
         return result;
     }
 
     public void Add(Product product)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
@@ -84,7 +61,7 @@ public class SqliteProductRepository
 
     public void Update(Product product)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
@@ -104,29 +81,41 @@ public class SqliteProductRepository
 
     public bool Delete(int id)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
+        using (var itemsCmd = conn.CreateCommand())
+        {
+            itemsCmd.CommandText = "DELETE FROM sale_items WHERE product_id = @id";
+            itemsCmd.Parameters.AddWithValue("@id", id);
+            itemsCmd.ExecuteNonQuery();
+        }
+
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "DELETE FROM sale_items WHERE product_id = @id; DELETE FROM products WHERE id = @id";
+        cmd.CommandText = "DELETE FROM products WHERE id = @id";
         cmd.Parameters.AddWithValue("@id", id);
-        var rows = cmd.ExecuteNonQuery();
-        return rows > 0;
+        return cmd.ExecuteNonQuery() > 0;
     }
 
     public void DeleteAll()
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
+        using (var itemsCmd = conn.CreateCommand())
+        {
+            itemsCmd.CommandText = "DELETE si FROM sale_items si INNER JOIN products p ON si.product_id = p.id";
+            itemsCmd.ExecuteNonQuery();
+        }
+
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "DELETE FROM sale_items WHERE product_id IN (SELECT id FROM products); DELETE FROM products";
+        cmd.CommandText = "DELETE FROM products";
         cmd.ExecuteNonQuery();
     }
 
     public Product? GetById(int id)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
@@ -144,7 +133,7 @@ public class SqliteProductRepository
                 Price = reader.GetDecimal(3),
                 Stock = reader.GetInt32(4),
                 CategoryId = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
-                MinStock = reader.GetInt32(6),
+                MinStock = reader.GetInt32(6)
             };
         }
         return null;
@@ -152,7 +141,7 @@ public class SqliteProductRepository
 
     public Product? GetByBarcode(string barcode)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
@@ -170,7 +159,7 @@ public class SqliteProductRepository
                 Price = reader.GetDecimal(3),
                 Stock = reader.GetInt32(4),
                 CategoryId = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
-                MinStock = reader.GetInt32(6),
+                MinStock = reader.GetInt32(6)
             };
         }
         return null;
@@ -179,25 +168,24 @@ public class SqliteProductRepository
     public ObservableCollection<Product> GetLowStock()
     {
         var result = new ObservableCollection<Product>();
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT p.id, p.name, p.barcode, p.price, p.stock, p.min_stock FROM products p WHERE p.stock <= p.min_stock";
+        cmd.CommandText = "SELECT id, name, barcode, price, stock, min_stock FROM vw_stock_bajo";
 
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
         {
-            var product = new Product
+            result.Add(new Product
             {
                 Id = reader.GetInt32(0),
                 Name = reader.GetString(1),
                 Barcode = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
                 Price = reader.GetDecimal(3),
                 Stock = reader.GetInt32(4),
-                MinStock = reader.GetInt32(5),
-            };
-            result.Add(product);
+                MinStock = reader.GetInt32(5)
+            });
         }
         return result;
     }

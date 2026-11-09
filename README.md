@@ -1,7 +1,37 @@
 # Safe-Sale - Sistema de Gestión de Supermercado
 
 ## Aplicación Multiplataforma de Mostrador
-Sistema punto de venta y gestión de supermercado desarrollado con **Avalonia UI**, **C#** y **SQLite** para Windows, macOS, Linux y Android.
+Sistema punto de venta y gestión de supermercado desarrollado con **Avalonia UI**, **C#** y **MySQL local incluido** para Windows, macOS y Linux.
+
+## Descripción general
+
+Safe-Sale es una aplicación de mostrador que combina **punto de venta**, **inventario**, **caja** y **registros** en un solo sistema local. Está pensada para funcionar sin servidores externos ni configuración de base de datos por parte del usuario.
+
+- **Inventario**: alta, edición, eliminación y búsqueda de productos; stock y stock mínimo; carga inicial de 18 productos de demostración.
+- **Ventas**: carrito, búsqueda por nombre o código de barras, métodos de pago y descuento de stock.
+- **Caja**: apertura y cierre por turno, efectivo esperado y diferencia de cierre; las ventas se asocian a la caja abierta.
+- **Usuarios y roles**: login con contraseña hasheada; **Administrador** gestiona todo, **Cajero** ve inventario en modo lectura y opera ventas/caja.
+- **Base de datos**: MySQL local incluido y administrado por la app, con transacciones ACID, triggers de auditoría y una vista de stock bajo.
+- **Escáneres**: cámara de la PC y escáner móvil por HTTP/QR.
+- **Multiplataforma**: Windows, macOS y Linux; auto-actualización con Velopack.
+
+Para el detalle técnico ver las secciones **Base de Datos**, **Estructura del Proyecto** y la guía de **Presentación en PowerPoint** al final.
+
+### Roles
+
+| Rol | Inventario | Ventas | Caja | Registros |
+|-----|-----------|--------|------|-----------|
+| **Administrador** | CRUD completo | Si | Si | Si |
+| **Cajero** | Solo lectura | Si | Si (su caja) | Si |
+
+### Flujo básico
+
+1. Iniciar sesion con `admin` / `admin123` o registrar un usuario Cajero desde el login.
+2. Ir a **Caja** y abrir la caja con el efectivo inicial del turno.
+3. **Inventario**: el administrador agrega, edita o elimina productos; el cajero solo consulta.
+4. **Ventas**: buscar productos por nombre o codigo, armar el carrito y **COBRAR**.
+5. **Caja**: cerrar el turno con el efectivo contado; la app calcula el efectivo esperado y la diferencia.
+6. **Registros**: consultar el historial de ventas.
 
 ---
 
@@ -9,7 +39,7 @@ Sistema punto de venta y gestión de supermercado desarrollado con **Avalonia UI
 
 | Integrante | Rol | Responsabilidades |
 |------------|-----|-------------------|
-| **Lucas** | **Backend** | Base de datos SQLite, repositorios, lógica de negocio, conexión a datos |
+| **Lucas** | **Backend** | Base de datos MySQL local, repositorios, lógica de negocio, conexión a datos |
 | **Jandir** | **Frontend** | Interfaces Avalonia UI, Views XAML, componentes, diseño UI/UX |
 | **Dante** | **Documentación** | Diagramas E-R, manual de usuario, documentación técnica, diapositivas |
 
@@ -17,16 +47,16 @@ Sistema punto de venta y gestión de supermercado desarrollado con **Avalonia UI
 
 ## Estado del Progreso — 9 de Noviembre 2026
 
-### Progreso General: **~99%** Completado
+### Progreso General: **~95%** Completado
 
 ```
 Backend:       ████████████████████ 100%
 Frontend:      ████████████████████ 100%
 Integracion:   ████████████████████ 100%
-Documentacion: ████░░░░░░░░░░░░░░░░  20%
+Documentacion: ████████░░░░░░░░░░░░  40%
 ```
 
-### Nuevas Funcionalidades (9 nov 2026) — Rediseño de Ventas
+### Nuevas Funcionalidades (9 nov 2026) — Ventas, Base de Datos, Roles y Caja
 
 - [x] **Layout de Ventas renovado**: Titulo "VENTAS" centrado, escaneres (camara + movil + codigo manual) compactados en una sola fila superior, franja de KPIs con iconos (Items, Total, Metodo de pago, Ultima venta) y mismo patron visual que Inventario (bandas #F5F0FA, tarjetas con sombra)
 - [x] **Busqueda por nombre**: `AutoCompleteBox` con sugerencias de productos (`FilterMode="Contains"`) ademas del codigo de barras, con boton Agregar
@@ -38,6 +68,14 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 - [x] **Botones renovados**: COBRAR con degradado (#7B1FA2 → #4A148C), sombra, icono y monto dinamico; Vaciar Carrito en estilo outline rojo con hover tinteado
 - [x] **Carrito diferenciado**: Header con badge de cantidad, encabezados PRODUCTO/CANT./SUBTOTAL, filas con precio unitario ("c/u"), controles de cantidad en pill, subtotal morado, quitar en rojo suave y estado vacio ilustrado
 - [x] **Bug corregido**: Los escaneos moviles en modo Ventas escribian el feedback en el ViewModel de Inventario (`MainViewModel.PollBarcodes`)
+- [x] **ACID en el cobro**: procedimiento `sp_registrar_venta` que registra venta + items + descuento de stock en una sola transaccion con `COMMIT`/`ROLLBACK`
+- [x] **Objetos de base de datos**: triggers de auditoria (`product_audit`) y vista `vw_stock_bajo`
+- [x] **Inventario de demostracion**: 18 productos (2 por categoria) cargados automaticamente si la tabla esta vacia
+- [x] **Permisos por rol**: el cajero ve Inventario en modo solo lectura; el administrador mantiene el CRUD completo
+- [x] **Caja**: apertura y cierre de caja con monto inicial, ventas asociadas, efectivo esperado y diferencia de cierre
+- [x] **Registro publico**: desde el login solo se crean usuarios Cajero (los administradores usan la cuenta admin)
+- [x] **Datos copiables**: nombre y codigo de producto seleccionables en Inventario (Ctrl+C); nombre seleccionable en el carrito
+- [x] **Branding**: icono de la app en ventanas, login, ejecutable e instaladores; banner de marca en el sidebar
 
 ### Nuevas Funcionalidades (27 sep 2026)
 
@@ -99,28 +137,30 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 
 - [x] **Vaciar Inventario**: Botón "Vaciar Inventario" con `ClearInventoryCommand` que borra todos los productos (conserva categorías)
 - [x] **Encabezados de columna**: Cada categoría muestra etiquetas (Producto, Código, Precio, Stock) antes de listar productos
-- [x] **DeleteAll en repositorio**: Método `SqliteProductRepository.DeleteAll()` que limpia `sale_items` y `products`
+- [x] **DeleteAll en repositorio**: Método `ProductRepository.DeleteAll()` que limpia `sale_items` y `products`
 
 ### Completado
 
 #### Backend (100%)
-- [x] **Base de datos SQLite**: `Microsoft.Data.Sqlite` configurado
-- [x] **Inicializador de BD**: `SqliteDatabaseInitializer.cs` crea tablas automaticamente + migracion `payment_method`
-- [x] **Modelos**: `Product.cs`, `Category.cs`, `Sale.cs` (con `PaymentMethod`), `SaleItem.cs`, `CartItem.cs`, `User.cs`
-- [x] **Repositorios CRUD**: `SqliteProductRepository.cs` (con `GetById`, `GetByBarcode`, `DeleteAll`), `SqliteCategoryRepository.cs`, `SqliteSaleRepository.cs` (con `payment_method`), `SqliteUserRepository.cs`
+- [x] **Base de datos MySQL local**: `MySqlConnector` + motor MySQL incluido y gestionado por la app (sin configuración del usuario)
+- [x] **Inicializador de BD**: `DatabaseInitializer.cs` crea el esquema automaticamente + migraciones
+- [x] **Modelos**: `Product.cs`, `Category.cs`, `Sale.cs` (con `PaymentMethod`), `SaleItem.cs`, `CartItem.cs`, `User.cs`, `CashSession.cs`
+- [x] **Repositorios CRUD**: `ProductRepository.cs` (con `GetById`, `GetByBarcode`, `DeleteAll`), `CategoryRepository.cs`, `SaleRepository.cs` (con `payment_method`), `UserRepository.cs`, `CashSessionRepository.cs` (apertura/cierre y totales)
+- [x] **Objetos de BD**: `sp_registrar_venta` transaccional (ACID + rollback), triggers de auditoría y vista `vw_stock_bajo`
+- [x] **Validaciones**: `InputValidator.cs` (precio con punto decimal, stock ≥ 1, montos) y `UserValidator.cs` (usuario/contraseña)
 - [x] **Compilacion**: `dotnet build` → 0 errores, 0 warnings
 - [x] **Estructura MVVM**: Separacion de concerns implementada
 - [x] **Autenticacion**: Sistema de login con SHA256 + salt, usuario admin por defecto
 - [x] **Eliminacion segura**: DELETE con cascade en `sale_items` (no crashea al eliminar productos con ventas)
 
 #### Frontend - Integracion Completa (100%)
-- [x] **Navegacion**: Sidebar con 4 secciones (Dashboard, Inventario, Ventas, Registros)
+- [x] **Navegacion**: Sidebar con 5 secciones (Dashboard, Inventario, Ventas, Caja, Registros)
 - [x] **MainWindow**: Barra lateral con navegacion MVVM, estilos globales para ListBox/ListBoxItem
 - [x] **DashboardView**: Tarjetas KPI modernas con iconos, sombras, colores diferenciados, lista de ventas recientes con diseno de tarjetas
-- [x] **InventoryView**: CRUD completo conectado a SQLite, busqueda en vivo con autocompletado y filtrado por categoria, estadisticas, escaner de camara PC, escaner movil QR, encabezados de columna, categorias colapsables, selector de camara, boton vaciar inventario con confirmacion, botones deshabilitados cuando inventario vacio
+- [x] **InventoryView**: CRUD completo conectado a MySQL local (el rol Cajero lo ve en modo solo lectura), busqueda en vivo con autocompletado y filtrado por categoria, estadisticas, escaner de camara PC, escaner movil QR, encabezados de columna, categorias colapsables, selector de camara, boton vaciar inventario con confirmacion, botones deshabilitados cuando inventario vacio
 - [x] **SalesView**: Rediseño completo — titulo VENTAS, KPIs con iconos, busqueda por nombre con autocompletado, codigo de barras con coincidencias, carrito con encabezados y estado vacio, resumen con scroll responsivo y botones renovados, confirmaciones de cobro/vaciado, escaner de camara PC, escaner movil QR, selector de metodo de pago (Efectivo/Tarjeta/Transferencia), cobro con actualizacion de stock
 - [x] **RecordsView**: Filtros modernos con DatePicker, estadisticas con iconos, tabla de registros con badges
-- [x] **LoginWindow**: Diseno moderno con fondo decorativo, logo con fondo morado, inputs redondeados, credenciales por defecto en tarjeta
+- [x] **LoginWindow**: Diseno moderno con fondo decorativo, logo con fondo morado, inputs redondeados, credenciales por defecto en tarjeta y enlace para **registrar usuarios nuevos** (siempre como Cajero)
 - [x] **EditProductDialog**: Dialogo de edicion con Barcode/Name/Price/Stock/MinStock, validacion
 - [x] **Estilos**: Paleta lavanda/lila consistente, tema forzado a Light
 - [x] **Logout**: Boton cerrar sesion en sidebar
@@ -164,7 +204,7 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 #### Auto-Actualizacion (100%)
 - [x] **Velopack**: `UpdateService.cs` busca actualizaciones en GitHub Releases
 - [x] **Actualizacion automatica**: Al iniciar sesion, verifica y descarga nueva version
-- [x] **Scripts sincronizados**: Ambos scripts (Windows/macOS) leen la version del `.csproj` y generan tags unicos
+- [x] **Scripts sincronizados**: Los tres scripts (Windows/macOS/Linux) leen la version del `.csproj` y generan tags unicos
 
 ### Funcionalidades Movil Detalladas
 
@@ -183,10 +223,11 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 
 ### Pendiente
 
-- [ ] **Testing**: Pruebas en Windows, macOS y Linux (verificar fixes de botones)
-- [ ] **Documentacion**: Diagrama E-R, manual de usuario (Dante)
-- [ ] **Diapositivas**: Presentacion para defensa
-- [x] **Diagnostico Inventario**: Verificado — botones Agregar y Refrescar ejecutan handlers correctamente (la busqueda ya no usa boton: es en vivo con autocompletado)
+- [x] **Testing Windows**: build, motor MySQL, esquema, ACID, cajas, roles e iconos verificados
+- [ ] **Testing macOS/Linux**: ejecutar con los binarios de MySQL de cada plataforma y validar dependencias nativas
+- [ ] **Documentacion**: Diagrama E-R y manual de usuario (Dante)
+- [x] **Guia de presentacion**: instrucciones completas agregadas al final de este README
+- [ ] **Diapositivas**: armar el `.pptx` final para la defensa
 
 ---
 
@@ -204,15 +245,15 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 
 #### 1. **LoginWindow** - Inicio de Sesion
 - Fondo decorativo con formas organicas
-- Logo "SS" con fondo morado redondeado
+- Logo institucional (`Assets/SS-ico.png`)
 - Inputs con bordes redondeados y focus highlight
 - Boton "Iniciar Sesion" con spinner de carga
 - Credenciales por defecto: admin / admin123
 
 #### 2. **MainWindow** - Ventana Principal
-- Barra lateral (sidebar) con navegacion
-- Logo "SS" en la parte superior
-- 4 botones de seccion con iconos
+- Barra lateral (sidebar) con navegacion y banner de marca (`SS-general.jpg`)
+- 5 botones de seccion con iconos: Dashboard, Inventario, Ventas, Caja y Registros
+- Tarjeta de usuario con nombre y rol; boton de cerrar sesion
 - Estilos globales para ListBox transparentes con hover lavanda
 
 #### 3. **DashboardView** - Panel de Control
@@ -243,50 +284,80 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 - **Resumen**: Panel con scroll responsivo al redimensionar la ventana, tiles de Items/Total, Metodo de pago (Efectivo/Tarjeta/Transferencia), feedback unificado con color
 - **Botones**: COBRAR con degradado, sombra y monto dinamico; Vaciar Carrito en outline rojo; ambos con `ConfirmDialog` y deshabilitados cuando el carrito esta vacio
 
-#### 6. **RecordsView** - Historial
+#### 6. **CashSessionView** - Caja
+- Estado de la caja: abierta/cerrada, apertura, ventas en efectivo, total de ventas y efectivo esperado.
+- **Abrir caja**: monto inicial del turno.
+- **Cerrar caja**: monto contado al cierre; calcula la diferencia contra el efectivo esperado.
+- Historial de cajas (todas para administrador, propias para cajero).
+- Las ventas se asocian a la caja abierta y el cobro se bloquea si no hay caja.
+
+#### 7. **RecordsView** - Historial
 - Filtros modernos con DatePicker (DateTimeOffset)
 - Estadisticas con iconos: Total Ventas, Transacciones
 - Tabla de registros con badges de tipo y totales destacados
 
-#### 7. **EditProductDialog** - Editar Producto
+#### 8. **EditProductDialog** - Editar Producto
 - Campos: Codigo, Nombre, Precio, Categorias (dropdown), Stock, Stock Minimo
 - Validacion de campos obligatorios
 - Guardar con actualizacion en BD
 
 ---
 
-## Cronograma (Hasta el 22 de septiembre de 2026)
+## Cronograma original (referencia histórica)
+
+> Fechas planificadas originalmente. El proyecto continuó después con MySQL local, roles, caja, ACID y documentación; el estado actual está en la sección **Pendiente**.
 
 | Fecha | Hito | Estado |
 |-------|------|--------|
 | **8 sep 2026** | Inicio de fase de ejecucion | Completado |
-| **10 sep** | Backend SQLite funcional | Completado |
+| **10 sep** | Backend MySQL local funcional | Completado |
 | **11 sep** | Integracion Frontend-Backend + Navegacion + Ventas | Completado |
 | **14 sep** | Login de usuarios | Completado |
 | **15 sep** | QR Scanner + Estilos UI | Completado |
 | **16 sep** | Escaner movil HTTP + Carrito desde movil | Completado |
 | **17 sep** | Escaner camara PC + Dashboard/Login/Registros mejorados | Completado |
 | **18 sep** | Estilos compartidos, camara selection, macOS permissions, bug fixes | Completado |
-| **20 sep** | Testing en 3 plataformas | Pendiente |
-| **22 sep** | **Entrega y defensa** | Pendiente |
+| **20 sep** | Testing en 3 plataformas | Parcial: Windows OK; macOS/Linux pendiente |
+| **22 sep** | **Entrega y defensa** | Pendiente (fecha a confirmar) |
 
 ---
 
 ## Base de Datos
 
+### MySQL local, sin configuración
+
+La app incluye un motor **MySQL 8 Community** y lo administra sola:
+
+- En el primer arranque crea el datadir, elige un puerto **loopback** (`127.0.0.1`), genera credenciales internas, crea la base `safesale` y el usuario de la app.
+- El usuario final **no** instala MySQL, no escribe credenciales ni edita archivos de configuración: solo usa el login de la app.
+- El motor y los datos quedan **en la máquina local**; no hay servidor remoto ni necesidad de internet.
+- Al cerrar la app, el motor local se apaga de forma ordenada.
+
+Datos locales (según SO, dentro del perfil del usuario):
+
+- **Windows**: `%LOCALAPPDATA%\Safe-Sale\mysql\data`
+- **macOS**: `~/Library/Application Support/Safe-Sale/mysql/data`
+- **Linux**: `~/.local/share/Safe-Sale/mysql/data`
+
+Logs: `%LOCALAPPDATA%\Safe-Sale\logs` (o equivalente).
+
 ### Tablas Creadas Automaticamente
 ```sql
-categories     (id, name, description)
+categories     (id, name, icon, color)
 products       (id, name, barcode, price, stock, category_id, min_stock)
 users          (id, username, password_hash, role, created_at)
-sales          (id, user_id, total, payment_method, created_at)
+cash_sessions  (id, user_id, opened_at, closed_at, opening_amount, closing_amount,
+                cash_sales, total_sales, expected_cash, difference)
+sales          (id, user_id, cash_session_id, total, payment_method, created_at)
 sale_items     (id, sale_id, product_id, quantity, price_sold)
+product_audit  (id, product_id, action, old_price, new_price, old_stock, new_stock, changed_at)
 ```
 
-### Ruta de la BD (segun SO)
-- **Windows**: `%LOCALAPPDATA%\supermarket.db`
-- **macOS**: `~/Library/Application Support/supermarket.db`
-- **Linux**: `~/.local/share/supermarket.db`
+### Objetos de Base de Datos
+- **Procedimiento `sp_registrar_venta`**: exige una caja abierta del usuario; inserta la venta (con `cash_session_id`), sus items y descuenta stock dentro de una transaccion; ante cualquier error hace `ROLLBACK` (probado con stock insuficiente y caja cerrada).
+- **Triggers de auditoria**: `trg_products_audit_insert`, `trg_products_audit_update` y `trg_products_audit_delete` registran cambios de precio/stock en `product_audit`.
+- **Vista `vw_stock_bajo`**: productos con `stock <= min_stock`, usada por el repositorio.
+- **Seed de productos**: 2 productos por cada una de las 9 categorias (18 en total), solo si `products` esta vacia.
 
 ---
 
@@ -308,7 +379,7 @@ dotnet build src/SS/SS.csproj
 dotnet run --project src/SS/SS.csproj
 ```
 
-La base de datos se creara automaticamente en el primer arranque.
+La base de datos local se crea y configura automaticamente en el primer arranque. Para desarrollo, si no tenés el motor en `vendor/mysql`, ejecutá `scripts/fetch-mysql-vendor.ps1` (Windows) o `scripts/fetch-mysql-vendor.sh` (macOS/Linux), o definí `SAFESALE_MYSQL_BASEDIR`.
 
 ### Escaner Movil
 1. En la app, ve a **Inventario** o **Ventas**
@@ -328,8 +399,9 @@ La base de datos se creara automaticamente en el primer arranque.
 1. Ve a [Releases](https://github.com/MiguelBR4806Y/Safe-Sale/releases)
 2. Descarga el instalador para tu plataforma:
    - **Windows**: `SS-Installer.exe`
-   - **macOS Apple Silicon** (M1/M2/M3/M4): `SS-Installer.pkg`
-   - **macOS Intel**: `SS-Installer.pkg`
+   - **macOS Apple Silicon** (M1/M2/M3/M4): `SS-Installer-arm64.pkg`
+   - **macOS Intel**: `SS-Installer-Intel.pkg`
+   - **Linux x64**: `SS-Installer.AppImage` (ejecutar con `chmod +x SS-Installer.AppImage && ./SS-Installer.AppImage`)
 3. Ejecuta el instalador
 4. La app se actualizara automaticamente cuando haya nuevas versiones
 
@@ -363,6 +435,15 @@ chmod +x publish-macos.sh
 ./publish-macos.sh
 ```
 
+#### Publicar desde Linux
+```bash
+# Ejecutar el script de publicacion
+chmod +x publish-linux.sh
+./publish-linux.sh
+```
+
+Cada plataforma publica en su propio canal (`win`, `osx-arm64`, `osx-x64`, `linux-x64`) para que el auto-update descargue el paquete correcto sin colisiones entre arquitecturas.
+
 #### Flujo de actualizacion
 ```
 1. Haces cambios en el codigo
@@ -394,7 +475,7 @@ Safe-Sale/
 │   └── SS/                              # Proyecto principal
 │       ├── App.axaml                    # Aplicacion Avalonia (tema Light + recursos)
 │       ├── App.axaml.cs
-│       ├── Program.cs                   # Punto de entrada (inicia BD)
+│       ├── Program.cs                   # Punto de entrada (App inicia el MySQL local)
 │       ├── SS.csproj                    # Configuracion del proyecto
 │       ├── Styles.axaml                 # Estilos compartidos reutilizables
 │       ├── ViewLocator.cs               # Localizador de vistas
@@ -404,6 +485,7 @@ Safe-Sale/
 │       │   ├── Sale.cs                  # Modelo de venta (con PaymentMethod)
 │       │   ├── SaleItem.cs              # Modelo de item de venta
 │       │   ├── CartItem.cs              # Modelo de item del carrito
+│       │   ├── CashSession.cs           # Modelo de caja (apertura/cierre)
 │       │   └── User.cs                  # Modelo de usuario
 │       ├── ViewModels/
 │       │   ├── ViewModelBase.cs         # Clase base MVVM
@@ -411,6 +493,7 @@ Safe-Sale/
 │       │   ├── DashboardViewModel.cs    # Panel de control
 │       │   ├── InventoryViewModel.cs    # Gestion de inventario + escaner + camara
 │       │   ├── SalesViewModel.cs        # Punto de venta + escaner + camara
+│       │   ├── CashSessionViewModel.cs  # Caja: apertura, cierre e historial
 │       │   ├── RecordsViewModel.cs      # Historial (con DateTimeOffset)
 │       │   ├── LoginViewModel.cs        # Logica de login + auto-update
 │       │   └── AboutViewModel.cs        # Acerca de + manual update check
@@ -425,26 +508,40 @@ Safe-Sale/
 │       │   ├── InventoryView.axaml.cs
 │       │   ├── SalesView.axaml          # Punto de venta + escaner + selector camara
 │       │   ├── SalesView.axaml.cs
+│       │   ├── CashSessionView.axaml    # Caja: apertura/cierre e historial
+│       │   ├── CashSessionView.axaml.cs
+│       │   ├── RegisterWindow.axaml     # Registro de usuarios (Cajero)
+│       │   ├── RegisterWindow.axaml.cs
 │       │   ├── RecordsView.axaml        # Historial (diseno moderno)
 │       │   ├── RecordsView.axaml.cs
 │       │   └── AboutView.axaml          # Acerca de + check updates
 │       ├── Dialogs/
 │       │   ├── EditProductDialog.axaml  # Editar producto
 │       │   ├── EditProductDialog.axaml.cs
+│       │   ├── QuickAddProductDialog.axaml  # Alta rapida de producto
+│       │   ├── QuickAddProductDialog.axaml.cs
 │       │   ├── ConfirmDialog.axaml      # Dialogo de confirmacion
 │       │   └── ConfirmDialog.axaml.cs
 │       ├── Data/
-│       │   ├── AppDatabase.cs           # Ruta compartida de la BD
-│       │   ├── SqliteDatabaseInitializer.cs  # Crea tablas + migra columnas
-│       │   ├── SqliteProductRepository.cs    # CRUD productos + GetByBarcode
-│       │   ├── SqliteCategoryRepository.cs   # CRUD categorias
-│       │   ├── SqliteSaleRepository.cs       # CRUD ventas + payment_method
-│       │   └── SqliteUserRepository.cs       # CRUD usuarios
+│       │   ├── DatabaseConfig.cs            # Cadena de conexión interna (sin configuración de usuario)
+│       │   ├── DatabaseInitializer.cs       # Crea tablas + migra columnas
+│       │   ├── DbErrors.cs                  # Detección de duplicados (1062)
+│       │   ├── ProductRepository.cs         # CRUD productos + GetByBarcode
+│       │   ├── CategoryRepository.cs        # CRUD categorias
+│       │   ├── SaleRepository.cs            # CRUD ventas + payment_method
+│       │   ├── CashSessionRepository.cs     # Cajas: apertura, cierre y totales
+│       │   └── UserRepository.cs            # CRUD usuarios
 │       ├── Services/
+│       │   ├── MySqlServerManager.cs    # Arranque/apagado y aprovisionamiento del MySQL local
+│       │   ├── CredentialStore.cs       # Credenciales internas generadas automáticamente
+│       │   ├── AppPaths.cs              # Rutas locales (datadir, logs, secretos)
 │       │   ├── MobileScannerService.cs  # Servidor HTTP + QR + escaner movil
 │       │   ├── CameraService.cs         # Captura de camara PC (thread-safe)
 │       │   ├── BarcodeScannerService.cs # Decodificacion de codigo de barras
 │       │   ├── PasswordHasher.cs        # Hash SHA256 + salt
+│       │   ├── InputValidator.cs        # Validacion de precio/stock/montos
+│       │   ├── UserValidator.cs         # Validacion de usuario/contrasena
+│       │   ├── StartupState.cs          # Estado de error de arranque
 │       │   ├── UpdateService.cs         # Auto-updates con Velopack + GitHub
 │       │   ├── ICameraService.cs        # Interfaz de camara (con enumeracion)
 │       │   └── IBarcodeScannerService.cs # Interfaz de escaner
@@ -457,13 +554,21 @@ Safe-Sale/
 │       ├── www/
 │       │   └── zxing.min.js             # ZXing-js para decodificacion
 │       └── Assets/
-│           └── avalonia-logo.ico
-├── docs/                                # Documentacion (Dante)
+│           ├── SS-ico.ico        # Icono del ejecutable/instalador Windows
+│           ├── SS-ico.png        # Icono de ventanas/login y AppImage Linux
+│           ├── SS-general.jpg    # Banner de marca del sidebar
+│           └── avalonia-logo.ico # Icono legado
+├── docs/                                # Documentacion (Dante) + mysql-local.md
+├── scripts/
+│   ├── fetch-mysql-vendor.ps1           # Descarga el motor MySQL para Windows
+│   └── fetch-mysql-vendor.sh            # Descarga el motor MySQL para macOS/Linux
 ├── .vscode/
 │   ├── launch.json                      # Configuracion de debug
 │   └── tasks.json                       # Tareas de build
 ├── publish-windows.ps1                  # Script de publicacion Windows (lee version del .csproj)
-├── publish-macos.sh                     # Script de publicacion macOS (lee version del .csproj)
+├── publish-macos.sh                     # Script de publicacion macOS (arm64 + Intel)
+├── publish-linux.sh                     # Script de publicacion Linux (AppImage)
+├── tests/SS.Tests/                      # Pruebas unitarias de validacion de entrada
 ├── README.md                            # Este archivo
 └── requirements.txt                     # Configuracion
 ```
@@ -489,7 +594,7 @@ Safe-Sale/
 ## Notas Tecnicas
 
 - **Smart App Control (SAC)**: En Windows 11 25H2 en modo enforcement, bloquea ejecutables no firmados en Documents/Desktop. Solucion: ejecutar desde `C:\SS`
-- **SQLite Vulnerabilidad**: NU1903 suprimida con `<NoWarn>NU1903</NoWarn>` (no hay version parchada de SQLitePCLRaw)
+- **MySQL local incluido**: el instalador pesa más porque incluye el motor. La app lo inicia en `127.0.0.1`, con datadir y credenciales internas propias; el usuario no configura nada.
 - **Camara en movil**: `navigator.mediaDevices` no disponible en HTTP. Solo funciona con archivo/foto
 - **ZXing-js**: `HTMLCanvasElementLuminanceSource` mas confiable que `RGBLuminanceSource` para fotos
 - **StringFormat XAML**: Usar `'{}${0:F2}'` en lugar de `${0:F2}` (el `$` antes de `{` es sintaxis C#, no XAML). Ademas, el compilador de bindings NO acepta espacios dentro de `StringFormat` (error `AVLN2000: Unable to resolve type 0`) — para textos con espacios usar propiedades calculadas en el ViewModel (ej. `CheckoutLabel`, `CartCountLabel`, `PriceLabel`)
@@ -499,15 +604,119 @@ Safe-Sale/
 
 ---
 
+## Presentacion en PowerPoint (instrucciones para el compañero)
+
+### Objetivo
+- Presentación **corta**: 8 a 10 diapositivas, **8 a 10 minutos**.
+- Formato **16:9**, archivo `.pptx` y una copia en PDF por si falla la notebook.
+- Público: docentes de la defensa. Priorizar: **base de datos, lógica, reglas de negocio y código real**.
+- No convertir las diapositivas en documentación: una idea por slide, bullets cortos, capturas grandes.
+
+### Diseno (mismo lenguaje visual que la app)
+- Fondo: `#FAF3F7`. Tarjetas/paneles: `#FFFFFF`. Bordes: `#E8DAEF`.
+- Acentos: lila `#BB8FCE`, violeta `#7B1FA2`, purpura `#4A148C`, texto medio `#6C3483`.
+- Estados: verde `#4CAF50`, naranja `#FF9800`, rojo `#EF5350`.
+- Tipografia: **Segoe UI** (o Inter). Titulos 30-36 pt, cuerpo 18-22 pt, codigo 14-18 pt.
+- Logo: usar `src/SS/Assets/SS-general.jpg` en la portada y `src/SS/Assets/SS-ico.png` como ícono/footer.
+- Tarjetas blancas con esquinas redondeadas y sombra suave, igual que las vistas de la app.
+- No mostrar contraseñas reales, `secrets.json` ni cadenas de conexión en las capturas.
+
+### Estructura sugerida (10 slides)
+| # | Slide | Contenido | Tiempo |
+|---|-------|-----------|--------|
+| 1 | Portada | Logo Safe-Sale, nombre del sistema, integrantes y roles | 30 s |
+| 2 | Problema y objetivo | Punto de venta + gestión de inventario, local, sin configuracion | 45 s |
+| 3 | Arquitectura | Avalonia UI + C# + MVVM + MySQL local incluido | 1 min |
+| 4 | Base de datos | Modelo de tablas, relaciones y restricciones | 1.5 min |
+| 5 | Objetos de BD | `sp_registrar_venta`, triggers de auditoría, `vw_stock_bajo` | 1.5 min |
+| 6 | ACID y rollback | Flujo de cobro transaccional; qué pasa si falla | 1 min |
+| 7 | Roles y reglas | Admin vs Cajero, validaciones y reglas de negocio | 1.5 min |
+| 8 | Caja | Apertura/cierre, efectivo esperado y diferencia | 1 min |
+| 9 | Código real | 2 o 3 fragmentos cortos y legibles | 1.5 min |
+| 10 | Pruebas y cierre | 67 tests, build limpio, conclusión y gracias | 45 s |
+
+> Si hay que recortar, unir 5+6 y 8+9. No bajar de 8 slides ni superar 10 minutos.
+
+### Contenido minimo por slide
+
+**Slide 4 - Base de datos.** Mostrar el diagrama simple:
+- `categories` 1—N `products`
+- `users` 1—N `sales` y 1—N `cash_sessions`
+- `sales` 1—N `sale_items`
+- `products` 1—N `sale_items`
+- `product_audit` (sin FK, guarda historial)
+Mencionar: PK autoincrementales, `UNIQUE` en usuario/código de barras, `FOREIGN KEY`, `CHECK` del rol y la columna `sales.cash_session_id`.
+
+**Slide 5 - Objetos de base de datos.**
+- `sp_registrar_venta`: valida caja abierta, stock, calcula total, inserta venta/items, descuenta stock.
+- Triggers `trg_products_audit_insert/update/delete`: registran cambios de precio/stock en `product_audit`.
+- Vista `vw_stock_bajo`: productos con `stock <= min_stock`.
+- Seed: 18 productos (2 por categoría) solo si `products` está vacía.
+
+**Slide 6 - ACID.** Explicar el flujo de `sp_registrar_venta`:
+`START TRANSACTION` → validaciones → insert venta → insert items → update stock → update caja → `COMMIT`.
+Ante error: `EXIT HANDLER` → `ROLLBACK` → `RESIGNAL`. Mostrar que una venta sin caja o sin stock no deja nada a medias.
+
+**Slide 7 - Roles y reglas.**
+- `admin`: CRUD completo de inventario, ventas, cajas, registros.
+- `cajero`: inventario **solo lectura**, ventas y caja.
+- Registro desde login: solo crea Cajero. Admin por defecto: `admin` / `admin123`.
+- Precio: solo punto decimal, mayor a 0, hasta 2 decimales.
+- Stock: entero mayor o igual a 1. Stock mínimo: entero mayor o igual a 0.
+- Código de barras y usuario únicos; duplicado muestra alerta.
+- Venta exige caja abierta del usuario; si no, se bloquea.
+- Caja: una abierta por usuario; al cerrar se calcula efectivo esperado = apertura + ventas en efectivo, y diferencia = cierre − esperado.
+
+**Slide 9 - Código real.** Mostrar 2 o 3 fragmentos de 6 a 10 lineas, con la ruta del archivo en el pie:
+1. `src/SS/Data/DatabaseInitializer.cs` → fragmento del `sp_registrar_venta` (SIGNAL/ROLLBACK).
+2. `src/SS/Data/SaleRepository.cs` → `RegisterSale(...)` llamando al procedimiento.
+3. `src/SS/Data/CashSessionRepository.cs` → `OpenSession`/`CloseSession` con transacción.
+4. Opcional: `src/SS/ViewModels/InventoryViewModel.cs` → guards de `CanManageInventory`.
+5. Opcional: `src/SS/Services/MySqlServerManager.cs` → arranque local (`--no-defaults`, `127.0.0.1`, datadir propio).
+No pegar archivos completos; resaltar solo la línea importante.
+
+### Capturas recomendadas
+- Login.
+- Dashboard.
+- Inventario como **admin** y como **cajero** lado a lado (se ve la diferencia de permisos).
+- Ventas con caja abierta y carrito cargado.
+- Caja abierta y caja cerrada con diferencia.
+- MySQL Workbench:
+  - `SHOW TABLES;`
+  - `SHOW CREATE PROCEDURE sp_registrar_venta;`
+  - `SHOW TRIGGERS;`
+  - `SELECT * FROM vw_stock_bajo;`
+  - `SELECT * FROM product_audit;`
+- Opcional: diagrama E-R hecho en Workbench (`Database → Reverse Engineer`).
+
+### Guion corto para el expositor
+1. "Safe-Sale es un punto de venta y gestión de supermercado, local y sin configuración de base de datos."
+2. "Usamos Avalonia + C# con MVVM y un MySQL local que la app levanta, configura y apaga sola."
+3. "El núcleo es la base: tablas normalizadas, restricciones y un procedimiento que cobra de forma atómica."
+4. "El cajero solo consulta inventario y opera ventas/caja; el administrador gestiona todo."
+5. "Cada venta exige una caja abierta; si algo falla, rollback y no queda stock ni venta a medias."
+6. "Todo está validado con pruebas y build limpio."
+
+### Checklist antes de exponer
+- [ ] 8-10 slides, 16:9, PDF de respaldo.
+- [ ] Capturas sin credenciales ni datos sensibles.
+- [ ] Fragmentos de código legibles (fuente grande, pocas lineas).
+- [ ] Diagrama de BD claro y con relaciones.
+- [ ] Demo de respaldo grabada (video/GIF) por si falla la app.
+- [ ] Ensayo cronometrado una vez.
+- [ ] Preguntas preparadas: ¿por qué MySQL local?, ¿por qué no SQLite?, ¿cómo garantizan ACID?, ¿cómo se aplican los roles?, ¿qué pasa si se corta la luz?
+
+---
+
 ## Comunicacion
 
 - **Daily check-ins**: 15 min cada manana
 - **Integracion**: Lunes y miercoles fusionar cambios
-- **Demo final**: Miercoles 22 sep - los 3 presentes
+- **Demo final**: fecha a confirmar - los 3 presentes
 
 ---
 
 *Proyecto: Safe-Sale - Sistema de Gestion de Supermercado*  
-*Fecha de entrega: 22 de septiembre de 2026*  
+*Fecha de entrega: a confirmar*  
 *Integrantes: Lucas (Backend), Jandir (Frontend), Dante (Documentacion)*  
 *Ultima actualizacion: 9 de noviembre de 2026*

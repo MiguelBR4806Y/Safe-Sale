@@ -1,61 +1,66 @@
-using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
+using System.Linq;
+using System.Text.Json;
+using MySqlConnector;
 using SS.Models;
 
 namespace SS.Data;
 
-public class SqliteSaleRepository
+public class SaleRepository
 {
-    private readonly string _dbPath;
+    private readonly string _connectionString;
 
-    public SqliteSaleRepository(string dbPath)
+    public SaleRepository(string connectionString)
     {
-        _dbPath = dbPath;
+        _connectionString = connectionString;
     }
 
-    public int Add(Sale sale)
+    public sealed record SaleLine(int ProductId, int Quantity, decimal Price);
+
+    /// <summary>
+    /// Registra la venta completa en una sola operación atómica en el motor:
+    /// inserta venta e ítems y descuenta stock. Si algo falla (por ejemplo stock
+    /// insuficiente), el procedimiento hace ROLLBACK y no queda nada a medias.
+    /// </summary>
+    public int RegisterSale(int? userId, int cashSessionId, string paymentMethod, IReadOnlyCollection<SaleLine> items)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        var payload = JsonSerializer.Serialize(items.Select(i => new
+        {
+            product_id = i.ProductId,
+            quantity = i.Quantity,
+            price = i.Price
+        }));
+
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = @"
-            INSERT INTO sales (user_id, total, payment_method, created_at)
-            VALUES (@user_id, @total, @payment_method, @created_at);
-            SELECT last_insert_rowid();";
+        cmd.CommandText = "sp_registrar_venta";
+        cmd.CommandType = CommandType.StoredProcedure;
 
-        cmd.Parameters.AddWithValue("@user_id", sale.UserId == 0 ? (object)DBNull.Value : sale.UserId);
-        cmd.Parameters.AddWithValue("@total", sale.Total);
-        cmd.Parameters.AddWithValue("@payment_method", sale.PaymentMethod);
-        cmd.Parameters.AddWithValue("@created_at", sale.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+        cmd.Parameters.AddWithValue("@p_user_id", userId.HasValue ? (object)userId.Value : DBNull.Value);
+        cmd.Parameters.AddWithValue("@p_cash_session_id", cashSessionId);
+        cmd.Parameters.AddWithValue("@p_payment_method", paymentMethod);
+        cmd.Parameters.Add(new MySqlParameter("@p_items", MySqlDbType.JSON) { Value = payload });
 
-        return Convert.ToInt32(cmd.ExecuteScalar());
-    }
-
-    public void AddItem(SaleItem item)
-    {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
-        conn.Open();
-
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = @"
-            INSERT INTO sale_items (sale_id, product_id, quantity, price_sold)
-            VALUES (@sale_id, @product_id, @quantity, @price_sold)";
-
-        cmd.Parameters.AddWithValue("@sale_id", item.SaleId);
-        cmd.Parameters.AddWithValue("@product_id", item.ProductId);
-        cmd.Parameters.AddWithValue("@quantity", item.Quantity);
-        cmd.Parameters.AddWithValue("@price_sold", item.PriceSold);
+        var saleIdParam = new MySqlParameter("@p_sale_id", MySqlDbType.Int32)
+        {
+            Direction = ParameterDirection.Output
+        };
+        cmd.Parameters.Add(saleIdParam);
 
         cmd.ExecuteNonQuery();
+
+        return Convert.ToInt32(saleIdParam.Value);
     }
 
     public ObservableCollection<Sale> GetAll()
     {
         var result = new ObservableCollection<Sale>();
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
@@ -70,7 +75,7 @@ public class SqliteSaleRepository
                 UserId = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
                 Total = reader.GetDecimal(2),
                 PaymentMethod = reader.IsDBNull(3) ? "" : reader.GetString(3),
-                CreatedAt = DateTime.Parse(reader.GetString(4))
+                CreatedAt = reader.GetDateTime(4)
             });
         }
         return result;
@@ -79,13 +84,13 @@ public class SqliteSaleRepository
     public ObservableCollection<Sale> GetByDateRange(DateTime from, DateTime to)
     {
         var result = new ObservableCollection<Sale>();
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT id, user_id, total, payment_method, created_at FROM sales WHERE created_at BETWEEN @from AND @to ORDER BY created_at DESC";
-        cmd.Parameters.AddWithValue("@from", from.ToString("yyyy-MM-dd 00:00:00"));
-        cmd.Parameters.AddWithValue("@to", to.ToString("yyyy-MM-dd 23:59:59"));
+        cmd.Parameters.AddWithValue("@from", from);
+        cmd.Parameters.AddWithValue("@to", to);
 
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
@@ -96,7 +101,7 @@ public class SqliteSaleRepository
                 UserId = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
                 Total = reader.GetDecimal(2),
                 PaymentMethod = reader.IsDBNull(3) ? "" : reader.GetString(3),
-                CreatedAt = DateTime.Parse(reader.GetString(4))
+                CreatedAt = reader.GetDateTime(4)
             });
         }
         return result;
@@ -104,13 +109,13 @@ public class SqliteSaleRepository
 
     public decimal GetTotalByDateRange(DateTime from, DateTime to)
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT COALESCE(SUM(total), 0) FROM sales WHERE created_at BETWEEN @from AND @to";
-        cmd.Parameters.AddWithValue("@from", from.ToString("yyyy-MM-dd 00:00:00"));
-        cmd.Parameters.AddWithValue("@to", to.ToString("yyyy-MM-dd 23:59:59"));
+        cmd.Parameters.AddWithValue("@from", from);
+        cmd.Parameters.AddWithValue("@to", to);
 
         return Convert.ToDecimal(cmd.ExecuteScalar());
     }
@@ -131,7 +136,7 @@ public class SqliteSaleRepository
 
     public int GetSaleCount()
     {
-        using var conn = new SqliteConnection($"Data Source={_dbPath}");
+        using var conn = new MySqlConnection(_connectionString);
         conn.Open();
 
         using var cmd = conn.CreateCommand();

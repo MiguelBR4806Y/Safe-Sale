@@ -10,7 +10,7 @@ namespace SS.ViewModels;
 
 public partial class RecordsViewModel : ViewModelBase
 {
-    private readonly SqliteSaleRepository _saleRepo;
+    private readonly SaleRepository _saleRepo;
 
     [ObservableProperty]
     private ObservableCollection<Sale> _sales = new();
@@ -29,9 +29,9 @@ public partial class RecordsViewModel : ViewModelBase
 
     public ICommand FilterCommand { get; }
 
-    public RecordsViewModel(string dbPath)
+    public RecordsViewModel(string connectionString)
     {
-        _saleRepo = new SqliteSaleRepository(dbPath);
+        _saleRepo = new SaleRepository(connectionString);
         FilterCommand = new RelayCommand(LoadData);
         LoadData();
     }

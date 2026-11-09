@@ -1,0 +1,192 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SS.ViewModels"
+             xmlns:md="using:SS.Models"
+             x:Class="SS.Views.CashSessionView"
+             x:DataType="vm:CashSessionViewModel">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="14" Margin="4">
+
+            <!-- Estado de la caja -->
+            <Border Background="#FFFFFF" CornerRadius="12" Padding="18"
+                    BoxShadow="0 4 14 0 #1A000000">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="&#x1F4B0;" FontSize="18" VerticalAlignment="Center"/>
+                        <TextBlock Text="Caja" FontSize="18" FontWeight="Bold"
+                                   Foreground="#4A148C" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <Border Background="#F5F0FA" CornerRadius="8" Padding="12,10">
+                        <TextBlock Text="{Binding SessionStateLabel}"
+                                   FontSize="13" FontWeight="SemiBold"
+                                   Foreground="#6C3483"/>
+                    </Border>
+
+                    <Grid ColumnDefinitions="*,*,*,*">
+                        <Border Grid.Column="0" Background="#F5F0FA" CornerRadius="10"
+                                Padding="10,8" Margin="0,0,4,0">
+                            <StackPanel HorizontalAlignment="Center" Spacing="2">
+                                <TextBlock Text="Apertura" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="#9C8EBF" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding OpeningLabel}" FontSize="15" FontWeight="Bold"
+                                           Foreground="#4A148C" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="1" Background="#F5F0FA" CornerRadius="10"
+                                Padding="10,8" Margin="2,0">
+                            <StackPanel HorizontalAlignment="Center" Spacing="2">
+                                <TextBlock Text="Ventas efectivo" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="#9C8EBF" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding CashSalesLabel}" FontSize="15" FontWeight="Bold"
+                                           Foreground="#4CAF50" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="2" Background="#F5F0FA" CornerRadius="10"
+                                Padding="10,8" Margin="2,0">
+                            <StackPanel HorizontalAlignment="Center" Spacing="2">
+                                <TextBlock Text="Total ventas" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="#9C8EBF" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding TotalSalesLabel}" FontSize="15" FontWeight="Bold"
+                                           Foreground="#7B1FA2" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="3" Background="#F5F0FA" CornerRadius="10"
+                                Padding="10,8" Margin="4,0,0,0">
+                            <StackPanel HorizontalAlignment="Center" Spacing="2">
+                                <TextBlock Text="Efectivo esperado" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="#9C8EBF" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding ExpectedCashLabel}" FontSize="15" FontWeight="Bold"
+                                           Foreground="#4A148C" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Abrir caja -->
+            <Border Background="#FFFFFF" CornerRadius="12" Padding="18"
+                    BoxShadow="0 4 14 0 #1A000000"
+                    IsVisible="{Binding IsClosed}">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Abrir caja" FontSize="16" FontWeight="Bold"
+                               Foreground="#4A148C"/>
+                    <TextBlock Text="Ingresá el efectivo inicial con el que arranca el turno."
+                               FontSize="12" Foreground="#6C3483"/>
+                    <TextBox Text="{Binding OpeningAmountText}"
+                             PlaceholderText="Monto de apertura. Ej: 100.00"
+                             FontSize="14" Padding="12,10" CornerRadius="8"/>
+                    <Button Content="Abrir caja" Classes="primary"
+                            Command="{Binding OpenCommand}"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Padding="0,12"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Cerrar caja -->
+            <Border Background="#FFFFFF" CornerRadius="12" Padding="18"
+                    BoxShadow="0 4 14 0 #1A000000"
+                    IsVisible="{Binding HasOpenSession}">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Cerrar caja" FontSize="16" FontWeight="Bold"
+                               Foreground="#4A148C"/>
+                    <TextBlock Text="Ingresá el efectivo contado al cierre. La diferencia se calcula sola."
+                               FontSize="12" Foreground="#6C3483"/>
+                    <TextBox Text="{Binding ClosingAmountText}"
+                             PlaceholderText="Monto de cierre. Ej: 350.50"
+                             FontSize="14" Padding="12,10" CornerRadius="8"/>
+                    <Button Content="Cerrar caja" Classes="danger"
+                            Command="{Binding CloseCommand}"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Padding="0,12"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Error -->
+            <Border Background="#22EF5350" CornerRadius="8" Padding="12,10"
+                    IsVisible="{Binding IsError}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="&#x26A0;" FontSize="13" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               Foreground="#EF5350" FontSize="12" FontWeight="SemiBold"
+                               TextWrapping="Wrap" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Mensaje de éxito -->
+            <Border Background="#224CAF50" CornerRadius="8" Padding="12,10"
+                    IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="&#x2713;" FontSize="13" VerticalAlignment="Center"
+                               Foreground="{Binding StatusColor}"/>
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="{Binding StatusColor}" FontSize="12"
+                               FontWeight="SemiBold" TextWrapping="Wrap"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Historial -->
+            <Border Background="#FFFFFF" CornerRadius="12" Padding="18"
+                    BoxShadow="0 4 14 0 #1A000000">
+                <StackPanel Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="&#x1F4CB;" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Historial de cajas" FontSize="16" FontWeight="Bold"
+                                   Foreground="#4A148C" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <ItemsControl ItemsSource="{Binding History}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="md:CashSession">
+                                <Border Padding="10,8" BorderBrush="#E8DAEF"
+                                        BorderThickness="0,0,0,1">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                                        <Border Grid.Column="0" Grid.RowSpan="2"
+                                                Background="#F5F0FA" CornerRadius="6"
+                                                Padding="8,4" Margin="0,0,10,0"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding StatusLabel}"
+                                                       FontSize="10" FontWeight="Bold"
+                                                       Foreground="#6C3483"/>
+                                        </Border>
+
+                                        <StackPanel Grid.Column="1" Grid.RowSpan="2" Spacing="2"
+                                                    VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Username}"
+                                                       FontSize="12" FontWeight="SemiBold"
+                                                       Foreground="#2D1B4E"/>
+                                            <TextBlock FontSize="10" Foreground="#9C8EBF">
+                                                <Run Text="Apertura: "/>
+                                                <Run Text="{Binding OpenedAtLabel}"/>
+                                                <Run Text=" · Cierre: "/>
+                                                <Run Text="{Binding ClosedAtLabel}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Grid.RowSpan="2"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalAlignment="Right" Spacing="2">
+                                            <TextBlock Text="{Binding TotalSalesLabel}"
+                                                       FontSize="12" FontWeight="Bold"
+                                                       Foreground="#7B1FA2"
+                                                       HorizontalAlignment="Right"/>
+                                            <TextBlock Text="{Binding DifferenceLabel}"
+                                                       FontSize="11" FontWeight="SemiBold"
+                                                       Foreground="{Binding DifferenceColor}"
+                                                       HorizontalAlignment="Right"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

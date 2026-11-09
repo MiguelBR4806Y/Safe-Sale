@@ -92,7 +92,8 @@
                     </Grid>
                 </Border>
                 <!-- Botones de escaner -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center"
+                            IsVisible="{Binding CanManageInventory}">
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <TextBlock Text="Cámara:" FontSize="11" Foreground="#4A148C"
                                    VerticalAlignment="Center"/>
@@ -109,7 +110,8 @@
             </Grid>
 
             <!-- Row 2: Camara PC + QR inline -->
-            <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+            <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,0,0,8"
+                  IsVisible="{Binding CanManageInventory}">
                 <Border Grid.Column="0" Background="#FFFFFF" CornerRadius="10" Padding="12" Margin="0,0,6,0"
                         BoxShadow="0 2 8 0 #11000000"
                         IsVisible="{Binding IsCameraActive}">
@@ -243,10 +245,10 @@
                                                                           CommandParameter="{Binding}"
                                                                           Margin="0,0,8,0"
                                                                           VerticalAlignment="Center"/>
-                                                                <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12"
+                                                                <SelectableTextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12"
                                                                            Foreground="#2D1B4E" VerticalAlignment="Center"
                                                                            TextTrimming="CharacterEllipsis" Margin="0,0,4,0"/>
-                                                                <TextBlock Grid.Column="2" Text="{Binding Barcode}"
+                                                                <SelectableTextBlock Grid.Column="2" Text="{Binding Barcode}"
                                                                            FontSize="11" Foreground="#757575"
                                                                            FontStyle="Italic" VerticalAlignment="Center"/>
                                                                 <TextBlock Grid.Column="3"
@@ -272,7 +274,8 @@
                                                                HorizontalAlignment="Center"/>
                                                     <TextBlock Text="Agregue productos desde el escáner o el botón Agregar"
                                                                FontSize="10" Foreground="#BDBDBD"
-                                                               HorizontalAlignment="Center"/>
+                                                               HorizontalAlignment="Center"
+                                                               IsVisible="{Binding $parent[UserControl].((vm:InventoryViewModel)DataContext).CanManageInventory}"/>
                                                 </StackPanel>
                                             </Border>
                                         </StackPanel>
@@ -295,7 +298,8 @@
             </ScrollViewer>
 
             <!-- Row 4: Botones de accion -->
-            <Grid Grid.Row="4" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+            <Grid Grid.Row="4" ColumnDefinitions="*,Auto" Margin="0,8,0,0"
+                  IsVisible="{Binding CanManageInventory}">
                 <!-- Columna izquierda: agregar / editar -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="8">
                     <Button Content="Agregar" Classes="primary"

@@ -37,8 +37,8 @@ public partial class CategoryGroup : ObservableObject
 
 public partial class InventoryViewModel : ViewModelBase, IDisposable
 {
-    private readonly SqliteProductRepository _productRepo;
-    private readonly SqliteCategoryRepository _categoryRepo;
+    private readonly ProductRepository _productRepo;
+    private readonly CategoryRepository _categoryRepo;
     private readonly MobileScannerService _mobileScanner;
     private readonly ICameraService _cameraService;
     private readonly IBarcodeScannerService _barcodeScanner;
@@ -154,11 +154,13 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
     public event Action? ClearInventoryRequested;
 
     public bool HasProducts => _allProducts.Count > 0;
+    public bool CanManageInventory { get; }
 
-    public InventoryViewModel(string dbPath, MobileScannerService mobileScanner)
+    public InventoryViewModel(string connectionString, MobileScannerService mobileScanner, bool canManageInventory = true)
     {
-        _productRepo = new SqliteProductRepository(dbPath);
-        _categoryRepo = new SqliteCategoryRepository(dbPath);
+        _productRepo = new ProductRepository(connectionString);
+        _categoryRepo = new CategoryRepository(connectionString);
+        CanManageInventory = canManageInventory;
         _mobileScanner = mobileScanner;
         _cameraService = new CameraService();
         _barcodeScanner = new BarcodeScannerService();
@@ -280,6 +282,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     private void OnAddProduct()
     {
+        if (!CanManageInventory) return;
         AddProductRequested?.Invoke();
     }
 
@@ -290,6 +293,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     private void OnClearInventory()
     {
+        if (!CanManageInventory) return;
         ClearInventoryRequested?.Invoke();
     }
 
@@ -317,7 +321,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     private void OnEditProduct()
     {
-        if (SelectedProduct == null) return;
+        if (!CanManageInventory || SelectedProduct == null) return;
         EditProductRequested?.Invoke(SelectedProduct);
     }
 
@@ -365,7 +369,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     private void OnToggleProductSelection(Product? product)
     {
-        if (product == null) return;
+        if (!CanManageInventory || product == null) return;
 
         var existing = SelectedProducts.FirstOrDefault(p => p.Id == product.Id);
         if (existing != null)
@@ -384,6 +388,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     private void OnDeleteProductClick()
     {
+        if (!CanManageInventory) return;
         Console.WriteLine($"[DEBUG] OnDeleteProductClick called. IsSelectionModeActive={IsSelectionModeActive}, ActiveSelectionMode={ActiveSelectionMode}, SelectedCount={SelectedProducts.Count}");
         if (!IsSelectionModeActive)
         {
@@ -425,6 +430,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     private void OnAddToCartClick()
     {
+        if (!CanManageInventory) return;
         Console.WriteLine($"[DEBUG] OnAddToCartClick called. IsSelectionModeActive={IsSelectionModeActive}, ActiveSelectionMode={ActiveSelectionMode}, SelectedCount={SelectedProducts.Count}");
         if (!IsSelectionModeActive)
         {
@@ -461,7 +467,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     private void OnConfirmSelection()
     {
-        if (SelectedProducts.Count == 0) return;
+        if (!CanManageInventory || SelectedProducts.Count == 0) return;
 
         if (ActiveSelectionMode == SelectionMode.Delete)
         {
@@ -493,6 +499,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     private void OnToggleMobileScanner()
     {
+        if (!CanManageInventory) return;
         if (_mobileScanner.IsRunning)
         {
             _mobileScanner.Stop();
@@ -529,6 +536,13 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     public void HandleMobileAddProduct(string json)
     {
+        if (!CanManageInventory)
+        {
+            MobileScanFeedback = "Tu rol no permite modificar inventario";
+            MobileScanFeedbackColor = "#EF5350";
+            return;
+        }
+
         try
         {
             var barcode = ExtractJsonField(json, "barcode");
@@ -537,25 +551,42 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
             var stockStr = ExtractJsonField(json, "stock");
             var minStockStr = ExtractJsonField(json, "min_stock");
 
-            if (string.IsNullOrEmpty(barcode) || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(priceStr))
+            if (string.IsNullOrEmpty(barcode) || string.IsNullOrEmpty(name))
             {
                 MobileScanFeedback = "Datos incompletos del producto";
                 MobileScanFeedbackColor = "#EF5350";
                 return;
             }
 
-            if (!decimal.TryParse(priceStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var price))
+            if (name.Trim().Length < 3)
             {
-                MobileScanFeedback = "Precio invalido";
+                MobileScanFeedback = "El nombre debe tener minimo 3 caracteres";
                 MobileScanFeedbackColor = "#EF5350";
                 return;
             }
 
-            int stock = 0;
-            if (!string.IsNullOrEmpty(stockStr)) int.TryParse(stockStr, out stock);
+            if (!InputValidator.TryParsePrice(priceStr, out var price, out var priceError))
+            {
+                MobileScanFeedback = priceError;
+                MobileScanFeedbackColor = "#EF5350";
+                return;
+            }
 
-            int minStock = 5;
-            if (!string.IsNullOrEmpty(minStockStr)) int.TryParse(minStockStr, out minStock);
+            if (!InputValidator.TryParseStock(stockStr, out var stock, out var stockError))
+            {
+                MobileScanFeedback = stockError;
+                MobileScanFeedbackColor = "#EF5350";
+                return;
+            }
+
+            if (!InputValidator.TryParseMinStock(
+                    string.IsNullOrEmpty(minStockStr) ? "0" : minStockStr,
+                    out var minStock, out var minStockError))
+            {
+                MobileScanFeedback = minStockError;
+                MobileScanFeedbackColor = "#EF5350";
+                return;
+            }
 
             var product = new Product
             {
@@ -572,7 +603,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
             MobileScanFeedback = $"\u2713 \"{name}\" agregado";
             MobileScanFeedbackColor = "#4CAF50";
         }
-        catch (Microsoft.Data.Sqlite.SqliteException)
+        catch (Exception ex) when (DbErrors.IsDuplicateKey(ex))
         {
             MobileScanFeedback = "Ya existe un producto con ese codigo";
             MobileScanFeedbackColor = "#EF5350";
@@ -610,6 +641,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
 
     private void OnToggleCamera()
     {
+        if (!CanManageInventory) return;
         if (_cameraService.IsCapturing)
         {
             _cameraService.StopCapture();

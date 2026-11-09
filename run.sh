@@ -16,23 +16,23 @@ if [ -f "$projectPath" ]; then
     echo "Ejecutando: dotnet run --project $projectPath"
     
     # Ejecutar la aplicación
-    # Este comando hará restore automáticamente e incluirá Microsoft.Data.Sqlite
+    # Este comando hará restore automáticamente e incluirá MySqlConnector
     dotnet run --project "$projectPath"
     
     echo ""
     echo "=== Aplicación cerrada ==="
-    echo "La base de datos SQLite se creó automáticamente"
+    echo "La base de datos MySQL local se crea y configura automáticamente en el primer arranque"
     
     # Información adicional por plataforma
     case "$CASE_LOWER" in
         darwin*)
-            echo "🍏 Ejecutado en macOS - Base de datos SQLite en: ./src/SS/bin/Debug/net10.0/"
+            echo "🍏 Ejecutado en macOS - Base de datos MySQL local en: ~/Library/Application Support/Safe-Sale/"
             ;;
         linux*)
-            echo "🐧 Ejecutado en Linux - Base de datos SQLite en: ./src/SS/bin/Debug/net10.0/"
+            echo "🐧 Ejecutado en Linux - Base de datos MySQL local en: ~/.local/share/Safe-Sale/"
             ;;
         cygwin*|msys*|win32*)
-            echo "🪟 Ejecutado en Windows - Base de datos SQLite en: ./src/SS/bin/Debug/net10.0/"
+            echo "🪟 Ejecutado en Windows - Base de datos MySQL local en: %LOCALAPPDATA%\\Safe-Sale\\"
             ;;
     esac
 else

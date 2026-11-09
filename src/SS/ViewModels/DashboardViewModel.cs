@@ -9,8 +9,8 @@ namespace SS.ViewModels;
 
 public partial class DashboardViewModel : ViewModelBase
 {
-    private readonly SqliteProductRepository _productRepo;
-    private readonly SqliteSaleRepository _saleRepo;
+    private readonly ProductRepository _productRepo;
+    private readonly SaleRepository _saleRepo;
 
     [ObservableProperty]
     private decimal _todaySales;
@@ -27,10 +27,10 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<Sale> _recentSales = new();
 
-    public DashboardViewModel(string dbPath)
+    public DashboardViewModel(string connectionString)
     {
-        _productRepo = new SqliteProductRepository(dbPath);
-        _saleRepo = new SqliteSaleRepository(dbPath);
+        _productRepo = new ProductRepository(connectionString);
+        _saleRepo = new SaleRepository(connectionString);
         LoadData();
     }
 
