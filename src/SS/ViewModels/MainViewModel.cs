@@ -79,6 +79,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         NavigateSalesCommand = new RelayCommand(() =>
         {
             CurrentViewModel = _salesViewModel;
+            _salesViewModel.LoadData();
             _sharedScanner.Mode = "sales";
             CurrentViewTitle = "Ventas";
         });
@@ -128,8 +129,10 @@ public partial class MainViewModel : ViewModelBase, IDisposable
                     if (product != null)
                     {
                         _salesViewModel.AddProductToCartById(product.Id);
-                        _inventoryViewModel.MobileScanFeedback = $"\u2713 {product.Name} agregado al carrito";
-                        _inventoryViewModel.MobileScanFeedbackColor = "#4CAF50";
+                    }
+                    else
+                    {
+                        _salesViewModel.SetFeedback($"Producto no encontrado: {barcode}. Agrégalo desde Inventario.", "#EF5350");
                     }
                     return;
                 }
@@ -140,12 +143,10 @@ public partial class MainViewModel : ViewModelBase, IDisposable
                     if (_sharedScanner.Mode == "sales")
                     {
                         _salesViewModel.AddProductToCartById(product2.Id);
-                        _inventoryViewModel.MobileScanFeedback = $"\u2713 {product2.Name} agregado al carrito";
-                        _inventoryViewModel.MobileScanFeedbackColor = "#4CAF50";
                     }
                     else
                     {
-                        _inventoryViewModel.MobileScanFeedback = $"\u2713 {product2.Name} encontrado (Stock: {product2.Stock})";
+                        _inventoryViewModel.MobileScanFeedback = $"✓ {product2.Name} encontrado (Stock: {product2.Stock})";
                         _inventoryViewModel.MobileScanFeedbackColor = "#4CAF50";
                     }
                 }
@@ -153,8 +154,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
                 {
                     if (_sharedScanner.Mode == "sales")
                     {
-                        _inventoryViewModel.MobileScanFeedback = $"Producto no encontrado: {code}. Agrégalo desde Inventario.";
-                        _inventoryViewModel.MobileScanFeedbackColor = "#EF5350";
+                        _salesViewModel.SetFeedback($"Producto no encontrado: {code}. Agrégalo desde Inventario.", "#EF5350");
                     }
                     else
                     {

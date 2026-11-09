@@ -15,7 +15,7 @@ Sistema punto de venta y gestión de supermercado desarrollado con **Avalonia UI
 
 ---
 
-## Estado del Progreso — 27 de Septiembre 2026
+## Estado del Progreso — 9 de Noviembre 2026
 
 ### Progreso General: **~99%** Completado
 
@@ -25,6 +25,19 @@ Frontend:      ████████████████████ 100%
 Integracion:   ████████████████████ 100%
 Documentacion: ████░░░░░░░░░░░░░░░░  20%
 ```
+
+### Nuevas Funcionalidades (9 nov 2026) — Rediseño de Ventas
+
+- [x] **Layout de Ventas renovado**: Titulo "VENTAS" centrado, escaneres (camara + movil + codigo manual) compactados en una sola fila superior, franja de KPIs con iconos (Items, Total, Metodo de pago, Ultima venta) y mismo patron visual que Inventario (bandas #F5F0FA, tarjetas con sombra)
+- [x] **Busqueda por nombre**: `AutoCompleteBox` con sugerencias de productos (`FilterMode="Contains"`) ademas del codigo de barras, con boton Agregar
+- [x] **Codigo de barras con coincidencias**: El campo manual ahora es un `AutoCompleteBox` que muestra "codigo - nombre" de los productos coincidentes; acepta match exacto o por prefijo al confirmar
+- [x] **Feedback unificado**: `StatusMessage` con color se muestra solo en el panel de resumen (antes aparecia en 2 lugares); los errores de stock y de producto se muestran ahi
+- [x] **Confirmaciones**: `ConfirmDialog` para vaciar el carrito y para confirmar el cobro
+- [x] **Limites de stock**: Botones +/- se deshabilitan al llegar al stock disponible (`CanIncrease`/`CanDecrease`); COBRAR y Vaciar Carrito se deshabilitan con carrito vacio; estilo global `Button:disabled` con opacidad para que todo boton deshabilitado se vea apagado
+- [x] **Resumen responsivo**: Panel de resumen con `ScrollViewer` (hace scroll al redimensionar la ventana), tiles de Items/Total, header de seccion y feedback con acento lateral
+- [x] **Botones renovados**: COBRAR con degradado (#7B1FA2 → #4A148C), sombra, icono y monto dinamico; Vaciar Carrito en estilo outline rojo con hover tinteado
+- [x] **Carrito diferenciado**: Header con badge de cantidad, encabezados PRODUCTO/CANT./SUBTOTAL, filas con precio unitario ("c/u"), controles de cantidad en pill, subtotal morado, quitar en rojo suave y estado vacio ilustrado
+- [x] **Bug corregido**: Los escaneos moviles en modo Ventas escribian el feedback en el ViewModel de Inventario (`MainViewModel.PollBarcodes`)
 
 ### Nuevas Funcionalidades (27 sep 2026)
 
@@ -105,7 +118,7 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 - [x] **MainWindow**: Barra lateral con navegacion MVVM, estilos globales para ListBox/ListBoxItem
 - [x] **DashboardView**: Tarjetas KPI modernas con iconos, sombras, colores diferenciados, lista de ventas recientes con diseno de tarjetas
 - [x] **InventoryView**: CRUD completo conectado a SQLite, busqueda en vivo con autocompletado y filtrado por categoria, estadisticas, escaner de camara PC, escaner movil QR, encabezados de columna, categorias colapsables, selector de camara, boton vaciar inventario con confirmacion, botones deshabilitados cuando inventario vacio
-- [x] **SalesView**: Carrito de compras funcional, busqueda por codigo de barras, escaner de camara PC, escaner movil QR, selector de metodo de pago (Efectivo/Tarjeta/Transferencia), cobro con actualizacion de stock
+- [x] **SalesView**: Rediseño completo — titulo VENTAS, KPIs con iconos, busqueda por nombre con autocompletado, codigo de barras con coincidencias, carrito con encabezados y estado vacio, resumen con scroll responsivo y botones renovados, confirmaciones de cobro/vaciado, escaner de camara PC, escaner movil QR, selector de metodo de pago (Efectivo/Tarjeta/Transferencia), cobro con actualizacion de stock
 - [x] **RecordsView**: Filtros modernos con DatePicker, estadisticas con iconos, tabla de registros con badges
 - [x] **LoginWindow**: Diseno moderno con fondo decorativo, logo con fondo morado, inputs redondeados, credenciales por defecto en tarjeta
 - [x] **EditProductDialog**: Dialogo de edicion con Barcode/Name/Price/Stock/MinStock, validacion
@@ -113,9 +126,9 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 - [x] **Logout**: Boton cerrar sesion en sidebar
 
 #### Sistema de Estilos Compartido (100%)
-- [x] **Styles.axaml**: Estilos reutilizables para TextBlock, Border, Button, TextBox, ListBox, ComboBox, DatePicker
-- [x] **App.axaml**: Recursos centralizados (brushes, colores) en `Application.Resources`
-- [x] **Classes consistentes**: `page-title`, `page-subtitle`, `section-title`, `kpi-value`, `kpi-label`, `card-value`, `card-label`, `body`, `caption`, `card`, `card-flat`, `stat-card`, `primary`, `secondary`, `danger`, `success`, `ghost`, `icon`, `separator`
+- [x] **Styles.axaml**: Estilos reutilizables para TextBlock, Border, Button (incluye `checkout` y `danger-outline`), TextBox, AutoCompleteBox, ListBox, ComboBox, DatePicker
+- [x] **App.axaml**: Recursos centralizados (brushes, colores, degradados `CheckoutGradient`) en `Application.Resources`
+- [x] **Classes consistentes**: `page-title`, `page-subtitle`, `section-title`, `kpi-value`, `kpi-label`, `card-value`, `card-label`, `body`, `caption`, `card`, `card-flat`, `stat-card`, `primary`, `secondary`, `secondary.edit`, `danger`, `danger-outline`, `success`, `ghost`, `checkout`, `icon`, `separator`
 - [x] **StringFormat corregido**: `${0:F2}` → `'{}${0:F2}'` en todas las vistas (RecordsView, InventoryView, SalesView, DashboardView)
 - [x] **DatePicker corregido**: `DateTime?` → `DateTimeOffset?` en RecordsViewModel para compatibilidad con `DatePicker.SelectedDate`
 
@@ -220,13 +233,15 @@ Documentacion: ████░░░░░░░░░░░░░░░░  20%
 - Botones de accion se iluminan segun el modo seleccionado
 
 #### 5. **SalesView** - Punto de Venta
-- **Escaner de Camara**: Boton toggle, preview en vivo con marco
-- **Selector de camara**: ComboBox para elegir entre camaras disponibles
+- **Titulo**: "VENTAS" centrado con fondo rosa palido y tarjetas blancas con sombra (mismo patron que Inventario)
+- **KPIs**: Items, Total, Metodo de pago y Ultima venta con iconos
+- **Escaner de Camara**: Selector de camara + boton toggle (verde/rojo), preview en vivo con marco de escaneo
 - **Escaner Movil**: Boton toggle, QR inline, solo productos existentes
-- **Busqueda manual**: Campo de codigo de barras + boton Buscar
-- **Carrito**: Lista con cantidades (+/-), subtotal, boton eliminar
-- **Resumen**: Items, Total, Metodo de pago (Efectivo/Tarjeta/Transferencia)
-- **Botones**: COBRAR, Vaciar Carrito
+- **Busqueda por nombre**: `AutoCompleteBox` con sugerencias de productos + boton Agregar
+- **Busqueda manual**: `AutoCompleteBox` de codigo de barras que muestra coincidencias "codigo - nombre" + boton Buscar
+- **Carrito**: Header con badge de cantidad, encabezados de columna (PRODUCTO/CANT./SUBTOTAL), filas con precio unitario, cantidades (+/-) con limites de stock, subtotal y boton quitar; estado vacio ilustrado
+- **Resumen**: Panel con scroll responsivo al redimensionar la ventana, tiles de Items/Total, Metodo de pago (Efectivo/Tarjeta/Transferencia), feedback unificado con color
+- **Botones**: COBRAR con degradado, sombra y monto dinamico; Vaciar Carrito en outline rojo; ambos con `ConfirmDialog` y deshabilitados cuando el carrito esta vacio
 
 #### 6. **RecordsView** - Historial
 - Filtros modernos con DatePicker (DateTimeOffset)
@@ -477,7 +492,7 @@ Safe-Sale/
 - **SQLite Vulnerabilidad**: NU1903 suprimida con `<NoWarn>NU1903</NoWarn>` (no hay version parchada de SQLitePCLRaw)
 - **Camara en movil**: `navigator.mediaDevices` no disponible en HTTP. Solo funciona con archivo/foto
 - **ZXing-js**: `HTMLCanvasElementLuminanceSource` mas confiable que `RGBLuminanceSource` para fotos
-- **StringFormat XAML**: Usar `'{}${0:F2}'` en lugar de `${0:F2}` (el `$` antes de `{` es sintaxis C#, no XAML)
+- **StringFormat XAML**: Usar `'{}${0:F2}'` en lugar de `${0:F2}` (el `$` antes de `{` es sintaxis C#, no XAML). Ademas, el compilador de bindings NO acepta espacios dentro de `StringFormat` (error `AVLN2000: Unable to resolve type 0`) — para textos con espacios usar propiedades calculadas en el ViewModel (ej. `CheckoutLabel`, `CartCountLabel`, `PriceLabel`)
 - **DatePicker SelectedDate**: Requiere `DateTimeOffset?` en el ViewModel, no `DateTime?`
 - **CameraService**: Usa `ManualResetEventSlim` para esperar a que el loop de captura termine antes de liberar `VideoCapture` (evita SIGSEGV en macOS)
 - **macOS Camera Permission**: OpenCV maneja el permiso directamente al abrir la camara. Requiere `NSCameraUsageDescription` en `Info.plist`
@@ -495,4 +510,4 @@ Safe-Sale/
 *Proyecto: Safe-Sale - Sistema de Gestion de Supermercado*  
 *Fecha de entrega: 22 de septiembre de 2026*  
 *Integrantes: Lucas (Backend), Jandir (Frontend), Dante (Documentacion)*  
-*Ultima actualizacion: 27 de septiembre de 2026*
+*Ultima actualizacion: 9 de noviembre de 2026*

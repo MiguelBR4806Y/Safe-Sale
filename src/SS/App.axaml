@@ -54,6 +54,16 @@
         <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Success}"/>
         <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Warning}"/>
         <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource Danger}"/>
+
+        <!-- Gradient Brushes -->
+        <LinearGradientBrush x:Key="CheckoutGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#7B1FA2" Offset="0"/>
+            <GradientStop Color="#4A148C" Offset="1"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="CheckoutGradientHover" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#9C27B0" Offset="0"/>
+            <GradientStop Color="#6A1B9A" Offset="1"/>
+        </LinearGradientBrush>
     </Application.Resources>
 
     <Application.Styles>

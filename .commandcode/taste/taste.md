@@ -1,0 +1,3 @@
+- Wants new UI/features to reuse and mirror existing project patterns and styles for consistency (e.g., match the Inventario redesign: same title style, card look, AutoCompleteBox search pattern, ConfirmDialog, KPI strip) rather than introducing new visual or functional patterns. Confidence: 0.7
+- Safe-Sale UI palette is fixed: fondo #FAF3F7, tarjetas blancas, acentos #4A148C/#7B1FA2/#F5F0FA/#F0EAF5, peligro #EF5350; section headers on #F5F0FA bands, KPIs with icons, cards with CornerRadius=10 and BoxShadow. Confidence: 0.9
+- Important buttons must look polished (gradients, icons, visible hover/disabled states) — never plain/simple. Fixed side panels (e.g., sale summary) must use ScrollViewer to stay responsive when the window resizes. Confidence: 0.9

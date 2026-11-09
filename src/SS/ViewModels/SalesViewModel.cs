@@ -42,6 +42,21 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     private string _statusMessage = "";
 
     [ObservableProperty]
+    private string _statusColor = "#4A148C";
+
+    [ObservableProperty]
+    private string _searchText = "";
+
+    [ObservableProperty]
+    private List<string> _productSuggestions = new();
+
+    [ObservableProperty]
+    private List<string> _barcodeSuggestions = new();
+
+    [ObservableProperty]
+    private string _lastSaleSummary = "Sin ventas aún";
+
+    [ObservableProperty]
     private bool _isCameraActive;
 
     [ObservableProperty]
@@ -54,6 +69,11 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     private string _selectedPaymentMethod = "Efectivo";
 
     public string[] PaymentMethods { get; } = new[] { "Efectivo", "Tarjeta", "Transferencia" };
+
+    public bool HasCartItems => CartItems.Count > 0;
+    public bool IsCartEmpty => CartItems.Count == 0;
+    public string CartCountLabel => $"{CartCount} items";
+    public string CheckoutLabel => $"COBRAR  ${CartTotal:F2}";
 
     [ObservableProperty]
     private bool _isScanning;
@@ -71,20 +91,17 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     private string _mobileUrl = "";
 
     [ObservableProperty]
-    private string _mobileScanFeedback = "";
-
-    [ObservableProperty]
-    private string _mobileScanFeedbackColor = "#4A148C";
-
-    [ObservableProperty]
     private List<string> _availableCameras = new();
 
     [ObservableProperty]
     private int _selectedCameraIndex;
 
     public event Action<bool>? ScannerToggled;
+    public event Action? ClearCartRequested;
+    public event Action? CheckoutRequested;
 
     public ICommand AddByBarcodeCommand { get; }
+    public ICommand AddByNameCommand { get; }
     public ICommand RemoveFromCartCommand { get; }
     public ICommand IncreaseQtyCommand { get; }
     public ICommand DecreaseQtyCommand { get; }
@@ -105,9 +122,11 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         SelectedCameraIndex = 0;
 
         _cameraService.FrameAvailable += OnFrameAvailable;
-        _mobileScanner.BarcodeReceived += OnMobileBarcodeReceived;
+
+        LoadData();
 
         AddByBarcodeCommand = new RelayCommand(OnAddByBarcode);
+        AddByNameCommand = new RelayCommand(OnAddByName);
         RemoveFromCartCommand = new RelayCommand<CartItem>(OnRemoveFromCart);
         IncreaseQtyCommand = new RelayCommand<CartItem>(OnIncreaseQty);
         DecreaseQtyCommand = new RelayCommand<CartItem>(OnDecreaseQty);
@@ -115,6 +134,25 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         ClearCartCommand = new RelayCommand(OnClearCart);
         ToggleCameraCommand = new RelayCommand(OnToggleCamera);
         ToggleMobileScannerCommand = new RelayCommand(OnToggleMobileScanner);
+    }
+
+    public void LoadData()
+    {
+        ProductSuggestions = _productRepo.GetAll()
+            .Select(p => p.Name)
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        BarcodeSuggestions = _productRepo.GetAll()
+            .Where(p => !string.IsNullOrWhiteSpace(p.Barcode))
+            .OrderBy(p => p.Barcode, StringComparer.Ordinal)
+            .Select(p => $"{p.Barcode} — {p.Name}")
+            .ToList();
+
+        var lastSale = _saleRepo.GetAll().FirstOrDefault();
+        LastSaleSummary = lastSale == null ? "Sin ventas aún" : $"Venta #{lastSale.Id} · ${lastSale.Total:F2}";
     }
 
     public void AddProductToCartById(int productId)
@@ -134,7 +172,6 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
             IsMobileScannerActive = false;
             MobileQrBitmap?.Dispose();
             MobileQrBitmap = null;
-            MobileScanFeedback = "";
             ScannerToggled?.Invoke(false);
         }
         else
@@ -152,15 +189,6 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
             ScannerToggled?.Invoke(true);
         }
-    }
-
-    private void OnMobileBarcodeReceived(string barcode)
-    {
-        Dispatcher.UIThread.Post(() =>
-        {
-            MobileScanFeedback = $"Código recibido: {barcode}";
-            MobileScanFeedbackColor = "#4CAF50";
-        });
     }
 
     private void OnFrameAvailable(byte[] frameData)
@@ -264,32 +292,79 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
     private void OnAddByBarcode()
     {
-        if (string.IsNullOrWhiteSpace(BarcodeInput))
+        var raw = BarcodeInput?.Trim() ?? "";
+        if (raw.Length == 0)
         {
-            ScanFeedback = "Ingrese un c\u00f3digo de barras";
-            ScanFeedbackColor = "#FF9800";
+            SetFeedback("Ingrese un código de barras", "#FF9800");
             return;
         }
 
-        var product = _productRepo.GetByBarcode(BarcodeInput.Trim());
+        var code = raw;
+        var sepIndex = code.IndexOf('—');
+        if (sepIndex > 0)
+        {
+            code = code.Substring(0, sepIndex).Trim();
+        }
+
+        var products = _productRepo.GetAll();
+        var product = products.FirstOrDefault(p => p.Barcode == code)
+                   ?? products.FirstOrDefault(p => p.Barcode.StartsWith(code, StringComparison.Ordinal));
+
         if (product == null)
         {
-            ScanFeedback = $"Producto no encontrado: {BarcodeInput}";
-            ScanFeedbackColor = "#EF5350";
+            SetFeedback($"Producto no encontrado: {code}", "#EF5350");
             return;
         }
 
         AddProductToCart(product);
         BarcodeInput = "";
-        ScanFeedback = $"\u2713 {product.Name} agregado";
-        ScanFeedbackColor = "#4CAF50";
+    }
+
+    private void OnAddByName()
+    {
+        var text = SearchText?.Trim() ?? "";
+        if (text.Length == 0)
+        {
+            SetFeedback("Ingrese el nombre de un producto", "#FF9800");
+            return;
+        }
+
+        var products = _productRepo.GetAll();
+        var product = products.FirstOrDefault(p => string.Equals(p.Name, text, StringComparison.OrdinalIgnoreCase))
+                   ?? products.FirstOrDefault(p => p.Name.Contains(text, StringComparison.OrdinalIgnoreCase));
+
+        if (product == null)
+        {
+            SetFeedback($"Producto no encontrado: {text}", "#EF5350");
+            return;
+        }
+
+        AddProductToCart(product);
+        SearchText = "";
+    }
+
+    public void SetFeedback(string message, string color = "#4A148C")
+    {
+        StatusMessage = message;
+        StatusColor = color;
     }
 
     private void AddProductToCart(Product product)
     {
+        if (product.Stock <= 0)
+        {
+            SetFeedback($"Sin stock disponible: {product.Name}", "#EF5350");
+            return;
+        }
+
         var existing = CartItems.FirstOrDefault(ci => ci.Product.Id == product.Id);
         if (existing != null)
         {
+            if (existing.Quantity >= existing.Product.Stock)
+            {
+                SetFeedback($"Stock máximo de {product.Name} (disponible: {product.Stock})", "#EF5350");
+                return;
+            }
             existing.Quantity += 1;
         }
         else
@@ -297,7 +372,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
             CartItems.Add(new CartItem { Product = product, Quantity = 1 });
         }
         UpdateCartTotals();
-        StatusMessage = $"{product.Name} agregado al carrito";
+        SetFeedback($"{product.Name} agregado al carrito", "#4CAF50");
     }
 
     private void OnRemoveFromCart(CartItem? item)
@@ -310,6 +385,11 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
     private void OnIncreaseQty(CartItem? item)
     {
         if (item == null) return;
+        if (item.Quantity >= item.Product.Stock)
+        {
+            SetFeedback($"Stock máximo de {item.ProductName} (disponible: {item.Product.Stock})", "#EF5350");
+            return;
+        }
         item.Quantity++;
         UpdateCartTotals();
     }
@@ -331,17 +411,24 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         var sinStock = CartItems.FirstOrDefault(ci => ci.Product.Stock < ci.Quantity);
         if (sinStock != null)
         {
-            ScanFeedback = $"Sin stock suficiente: {sinStock.Product.Name} (disponible: {sinStock.Product.Stock})";
-            ScanFeedbackColor = "#EF5350";
+            SetFeedback($"Sin stock suficiente: {sinStock.Product.Name} (disponible: {sinStock.Product.Stock})", "#EF5350");
             return;
         }
 
+        CheckoutRequested?.Invoke();
+    }
+
+    public void ConfirmCheckout()
+    {
+        if (CartItems.Count == 0) return;
+
         try
         {
+            var total = CartTotal;
             var sale = new Sale
             {
                 UserId = _currentUser.Id,
-                Total = CartTotal,
+                Total = total,
                 PaymentMethod = SelectedPaymentMethod,
                 CreatedAt = DateTime.Now
             };
@@ -362,30 +449,43 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
                 _productRepo.Update(ci.Product);
             }
 
-            StatusMessage = $"Venta #{saleId} completada - Total: ${CartTotal:F2}";
-            ScanFeedback = $"\u2713 Venta #{saleId} completada";
-            ScanFeedbackColor = "#4CAF50";
-            OnClearCart();
+            LastSaleSummary = $"Venta #{saleId} · ${total:F2}";
+            ClearCart();
+            SetFeedback($"Venta #{saleId} completada - Total: ${total:F2}", "#4CAF50");
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error: {ex.Message}";
-            ScanFeedback = "Error al procesar la venta";
-            ScanFeedbackColor = "#EF5350";
+            SetFeedback($"Error: {ex.Message}", "#EF5350");
         }
     }
 
     private void OnClearCart()
     {
+        ClearCartRequested?.Invoke();
+    }
+
+    public void ConfirmClearCart()
+    {
+        ClearCart();
+    }
+
+    private void ClearCart()
+    {
         CartItems.Clear();
         UpdateCartTotals();
         StatusMessage = "";
+        StatusColor = "#4A148C";
     }
 
     private void UpdateCartTotals()
     {
         CartTotal = CartItems.Sum(ci => ci.Subtotal);
         CartCount = CartItems.Sum(ci => ci.Quantity);
+        OnPropertyChanged(nameof(HasCartItems));
+        OnPropertyChanged(nameof(IsCartEmpty));
+        OnPropertyChanged(nameof(CartCountLabel));
+        OnPropertyChanged(nameof(CheckoutLabel));
+        ((RelayCommand)CheckoutCommand).NotifyCanExecuteChanged();
     }
 
     public void Dispose()
@@ -395,7 +495,6 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         _cameraService.Dispose();
         CameraPreview?.Dispose();
         CameraPreview = null;
-        _mobileScanner.BarcodeReceived -= OnMobileBarcodeReceived;
         MobileQrBitmap?.Dispose();
         MobileQrBitmap = null;
     }
