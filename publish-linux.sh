@@ -16,7 +16,7 @@ PACK_ID="SafeSale"
 MAIN_EXE="SafeSale"
 RUNTIME="linux-x64"
 CHANNEL="linux-x64"
-MYSQL_VERSION="${SAFESALE_MYSQL_VERSION:-8.4.5}"
+MYSQL_VERSION="${SAFESALE_MYSQL_VERSION:-8.4.13}"
 
 VERSION="$(grep -o '<Version>[^<]*</Version>' "$PROJECT" | head -1 | sed 's/<Version>//g; s#</Version>##g' | tr -d '[:space:]')"
 if [ -z "$VERSION" ]; then
@@ -45,9 +45,11 @@ echo "Canal:   $CHANNEL"
 echo "Runtime: $RUNTIME"
 echo "Tag:     $TAG"
 
+echo "Verificando motor MySQL $MYSQL_VERSION para $RUNTIME..."
+"$ROOT/scripts/fetch-mysql-vendor.sh" "$MYSQL_VERSION" "$RUNTIME"
 if [ ! -x "$ROOT/vendor/mysql/$RUNTIME/bin/mysqld" ]; then
-    echo "Falta el motor MySQL para $RUNTIME. Descargando MySQL $MYSQL_VERSION..."
-    "$ROOT/scripts/fetch-mysql-vendor.sh" "$MYSQL_VERSION" "$RUNTIME"
+    echo "Error: no se pudo obtener el motor MySQL para $RUNTIME."
+    exit 1
 fi
 
 echo ""

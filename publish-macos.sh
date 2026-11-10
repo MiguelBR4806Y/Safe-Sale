@@ -10,7 +10,7 @@ PUBLISH="$ROOT/publish"
 RELEASES="$ROOT/Releases"
 PACK_ID="SafeSale"
 MAIN_EXE="SafeSale"
-MYSQL_VERSION="${SAFESALE_MYSQL_VERSION:-8.4.5}"
+MYSQL_VERSION="${SAFESALE_MYSQL_VERSION:-8.4.13}"
 
 VERSION="$(grep -o '<Version>[^<]*</Version>' "$PROJECT" | head -1 | sed 's/<Version>//g; s#</Version>##g' | tr -d '[:space:]')"
 if [ -z "$VERSION" ]; then
@@ -32,9 +32,11 @@ echo "Versión: $VERSION"
 echo "Tag:     $TAG"
 
 for rid in osx-arm64 osx-x64; do
+    echo "Verificando motor MySQL $MYSQL_VERSION para $rid..."
+    "$ROOT/scripts/fetch-mysql-vendor.sh" "$MYSQL_VERSION" "$rid"
     if [ ! -x "$ROOT/vendor/mysql/$rid/bin/mysqld" ]; then
-        echo "Falta el motor MySQL para $rid. Descargando MySQL $MYSQL_VERSION..."
-        "$ROOT/scripts/fetch-mysql-vendor.sh" "$MYSQL_VERSION" "$rid"
+        echo "Error: no se pudo obtener el motor MySQL para $rid."
+        exit 1
     fi
 done
 

@@ -65,7 +65,7 @@ Descargar el motor para tu plataforma:
 
 ```bash
 # macOS / Linux (pasá la URL oficial del tarball de MySQL 8)
-MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-8.4.5-macos14-arm64.tar.gz" \
+MYSQL_URL="https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.13-macos15-arm64.tar.gz" \
   ./scripts/fetch-mysql-vendor.sh
 ```
 

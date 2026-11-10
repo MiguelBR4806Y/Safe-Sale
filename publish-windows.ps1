@@ -38,18 +38,16 @@ Write-Host "Canal:   $Channel" -ForegroundColor Yellow
 Write-Host "Runtime: $Runtime" -ForegroundColor Yellow
 Write-Host "Tag:     $Tag" -ForegroundColor Yellow
 
-# 1. Verificar / descargar el motor MySQL incluido
+# 1. Verificar / descargar / recortar el motor MySQL incluido
 $MysqlVersion = $env:SAFESALE_MYSQL_VERSION
-if (-not $MysqlVersion) { $MysqlVersion = "8.4.5" }
+if (-not $MysqlVersion) { $MysqlVersion = "8.4.13" }
 
 $MysqlExe = Join-Path $Root "vendor\mysql\$Runtime\bin\mysqld.exe"
+Write-Host "Verificando motor MySQL $MysqlVersion para $Runtime..." -ForegroundColor Yellow
+& (Join-Path $Root "scripts\fetch-mysql-vendor.ps1") -Version $MysqlVersion -Runtime $Runtime
 if (-not (Test-Path $MysqlExe)) {
-    Write-Host "Falta el motor MySQL para $Runtime. Descargando MySQL $MysqlVersion..." -ForegroundColor Yellow
-    & (Join-Path $Root "scripts\fetch-mysql-vendor.ps1") -Version $MysqlVersion -Runtime $Runtime
-    if (-not (Test-Path $MysqlExe)) {
-        Write-Host "Error: no se pudo obtener el motor MySQL." -ForegroundColor Red
-        exit 1
-    }
+    Write-Host "Error: no se pudo obtener el motor MySQL." -ForegroundColor Red
+    exit 1
 }
 
 # 2. Publicar la aplicación
