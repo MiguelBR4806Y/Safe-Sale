@@ -35,6 +35,7 @@ public partial class App : Application
             _desktop = desktop;
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             desktop.Exit += (_, _) => MySqlServerManager.Instance.Stop();
+            MacDockIcon.Apply();
 
             StartDatabaseAndShowApp();
         }
@@ -78,6 +79,7 @@ public partial class App : Application
             Height = 190,
             CanResize = false,
             WindowStartupLocation = WindowStartupLocation.CenterScreen,
+            Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://SafeSale/Assets/SS-ico.png"))),
             Content = stack
         };
 

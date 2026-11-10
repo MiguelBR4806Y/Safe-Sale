@@ -24,23 +24,39 @@ if (-not $Version) {
 
 $Tag = "v$Version-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 
+# Herramientas requeridas
+foreach ($tool in @("dotnet", "vpk", "gh")) {
+    if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
+        Write-Host "Error: falta '$tool'. Instalalo antes de publicar (dotnet tool install --global vpk / winget install GitHub.cli)." -ForegroundColor Red
+        exit 1
+    }
+}
+
 Write-Host "=== Safe-Sale - Publicación Windows ===" -ForegroundColor Cyan
 Write-Host "Versión: $Version" -ForegroundColor Yellow
 Write-Host "Canal:   $Channel" -ForegroundColor Yellow
 Write-Host "Runtime: $Runtime" -ForegroundColor Yellow
 Write-Host "Tag:     $Tag" -ForegroundColor Yellow
 
-# 1. Verificar el motor MySQL incluido
+# 1. Verificar / descargar el motor MySQL incluido
+$MysqlVersion = $env:SAFESALE_MYSQL_VERSION
+if (-not $MysqlVersion) { $MysqlVersion = "8.4.5" }
+
 $MysqlExe = Join-Path $Root "vendor\mysql\$Runtime\bin\mysqld.exe"
 if (-not (Test-Path $MysqlExe)) {
-    Write-Host "Error: falta el motor MySQL local para $Runtime." -ForegroundColor Red
-    Write-Host "Ejecutá primero: .\scripts\fetch-mysql-vendor.ps1" -ForegroundColor Yellow
-    exit 1
+    Write-Host "Falta el motor MySQL para $Runtime. Descargando MySQL $MysqlVersion..." -ForegroundColor Yellow
+    & (Join-Path $Root "scripts\fetch-mysql-vendor.ps1") -Version $MysqlVersion -Runtime $Runtime
+    if (-not (Test-Path $MysqlExe)) {
+        Write-Host "Error: no se pudo obtener el motor MySQL." -ForegroundColor Red
+        exit 1
+    }
 }
 
 # 2. Publicar la aplicación
 Write-Host "`n[1/4] Publicando aplicación..." -ForegroundColor Green
-dotnet publish $ProjectPath -c Release -r $Runtime --self-contained true -o (Join-Path $PublishDir $Runtime)
+$PublishTarget = Join-Path $PublishDir $Runtime
+if (Test-Path $PublishTarget) { Remove-Item $PublishTarget -Recurse -Force }
+dotnet publish $ProjectPath -c Release -r $Runtime --self-contained true -o $PublishTarget
 if ($LASTEXITCODE -ne 0) { Write-Host "Error al publicar" -ForegroundColor Red; exit 1 }
 
 # 3. Empaquetar con Velopack

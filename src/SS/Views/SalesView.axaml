@@ -132,9 +132,14 @@
                             <TextBlock Text="{Binding ScanFeedback}" FontSize="10" FontWeight="SemiBold"
                                        Foreground="{Binding ScanFeedbackColor}"/>
                         </Border>
-                        <Grid Height="140">
+                        <Grid Height="140" ClipToBounds="True">
                             <Image Source="{Binding CameraPreview}" Stretch="UniformToFill"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   RenderTransformOrigin="50%,50%">
+                                <Image.RenderTransform>
+                                    <ScaleTransform ScaleX="-1" ScaleY="1"/>
+                                </Image.RenderTransform>
+                            </Image>
                             <Border BorderBrush="#4CAF50" BorderThickness="2" CornerRadius="6" Margin="20,15"
                                     Background="#11000000"/>
                             <TextBlock Text="Coloque el código dentro del marco"
@@ -374,6 +379,54 @@
                                 <ComboBox ItemsSource="{Binding PaymentMethods}"
                                           SelectedItem="{Binding SelectedPaymentMethod}"/>
                             </StackPanel>
+
+                            <!-- IVA -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="IVA (%)" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="#9C8EBF"/>
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <TextBox Width="72" Height="30" FontSize="12"
+                                             Text="{Binding IvaRateInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             TextAlignment="Center"
+                                             ToolTip.Tip="Tasa de IVA a sumar al subtotal. 0 = venta sin IVA"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="0 = venta sin IVA"
+                                               FontSize="10"
+                                               Foreground="#9C8EBF"
+                                               VerticalAlignment="Center"
+                                               Margin="8,0,0,0"/>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Desglose -->
+                            <Border Background="#F5F0FA" CornerRadius="8" Padding="10,8">
+                                <StackPanel Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="Subtotal" FontSize="11" Foreground="#6C3483"/>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding CartSubtotal, StringFormat='{}${0:F2}'}"
+                                                   FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="#4A148C"/>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="{Binding IvaRateLabel}"
+                                                   FontSize="11" Foreground="#6C3483"/>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding IvaAmount, StringFormat='{}${0:F2}'}"
+                                                   FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="#4A148C"/>
+                                    </Grid>
+                                    <Border Classes="separator"/>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="TOTAL" FontSize="12" FontWeight="Bold"
+                                                   Foreground="#4A148C"/>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding CartTotal, StringFormat='{}${0:F2}'}"
+                                                   FontSize="16" FontWeight="Bold"
+                                                   Foreground="#7B1FA2"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
 
                             <!-- Cobrar -->
                             <Border BoxShadow="0 4 12 0 #554A148C" CornerRadius="10">

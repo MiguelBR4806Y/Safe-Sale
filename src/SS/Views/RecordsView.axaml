@@ -75,7 +75,8 @@
 
                         <Border Classes="separator"/>
 
-                        <ListBox ItemsSource="{Binding Sales}" Height="280">
+                        <ListBox ItemsSource="{Binding Sales}" Height="280"
+                                 SelectedItem="{Binding SelectedSale, Mode=TwoWay}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Border Padding="12,10"
@@ -97,6 +98,7 @@
                                                 <TextBlock Text="{Binding Id, StringFormat='Venta #{0}'}"
                                                            Classes="card-value"/>
                                                 <TextBlock Text="{Binding CreatedAt}" Classes="caption"/>
+                                                <TextBlock Text="{Binding SummaryLabel}" Classes="caption"/>
                                             </StackPanel>
                                             <Border Grid.Column="2"
                                                     Background="{StaticResource PrimaryHoverBrush}"
@@ -120,6 +122,98 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
+                    </StackPanel>
+                </Border>
+
+                <!-- Detalle de la venta seleccionada -->
+                <Border Classes="card" IsVisible="{Binding HasSelectedSale}">
+                    <StackPanel Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="&#x1F9FE;" FontSize="14" VerticalAlignment="Center"/>
+                                <TextBlock Text="Detalle de la venta" Classes="section-title"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding SelectedSaleTitle}" Classes="caption"
+                                           Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="{Binding SelectedCashierLabel}"
+                                           Classes="caption"/>
+                                <TextBlock Text="{Binding SelectedSale.PaymentMethod}"
+                                           Classes="caption"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Classes="separator"/>
+
+                        <Grid ColumnDefinitions="*,70,90,90" Margin="12,0,12,0">
+                            <TextBlock Grid.Column="0" Text="PRODUCTO" Classes="caption"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Grid.Column="1" Text="CANT." Classes="caption"
+                                       FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="P. UNIT." Classes="caption"
+                                       FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="3" Text="SUBTOTAL" Classes="caption"
+                                       FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding SelectedSaleItems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="12,8"
+                                            Background="{StaticResource PrimaryBackgroundBrush}"
+                                            CornerRadius="8" Margin="0,2">
+                                        <Grid ColumnDefinitions="*,70,90,90">
+                                            <SelectableTextBlock Grid.Column="0"
+                                                                 Text="{Binding ProductName}"
+                                                                 FontSize="12" FontWeight="SemiBold"
+                                                                 Foreground="{StaticResource PrimaryDarkBrush}"
+                                                                 TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Quantity}"
+                                                       FontSize="12" HorizontalAlignment="Center"
+                                                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding PriceSold, StringFormat='{}${0:F2}'}"
+                                                       FontSize="12" HorizontalAlignment="Right"
+                                                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <TextBlock Grid.Column="3"
+                                                       Text="{Binding Subtotal, StringFormat='{}${0:F2}'}"
+                                                       FontSize="12" FontWeight="Bold"
+                                                       HorizontalAlignment="Right"
+                                                       Foreground="{StaticResource PrimaryMediumBrush}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Border Background="{StaticResource PrimaryBackgroundBrush}"
+                                CornerRadius="8" Padding="12,10">
+                            <StackPanel Spacing="4">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="Subtotal" Classes="caption"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding SelectedSubtotal, StringFormat='{}${0:F2}'}"
+                                               FontSize="12" FontWeight="SemiBold"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{Binding SelectedIvaLabel}" Classes="caption"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding SelectedIvaAmount, StringFormat='{}${0:F2}'}"
+                                               FontSize="12" FontWeight="SemiBold"/>
+                                </Grid>
+                                <Border Classes="separator"/>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="TOTAL" FontSize="12" FontWeight="Bold"
+                                               Foreground="{StaticResource PrimaryDarkBrush}"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding SelectedTotal, StringFormat='{}${0:F2}'}"
+                                               FontSize="16" FontWeight="Bold"
+                                               Foreground="{StaticResource PrimaryMediumBrush}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </Border>
             </StackPanel>

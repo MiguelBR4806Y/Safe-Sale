@@ -5,11 +5,10 @@
 # Uso:
 #   ./scripts/fetch-mysql-vendor.sh
 #   ./scripts/fetch-mysql-vendor.sh 8.4.5 osx-arm64
-#   MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-8.4.5-macos14-arm64.tar.gz" \
+#   MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-8.4.5-macos15-arm64.tar.gz" \
 #       ./scripts/fetch-mysql-vendor.sh 8.4.5 osx-arm64
 #
-# Los nombres de los tarballs oficiales cambian por versión y sistema; si la URL
-# por defecto no existe, usá MYSQL_URL con el link oficial correspondiente.
+# Si no se pasa MYSQL_URL, se arma automáticamente la URL oficial según el RID.
 
 set -euo pipefail
 
@@ -35,12 +34,20 @@ if [ -x "$DEST/bin/mysqld" ]; then
 fi
 
 if [ -z "$URL" ]; then
-    echo "Definí MYSQL_URL con el link oficial del tarball para $RID."
-    echo "Ejemplo (macOS arm64):"
-    echo "  MYSQL_URL='https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-8.4.5-macos14-arm64.tar.gz' $0"
-    echo "Ejemplo (Linux x64):"
-    echo "  MYSQL_URL='https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-8.4.5-linux-glibc2.28-x86_64.tar.xz' $0"
-    exit 1
+    case "$RID" in
+        osx-arm64)
+            URL="https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-${VERSION}-macos15-arm64.tar.gz" ;;
+        osx-x64)
+            URL="https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-${VERSION}-macos15-x86_64.tar.gz" ;;
+        linux-x64)
+            URL="https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-${VERSION}-linux-glibc2.28-x86_64.tar.xz" ;;
+        linux-arm64)
+            URL="https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-${VERSION}-linux-glibc2.28-aarch64.tar.xz" ;;
+        *)
+            echo "RID no soportado por este script: $RID"
+            echo "Para Windows usá scripts/fetch-mysql-vendor.ps1 o definí MYSQL_URL manualmente."
+            exit 1 ;;
+    esac
 fi
 
 TMP="$(mktemp -d)"

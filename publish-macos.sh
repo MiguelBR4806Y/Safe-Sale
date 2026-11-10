@@ -10,6 +10,7 @@ PUBLISH="$ROOT/publish"
 RELEASES="$ROOT/Releases"
 PACK_ID="SafeSale"
 MAIN_EXE="SafeSale"
+MYSQL_VERSION="${SAFESALE_MYSQL_VERSION:-8.4.5}"
 
 VERSION="$(grep -o '<Version>[^<]*</Version>' "$PROJECT" | head -1 | sed 's/<Version>//g; s#</Version>##g' | tr -d '[:space:]')"
 if [ -z "$VERSION" ]; then
@@ -19,22 +20,29 @@ fi
 
 TAG="v${VERSION}-$(date +%Y%m%d-%H%M%S)"
 
+for tool in dotnet vpk gh; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+        echo "Error: falta '$tool'. Instalalo antes de publicar (dotnet tool install --global vpk / brew install gh)."
+        exit 1
+    fi
+done
+
 echo "=== Safe-Sale - Publicación macOS ==="
 echo "Versión: $VERSION"
 echo "Tag:     $TAG"
 
 for rid in osx-arm64 osx-x64; do
     if [ ! -x "$ROOT/vendor/mysql/$rid/bin/mysqld" ]; then
-        echo "Error: falta el motor MySQL local para $rid."
-        echo "Ejecutá: ./scripts/fetch-mysql-vendor.sh $VERSION $rid"
-        exit 1
+        echo "Falta el motor MySQL para $rid. Descargando MySQL $MYSQL_VERSION..."
+        "$ROOT/scripts/fetch-mysql-vendor.sh" "$MYSQL_VERSION" "$rid"
     fi
 done
 
 ICON_PNG="$ROOT/src/SS/Assets/SS-ico.png"
-ICON_ICNS="$ROOT/src/SS/Assets/SS-ico.icns"
+ICON_ICNS="$ROOT/src/SS/Platforms/macOS/SS-ico.icns"
 
 if [ -f "$ICON_PNG" ] && [ ! -f "$ICON_ICNS" ] && command -v iconutil >/dev/null 2>&1; then
+    mkdir -p "$(dirname "$ICON_ICNS")"
     TMPICONSET="$(mktemp -d)/AppIcon.iconset"
     mkdir -p "$TMPICONSET"
     for size in 16 32 128 256 512; do
@@ -55,6 +63,7 @@ pack_arch() {
     echo ""
     echo "--- Publicando $rid (canal $channel) ---"
 
+    rm -rf "$PUBLISH/$rid"
     dotnet publish "$PROJECT" -c Release -r "$rid" --self-contained true -o "$PUBLISH/$rid"
 
     rm -rf "$out"

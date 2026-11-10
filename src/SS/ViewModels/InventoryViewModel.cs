@@ -145,7 +145,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
     public ICommand ConfirmSelectionCommand { get; }
     public ICommand CancelSelectionCommand { get; }
 
-    public event Action? AddProductRequested;
+    public event Action<string>? AddProductRequested;
     public event Action<Product>? EditProductRequested;
     public event Action<int>? AddToCartRequested;
     public event Action<List<int>>? AddMultipleToCartRequested;
@@ -283,7 +283,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
     private void OnAddProduct()
     {
         if (!CanManageInventory) return;
-        AddProductRequested?.Invoke();
+        AddProductRequested?.Invoke("");
     }
 
     public void HandleAddProductResult(bool success)
@@ -699,7 +699,7 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
                     {
                         ScanFeedback = $"Nuevo codigo: {code}";
                         ScanFeedbackColor = "#FF9800";
-                        AddProductRequested?.Invoke();
+                        AddProductRequested?.Invoke(code);
                     }
                 });
             }

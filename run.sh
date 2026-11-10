@@ -1,42 +1,50 @@
-#!/bin/bash
-# Script multiplataforma para Safe-Sale (Windows, macOS, Linux)
-# Autor: Save-Sale Project
+#!/usr/bin/env bash
+# Script de ejecución multiplataforma para Safe-Sale
+# Uso: ./run.sh
 
-# Detectar el sistema operativo
-OS=$(uname -s)
-CASE_LOWER=$(echo "$OS" | tr '[:upper:]' '[:lower:]')
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT="$ROOT/src/SS/SS.csproj"
 
 echo "=== Safe-Sale - Iniciando proyecto ==="
-echo "Sistema operativo detectado: $OS"
+echo "Sistema operativo detectado: $(uname -s)"
 
-# Verificar si el proyecto existe
-projectPath="src/SS/SS.csproj"
-
-if [ -f "$projectPath" ]; then
-    echo "Ejecutando: dotnet run --project $projectPath"
-    
-    # Ejecutar la aplicación
-    # Este comando hará restore automáticamente e incluirá MySqlConnector
-    dotnet run --project "$projectPath"
-    
-    echo ""
-    echo "=== Aplicación cerrada ==="
-    echo "La base de datos MySQL local se crea y configura automáticamente en el primer arranque"
-    
-    # Información adicional por plataforma
-    case "$CASE_LOWER" in
-        darwin*)
-            echo "🍏 Ejecutado en macOS - Base de datos MySQL local en: ~/Library/Application Support/Safe-Sale/"
-            ;;
-        linux*)
-            echo "🐧 Ejecutado en Linux - Base de datos MySQL local en: ~/.local/share/Safe-Sale/"
-            ;;
-        cygwin*|msys*|win32*)
-            echo "🪟 Ejecutado en Windows - Base de datos MySQL local en: %LOCALAPPDATA%\\Safe-Sale\\"
-            ;;
-    esac
-else
-    echo "❌ Error: No se encontró el proyecto $projectPath"
-    echo "Asegúrate de ejecutar este script desde la carpeta Safe-Sale"
+if ! command -v dotnet >/dev/null 2>&1; then
+    echo "Error: 'dotnet' no está instalado o no está en el PATH."
+    echo "Instalá el SDK de .NET 10: https://dotnet.microsoft.com/download"
     exit 1
 fi
+
+if [ ! -f "$PROJECT" ]; then
+    echo "Error: no se encontró el proyecto en $PROJECT"
+    exit 1
+fi
+
+echo "Ejecutando: dotnet run --project $PROJECT"
+set +e
+dotnet run --project "$PROJECT"
+EXIT_CODE=$?
+set -e
+
+if [ "$EXIT_CODE" -ne 0 ]; then
+    echo ""
+    echo "La aplicación terminó con errores (código $EXIT_CODE)."
+    exit "$EXIT_CODE"
+fi
+
+echo ""
+echo "=== Aplicación cerrada correctamente ==="
+echo "La base de datos MySQL local se crea y configura automáticamente en el primer arranque"
+
+case "$(uname -s)" in
+    Darwin*)
+        echo "Base de datos local: ~/Library/Application Support/Safe-Sale/"
+        ;;
+    Linux*)
+        echo "Base de datos local: ~/.local/share/Safe-Sale/"
+        ;;
+    CYGWIN*|MINGW*|MSYS*)
+        echo "Base de datos local: %LOCALAPPDATA%\\Safe-Sale\\"
+        ;;
+esac

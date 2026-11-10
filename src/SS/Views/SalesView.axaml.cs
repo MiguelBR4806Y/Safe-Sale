@@ -68,6 +68,7 @@ public partial class SalesView : UserControl
             if (window == null || _viewModel == null) return;
 
             var message = $"¿Confirmar cobro de ${_viewModel.CartTotal:F2}?\n" +
+                          $"Subtotal: ${_viewModel.CartSubtotal:F2} · {_viewModel.IvaRateLabel}: ${_viewModel.IvaAmount:F2}\n" +
                           $"{_viewModel.CartCount} items · {_viewModel.SelectedPaymentMethod}";
             var confirmDialog = new ConfirmDialog(message);
             var confirmed = await confirmDialog.ShowDialog<bool?>(window);

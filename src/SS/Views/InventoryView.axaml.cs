@@ -15,6 +15,7 @@ namespace SS.Views;
 public partial class InventoryView : UserControl
 {
     private InventoryViewModel? _viewModel;
+    private bool _addDialogOpen;
 
     public InventoryView()
     {
@@ -50,8 +51,10 @@ public partial class InventoryView : UserControl
         return topLevel as Window;
     }
 
-    private async void OnAddProductRequested()
+    private async void OnAddProductRequested(string barcode)
     {
+        if (_addDialogOpen) return;
+
         try
         {
             var window = GetParentWindow();
@@ -61,7 +64,8 @@ public partial class InventoryView : UserControl
                 return;
             }
 
-            var dialog = new QuickAddProductDialog("", SS.Data.DatabaseConfig.ConnectionString);
+            _addDialogOpen = true;
+            var dialog = new QuickAddProductDialog(barcode, SS.Data.DatabaseConfig.ConnectionString);
             var result = await dialog.ShowDialog<bool?>(window);
 
             if (result == true && _viewModel != null)
@@ -72,6 +76,10 @@ public partial class InventoryView : UserControl
         catch (Exception ex)
         {
             Console.WriteLine($"[DIAG] OnAddProductRequested EXCEPTION: {ex}");
+        }
+        finally
+        {
+            _addDialogOpen = false;
         }
     }
 

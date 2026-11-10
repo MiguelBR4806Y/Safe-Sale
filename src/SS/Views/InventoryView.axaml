@@ -122,9 +122,14 @@
                             <TextBlock Text="{Binding ScanFeedback}" FontSize="10" FontWeight="SemiBold"
                                        Foreground="{Binding ScanFeedbackColor}"/>
                         </Border>
-                        <Grid Height="140">
+                        <Grid Height="140" ClipToBounds="True">
                             <Image Source="{Binding CameraPreview}" Stretch="UniformToFill"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   RenderTransformOrigin="50%,50%">
+                                <Image.RenderTransform>
+                                    <ScaleTransform ScaleX="-1" ScaleY="1"/>
+                                </Image.RenderTransform>
+                            </Image>
                             <Border BorderBrush="#4CAF50" BorderThickness="2" CornerRadius="6" Margin="20,15"
                                     Background="#11000000"/>
                             <TextBlock Text="Coloque el codigo dentro del marco"

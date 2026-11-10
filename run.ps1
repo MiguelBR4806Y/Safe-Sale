@@ -1,22 +1,33 @@
-# Script para ejecutar Safe-Sale con MySQL local incluido
-# Autor: Save-Sale Project
+# Script de ejecución para Safe-Sale (Windows)
+# Uso: .\run.ps1
 
-# Verificar si el proyecto existe
-$projectPath = "src\SS\SS.csproj"
+$ErrorActionPreference = "Stop"
+
+$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectPath = Join-Path $Root "src\SS\SS.csproj"
 
 Write-Host "=== Safe-Sale - Iniciando proyecto ===" -ForegroundColor Green
 
-if (Test-Path $projectPath) {
-    Write-Host "Ejecutando: dotnet run --project $projectPath" -ForegroundColor Cyan
-    
-    # Ejecutar la aplicación
-    # Este comando hará restore automáticamente e incluirá MySqlConnector
-    dotnet run --project $projectPath
-    
-    Write-Host ""
-    Write-Host "=== Aplicación cerrada ===" -ForegroundColor Green
-    Write-Host "La base de datos MySQL local se crea y configura automáticamente en el primer arranque"
-} else {
-    Write-Host "Error: No se encontró el proyecto" -ForegroundColor Red
-    Write-Host "Asegúrate de ejecutar este script desde la carpeta Safe-Sale"
+if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+    Write-Host "Error: 'dotnet' no está instalado o no está en el PATH." -ForegroundColor Red
+    Write-Host "Instalá el SDK de .NET 10: https://dotnet.microsoft.com/download" -ForegroundColor Yellow
+    exit 1
 }
+
+if (-not (Test-Path $ProjectPath)) {
+    Write-Host "Error: no se encontró el proyecto en $ProjectPath" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "Ejecutando: dotnet run --project $ProjectPath" -ForegroundColor Cyan
+dotnet run --project $ProjectPath
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "La aplicación terminó con errores (código $LASTEXITCODE)." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
+
+Write-Host ""
+Write-Host "=== Aplicación cerrada correctamente ===" -ForegroundColor Green
+Write-Host "La base de datos MySQL local se crea y configura automáticamente en el primer arranque"

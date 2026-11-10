@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Input;
 using SS.Data;
@@ -32,6 +33,8 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     public string CurrentUsername => CurrentUser?.Username ?? "";
     public string CurrentRole => CurrentUser?.Role == "admin" ? "Administrador" : "Cajero";
     public bool IsAdmin => CurrentUser?.Role == "admin";
+    public string AppVersionLabel =>
+        $"v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.1"}";
 
     public ICommand NavigateDashboardCommand { get; }
     public ICommand NavigateInventoryCommand { get; }

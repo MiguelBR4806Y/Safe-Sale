@@ -39,6 +39,8 @@ public partial class QuickAddProductDialog : Window
         CancelButton.Click += OnCancel;
 
         LoadCategories();
+
+        Opened += (_, _) => (string.IsNullOrEmpty(barcode) ? BarcodeBox : NameBox).Focus();
     }
 
     private void LoadCategories()
@@ -50,16 +52,16 @@ public partial class QuickAddProductDialog : Window
     private void OnBarcodeTextChanged(object? sender, TextChangedEventArgs e)
     {
         var tb = (TextBox)sender!;
-        var digits = new string(tb.Text?.Where(char.IsDigit).ToArray() ?? Array.Empty<char>());
+        var cleaned = new string((tb.Text ?? "").Where(c => !char.IsWhiteSpace(c)).ToArray());
 
-        if (digits.Length > 13)
-            digits = digits[..13];
+        if (cleaned.Length > 64)
+            cleaned = cleaned[..64];
 
-        if (tb.Text != digits)
+        if (tb.Text != cleaned)
         {
             var caret = tb.CaretIndex;
-            tb.Text = digits;
-            tb.CaretIndex = Math.Min(caret, digits.Length);
+            tb.Text = cleaned;
+            tb.CaretIndex = Math.Min(caret, cleaned.Length);
         }
 
         HideError("Barcode");

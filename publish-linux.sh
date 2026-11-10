@@ -16,6 +16,7 @@ PACK_ID="SafeSale"
 MAIN_EXE="SafeSale"
 RUNTIME="linux-x64"
 CHANNEL="linux-x64"
+MYSQL_VERSION="${SAFESALE_MYSQL_VERSION:-8.4.5}"
 
 VERSION="$(grep -o '<Version>[^<]*</Version>' "$PROJECT" | head -1 | sed 's/<Version>//g; s#</Version>##g' | tr -d '[:space:]')"
 if [ -z "$VERSION" ]; then
@@ -31,6 +32,13 @@ fi
 TAG="v${VERSION}-$(date +%Y%m%d-%H%M%S)"
 OUT="$RELEASES/$RUNTIME"
 
+for tool in dotnet vpk gh; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+        echo "Error: falta '$tool'. Instalalo antes de publicar (dotnet tool install --global vpk / paquete gh de GitHub CLI)."
+        exit 1
+    fi
+done
+
 echo "=== Safe-Sale - Publicación Linux ==="
 echo "Versión: $VERSION"
 echo "Canal:   $CHANNEL"
@@ -38,13 +46,13 @@ echo "Runtime: $RUNTIME"
 echo "Tag:     $TAG"
 
 if [ ! -x "$ROOT/vendor/mysql/$RUNTIME/bin/mysqld" ]; then
-    echo "Error: falta el motor MySQL local para $RUNTIME."
-    echo "Ejecutá: ./scripts/fetch-mysql-vendor.sh $VERSION $RUNTIME"
-    exit 1
+    echo "Falta el motor MySQL para $RUNTIME. Descargando MySQL $MYSQL_VERSION..."
+    "$ROOT/scripts/fetch-mysql-vendor.sh" "$MYSQL_VERSION" "$RUNTIME"
 fi
 
 echo ""
 echo "[1/4] Publicando aplicación..."
+rm -rf "$PUBLISH/$RUNTIME"
 dotnet publish "$PROJECT" -c Release -r "$RUNTIME" --self-contained true -o "$PUBLISH/$RUNTIME"
 
 echo ""

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -33,6 +34,12 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
     [ObservableProperty]
     private decimal _cartTotal;
+
+    [ObservableProperty]
+    private decimal _cartSubtotal;
+
+    [ObservableProperty]
+    private string _ivaRateInput = "21";
 
     [ObservableProperty]
     private int _cartCount;
@@ -82,6 +89,9 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         : $"Caja abierta desde {_openCashSession.OpenedAtLabel} · Efectivo esperado: {_openCashSession.ExpectedCashLabel}";
     public string CartCountLabel => $"{CartCount} items";
     public string CheckoutLabel => $"COBRAR  ${CartTotal:F2}";
+    public decimal IvaRate => TryParseIvaRate(out var rate, out _) ? rate : 0m;
+    public decimal IvaAmount => Math.Round(CartSubtotal * IvaRate / 100m, 2);
+    public string IvaRateLabel => $"IVA {IvaRate:0.##}%";
 
     [ObservableProperty]
     private bool _isScanning;
@@ -443,6 +453,12 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
             return;
         }
 
+        if (!TryParseIvaRate(out _, out var ivaError))
+        {
+            SetFeedback(ivaError!, "#EF5350");
+            return;
+        }
+
         CheckoutRequested?.Invoke();
     }
 
@@ -464,7 +480,13 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
             }
 
             var total = CartTotal;
-            int saleId = _saleRepo.RegisterSale(_currentUser.Id, session.Id, SelectedPaymentMethod, lines);
+            if (!TryParseIvaRate(out var ivaRate, out var ivaError))
+            {
+                SetFeedback(ivaError!, "#EF5350");
+                return;
+            }
+
+            int saleId = _saleRepo.RegisterSale(_currentUser.Id, session.Id, SelectedPaymentMethod, ivaRate, lines);
 
             foreach (var ci in CartItems)
                 ci.Product.Stock -= ci.Quantity;
@@ -500,15 +522,50 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
     private void UpdateCartTotals()
     {
-        CartTotal = CartItems.Sum(ci => ci.Subtotal);
+        CartSubtotal = CartItems.Sum(ci => ci.Subtotal);
         CartCount = CartItems.Sum(ci => ci.Quantity);
+        CartTotal = CartSubtotal + IvaAmount;
         OnPropertyChanged(nameof(HasCartItems));
         OnPropertyChanged(nameof(IsCartEmpty));
         OnPropertyChanged(nameof(CartCountLabel));
         OnPropertyChanged(nameof(CheckoutLabel));
+        OnPropertyChanged(nameof(IvaAmount));
+        OnPropertyChanged(nameof(IvaRate));
+        OnPropertyChanged(nameof(IvaRateLabel));
         OnPropertyChanged(nameof(CanCheckout));
         if (CheckoutCommand is RelayCommand command)
             command.NotifyCanExecuteChanged();
+    }
+
+    partial void OnIvaRateInputChanged(string value)
+    {
+        UpdateCartTotals();
+    }
+
+    private bool TryParseIvaRate(out decimal rate, out string? error)
+    {
+        error = null;
+        var raw = (IvaRateInput ?? "").Trim().Replace(',', '.');
+
+        if (raw.Length == 0)
+        {
+            rate = 0m;
+            return true;
+        }
+
+        if (!decimal.TryParse(raw, NumberStyles.Number, CultureInfo.InvariantCulture, out rate))
+        {
+            error = "La tasa de IVA debe ser un número (ej: 21 o 0).";
+            return false;
+        }
+
+        if (rate < 0 || rate > 100)
+        {
+            error = "La tasa de IVA debe estar entre 0 y 100.";
+            return false;
+        }
+
+        return true;
     }
 
     public void Dispose()

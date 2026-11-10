@@ -15,6 +15,7 @@ public static class DatabaseInitializer
         CreateSchema(conn);
         MigrateCategories(conn);
         MigrateSalesCashSession(conn);
+        MigrateSalesIva(conn);
         SeedDefaultAdmin(conn);
         SeedCategories(conn);
         SeedDefaultProducts(conn);
@@ -83,6 +84,9 @@ public static class DatabaseInitializer
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT NULL,
                 cash_session_id INT NULL,
+                subtotal DECIMAL(10,2) NOT NULL DEFAULT 0,
+                iva_rate DECIMAL(5,2) NOT NULL DEFAULT 0,
+                iva_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
                 total DECIMAL(10,2) NOT NULL,
                 payment_method VARCHAR(32) DEFAULT '',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -179,6 +183,35 @@ public static class DatabaseInitializer
         }
     }
 
+    private static void MigrateSalesIva(MySqlConnection conn)
+    {
+        var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = @"
+                SELECT COLUMN_NAME
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'sales'";
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                columns.Add(reader.GetString(0));
+        }
+
+        if (!columns.Contains("subtotal"))
+            Execute(conn, "ALTER TABLE sales ADD COLUMN subtotal DECIMAL(10,2) NOT NULL DEFAULT 0");
+
+        if (!columns.Contains("iva_rate"))
+            Execute(conn, "ALTER TABLE sales ADD COLUMN iva_rate DECIMAL(5,2) NOT NULL DEFAULT 0");
+
+        if (!columns.Contains("iva_amount"))
+            Execute(conn, "ALTER TABLE sales ADD COLUMN iva_amount DECIMAL(10,2) NOT NULL DEFAULT 0");
+
+        // Ventas anteriores: el total guardado ya era el total cobrado, sin IVA discriminado.
+        Execute(conn, "UPDATE sales SET subtotal = total WHERE subtotal = 0 AND iva_amount = 0");
+    }
+
     /// <summary>
     /// Objetos de base de datos: vista de stock bajo, triggers de auditoría y
     /// procedimiento de cobro transaccional (ACID con ROLLBACK).
@@ -233,10 +266,13 @@ public static class DatabaseInitializer
                 IN p_user_id INT,
                 IN p_cash_session_id INT,
                 IN p_payment_method VARCHAR(32),
+                IN p_iva_rate DECIMAL(5,2),
                 IN p_items JSON,
                 OUT p_sale_id INT
             )
             BEGIN
+                DECLARE v_subtotal DECIMAL(10,2) DEFAULT 0;
+                DECLARE v_iva DECIMAL(10,2) DEFAULT 0;
                 DECLARE v_total DECIMAL(10,2) DEFAULT 0;
                 DECLARE v_sale_id INT DEFAULT 0;
 
@@ -247,6 +283,10 @@ public static class DatabaseInitializer
                 END;
 
                 START TRANSACTION;
+
+                IF p_iva_rate IS NULL OR p_iva_rate < 0 OR p_iva_rate > 100 THEN
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La tasa de IVA debe estar entre 0 y 100.';
+                END IF;
 
                 IF p_items IS NULL OR JSON_LENGTH(p_items) = 0 THEN
                     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La venta no tiene items.';
@@ -282,18 +322,21 @@ public static class DatabaseInitializer
                 END IF;
 
                 SELECT COALESCE(SUM(jt.quantity * jt.price), 0)
-                  INTO v_total
+                  INTO v_subtotal
                   FROM JSON_TABLE(p_items, '$[*]' COLUMNS (
                       quantity INT PATH '$.quantity',
                       price DECIMAL(10,2) PATH '$.price'
                   )) AS jt;
 
-                IF v_total <= 0 THEN
+                SET v_iva = ROUND(v_subtotal * p_iva_rate / 100, 2);
+                SET v_total = v_subtotal + v_iva;
+
+                IF v_subtotal <= 0 THEN
                     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El total de la venta debe ser mayor a 0.';
                 END IF;
 
-                INSERT INTO sales (user_id, cash_session_id, total, payment_method, created_at)
-                VALUES (p_user_id, p_cash_session_id, v_total, COALESCE(p_payment_method, ''), NOW());
+                INSERT INTO sales (user_id, cash_session_id, subtotal, iva_rate, iva_amount, total, payment_method, created_at)
+                VALUES (p_user_id, p_cash_session_id, v_subtotal, p_iva_rate, v_iva, v_total, COALESCE(p_payment_method, ''), NOW());
 
                 SET v_sale_id = LAST_INSERT_ID();
 

@@ -32,7 +32,7 @@ public partial class AboutViewModel : ViewModelBase
 
     public AboutViewModel()
     {
-        AppVersion = $"v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0"}";
+        AppVersion = $"v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.1"}";
         CheckForUpdatesCommand = new RelayCommand(OnCheckForUpdates);
     }
 

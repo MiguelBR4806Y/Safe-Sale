@@ -77,10 +77,10 @@
                        Foreground="#6C3483"
                        FontWeight="SemiBold"/>
             <TextBox Name="BarcodeBox"
-                     PlaceholderText="Ej: 1234567890123 (13 dígitos)"
-                     MaxLength="13"/>
+                     PlaceholderText="Ej: 1234567890123"
+                     MaxLength="64"/>
             <TextBlock Name="BarcodeHelp"
-                       Text="Solo números. EAN-13 (13) o UPC-A (12) dígitos"
+                       Text="EAN-13, UPC-A, CODE-128 o QR (sin espacios)"
                        FontSize="10"
                        Foreground="#6C3483"
                        Margin="0,2,0,0"/>
