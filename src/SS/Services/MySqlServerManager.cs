@@ -113,6 +113,26 @@ public sealed class MySqlServerManager : IDisposable
                 WaitUntilReady(TimeSpan.FromSeconds(90));
                 ProvisionDatabase();
             }
+            catch (MySqlStartupException ex) when (IsIncompatibleDataDirectoryError(ex))
+            {
+                StopServerProcess();
+                Log("El datadir local pertenece a otra versión de MySQL. Se guarda una copia y se inicializa uno nuevo.");
+                BackupIncompatibleDataDirectory();
+                PrepareEmptyDataDirectory();
+                InitializeDataDirectory(server.Executable, server.BaseDirectory);
+                StartServerProcess(server.Executable, server.BaseDirectory);
+
+                try
+                {
+                    WaitUntilReady(TimeSpan.FromSeconds(90));
+                    ProvisionDatabase();
+                }
+                catch
+                {
+                    StopServerProcess();
+                    throw;
+                }
+            }
             catch
             {
                 StopServerProcess();
@@ -549,6 +569,38 @@ public sealed class MySqlServerManager : IDisposable
             }
         }
         catch { }
+    }
+
+    private static bool IsIncompatibleDataDirectoryError(Exception ex)
+    {
+        var message = ex.ToString();
+        return message.Contains("Cannot downgrade", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("Invalid MySQL server downgrade", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("Data Dictionary initialization failed", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("Failed to initialize DD Storage Engine", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void BackupIncompatibleDataDirectory()
+    {
+        var dataDir = AppPaths.MySqlDataDirectory;
+        if (!Directory.Exists(dataDir)) return;
+
+        var backup = Path.Combine(
+            AppPaths.MySqlDirectory,
+            $"data.incompatible-{DateTime.Now:yyyyMMdd-HHmmss}");
+
+        try
+        {
+            Directory.Move(dataDir, backup);
+            Log($"Datadir incompatible movido a {backup}.");
+        }
+        catch (Exception ex)
+        {
+            throw new MySqlStartupException(
+                "No se pudo mover el datadir local incompatible. " +
+                "Cerrá Safe-Sale por completo, esperá unos segundos y volvé a intentar.\n\n" +
+                ex.Message, ex);
+        }
     }
 
     private static bool IsPortFree(int port)
