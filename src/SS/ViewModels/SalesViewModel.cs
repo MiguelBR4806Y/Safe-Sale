@@ -137,7 +137,6 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         _cameraService = new CameraService();
         _barcodeScanner = new BarcodeScannerService();
         _mobileScanner = mobileScanner;
-        AvailableCameras = _cameraService.GetAvailableCameras().ToList();
         SelectedCameraIndex = 0;
 
         _cameraService.FrameAvailable += OnFrameAvailable;
@@ -303,9 +302,26 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
         }
         else
         {
+            var cameraIndex = SelectedCameraIndex;
+
             Task.Run(async () =>
             {
-                await _cameraService.StartCaptureAsync(SelectedCameraIndex);
+                if (AvailableCameras.Count == 0)
+                {
+                    var cameras = _cameraService.GetAvailableCameras().ToList();
+                    cameraIndex = 0;
+
+                    if (cameras.Count > 0)
+                    {
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            AvailableCameras = cameras;
+                            SelectedCameraIndex = 0;
+                        });
+                    }
+                }
+
+                await _cameraService.StartCaptureAsync(cameraIndex);
                 var isCapturing = _cameraService.IsCapturing;
 
                 Dispatcher.UIThread.Post(() =>
@@ -314,7 +330,7 @@ public partial class SalesViewModel : ViewModelBase, IDisposable
 
                     if (!IsCameraActive)
                     {
-                        ScanFeedback = "No se pudo acceder a la c\u00e1mara";
+                        ScanFeedback = "No se pudo acceder a la cámara";
                         ScanFeedbackColor = "#EF5350";
                     }
                 });

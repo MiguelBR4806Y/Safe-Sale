@@ -56,6 +56,17 @@ if [ -f "$ICON_PNG" ] && [ ! -f "$ICON_ICNS" ] && command -v iconutil >/dev/null
     rm -rf "$(dirname "$TMPICONSET")"
 fi
 
+# Velopack usa este Info.plist tal cual para el bundle: debe incluir los permisos
+# de cámara/micrófono y los datos del bundle, no solo las claves de privacidad.
+PLIST_TEMPLATE="$ROOT/src/SS/Platforms/macOS/Info.velopack.plist"
+PLIST_FILE=""
+if [ -f "$PLIST_TEMPLATE" ]; then
+    PLIST_FILE="$(mktemp -t safesale-info).plist"
+    cp "$PLIST_TEMPLATE" "$PLIST_FILE"
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$PLIST_FILE"
+    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VERSION" "$PLIST_FILE"
+fi
+
 pack_arch() {
     local rid="$1"
     local channel="$2"
@@ -69,15 +80,18 @@ pack_arch() {
     dotnet publish "$PROJECT" -c Release -r "$rid" --self-contained true -o "$PUBLISH/$rid"
 
     rm -rf "$out"
-    ICON_ARGS=()
+    EXTRA_ARGS=()
     if [ -f "$ICON_ICNS" ]; then
-        ICON_ARGS=(--icon "$ICON_ICNS")
+        EXTRA_ARGS+=(--icon "$ICON_ICNS")
+    fi
+    if [ -n "$PLIST_FILE" ] && [ -f "$PLIST_FILE" ]; then
+        EXTRA_ARGS+=(--plist "$PLIST_FILE")
     fi
 
     vpk pack --packId "$PACK_ID" --packVersion "$VERSION" \
         --packDir "$PUBLISH/$rid" --mainExe "$MAIN_EXE" \
         --outputDir "$out" --channel "$channel" \
-        "${ICON_ARGS[@]+"${ICON_ARGS[@]}"}" \
+        "${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}" \
         --packAuthors "Safe-Sale Team" --yes
 
     for pkg in "$out"/*.pkg; do

@@ -164,7 +164,6 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
         _mobileScanner = mobileScanner;
         _cameraService = new CameraService();
         _barcodeScanner = new BarcodeScannerService();
-        AvailableCameras = _cameraService.GetAvailableCameras().ToList();
         SelectedCameraIndex = 0;
 
         _mobileScanner.BarcodeReceived += OnMobileBarcodeReceived;
@@ -652,9 +651,26 @@ public partial class InventoryViewModel : ViewModelBase, IDisposable
         }
         else
         {
+            var cameraIndex = SelectedCameraIndex;
+
             Task.Run(async () =>
             {
-                await _cameraService.StartCaptureAsync(SelectedCameraIndex);
+                if (AvailableCameras.Count == 0)
+                {
+                    var cameras = _cameraService.GetAvailableCameras().ToList();
+                    cameraIndex = 0;
+
+                    if (cameras.Count > 0)
+                    {
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            AvailableCameras = cameras;
+                            SelectedCameraIndex = 0;
+                        });
+                    }
+                }
+
+                await _cameraService.StartCaptureAsync(cameraIndex);
                 var isCapturing = _cameraService.IsCapturing;
 
                 Dispatcher.UIThread.Post(() =>
